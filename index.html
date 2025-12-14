@@ -1,0 +1,1021 @@
+<!DOCTYPE html>
+<html lang="th">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>สรุปบิลรายจ่าย - คริสตจักรลูกของความสว่าง</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;600;700;800&display=swap" rel="stylesheet">
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        // Use Sarabun for Thai and system-ui for fallback
+                        sans: ['Sarabun', 'system-ui', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'Helvetica Neue', 'Arial', 'Noto Sans', 'sans-serif'],
+                    },
+                    boxShadow: {
+                        '3xl': '0 25px 50px -12px rgba(0, 0, 0, 0.15), 0 0 10px rgba(0, 0, 0, 0.05)',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* 1. **ปรับปรุง: เพิ่มขนาดพื้นฐานของ Container และองค์ประกอบอื่นๆ** */
+        .bill-container {
+            font-family: 'Sarabun', system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif;
+            font-weight: 400;
+            font-size: 1.15rem;
+            /* เพิ่มขนาดตัวอักษรพื้นฐาน */
+        }
+
+
+        /* ปรับขนาดใหญ่ขึ้นสำหรับ Input Text นอกตาราง*/
+        #billContent input[type="text"] {
+            font-size: 1.25rem !important;
+            /* ใหญ่ขึ้น */
+        }
+
+
+        /* Custom styles for print/PDF preview (Higher priority for PDF capture) */
+        @media print {
+            body {
+                background: none;
+            }
+
+            .print-hidden {
+                display: none;
+            }
+
+            .bill-container {
+                box-shadow: none;
+                border: none;
+                font-size: 18px;
+                /* เพิ่มขนาดพื้นฐานสำหรับ PDF */
+            }
+
+            .bill-table th,
+            .bill-table td {
+                padding: 12px 10px !important;
+                /* เพิ่ม Padding ในตารางสำหรับ PDF */
+                font-size: 16px !important;
+                /* ใหญ่ขึ้น */
+            }
+
+            .bill-table input {
+                font-size: 16px !important;
+                /* ใหญ่ขึ้น */
+                /* Note: We rely on #billContent input below to fix clipping */
+                padding: 0 !important;
+            }
+
+            /* Adjust header font size for PDF */
+            #billContent h1 {
+                font-size: 36px !important;
+                /* ใหญ่ขึ้น */
+            }
+
+            #billContent h2 {
+                font-size: 28px !important;
+                /* ใหญ่ขึ้น */
+            }
+
+            /* Adjust logo size for PDF (relative to 18px base font) */
+            #billContent .header-logo {
+                width: 50px !important;
+                /* ใหญ่ขึ้น */
+                height: 50px !important;
+                /* ใหญ่ขึ้น */
+            }
+
+            /* NEW: Ensure the export date/time is visible in print/PDF */
+            .print-only {
+                display: block !important;
+            }
+        }
+
+        /* Global Font Setting */
+        .bill-container {
+            font-family: 'Sarabun', system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif;
+            font-weight: 400;
+        }
+
+        /* Style for the preview iframe */
+        #pdfPreviewModal iframe {
+            width: 100%;
+            height: 80vh;
+            border-radius: 0.75rem;
+        }
+
+        /* CSS to hide number input arrows/spinners */
+        .no-spinners::-webkit-outer-spin-button,
+        .no-spinners::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+
+        .no-spinners {
+            -moz-appearance: textfield;
+            /* Firefox */
+        }
+
+        /* 2. **ปรับปรุง: เพิ่มขนาดเซลล์และตัวอักษรในตาราง** */
+        .bill-table th,
+        .bill-table td {
+            padding-left: 1.5rem;
+            /* เพิ่ม Padding */
+            padding-right: 1.5rem;
+            /* เพิ่ม Padding */
+            padding-top: 1rem;
+            /* เพิ่ม Padding */
+            padding-bottom: 1rem;
+            /* เพิ่ม Padding */
+            font-size: 1.1rem;
+            /* ใหญ่ขึ้น */
+        }
+
+        @media (min-width: 640px) {
+
+            .bill-table th,
+            .bill-table td {
+                padding-left: 1.5rem;
+                /* ใหญ่ขึ้น */
+                padding-right: 1.5rem;
+                /* ใหญ่ขึ้น */
+                font-size: 1.2rem;
+                /* ใหญ่ขึ้น */
+            }
+        }
+
+        .bill-table input {
+            min-width: 0;
+        }
+
+        /* Override border style for pdf capture, show only table borders */
+        /* IMPORTANT: This ensures inputs are invisible in the PDF capture, but text is not clipped */
+        #billContent input {
+            border-color: transparent !important;
+            /* แก้ไขแล้ว: เพิ่ม padding แนวตั้งเล็กน้อยเพื่อป้องกันการถูกตัดขอบ */
+            padding: 1px 0;
+            margin: 0;
+            line-height: 1.5;
+            color: #1f2937;
+            /* Gray-800 */
+        }
+
+        /* Custom style for signature lines in PDF */
+        #billContent .signature-line {
+            border-bottom: 2px solid #9ca3af;
+            /* Gray-400 */
+        }
+
+        /* NEW: Style for the readonly date input */
+        #billDateDisplay {
+            padding: 0.25rem 0.5rem;
+            border-color: #9ca3af;
+            font-weight: 600;
+            /* Semi-bold for date */
+        }
+    </style>
+</head>
+
+<body class="bg-gray-50 min-h-screen p-4 sm:p-8 font-sans">
+
+    <div class="max-w-6xl mx-auto bg-white p-6 sm:p-8 md:p-12 rounded-2xl shadow-3xl">
+
+        <div id="billContent" class="bill-container p-4 sm:p-6 md:p-8 border-4 border-gray-300 rounded-xl bg-white">
+
+            <header class="text-center mb-6 sm:mb-8 md:mb-10">
+                <div class="flex items-center justify-center mb-5 sm:mb-6">
+                    <div class="header-logo-from-css w-4 h-5 sm:w-12 sm:h-12 mr-3 object-contain" alt="Church Logo"
+                        title="Church Logo">
+                    </div>
+
+                    <h1 class="text-xl sm:text-4xl font-extrabold text-blue-900 tracking-wide leading-relaxed">
+                        คริสตจักรลูกของความสว่าง</h1>
+                </div>
+                <h2
+                    class="text-xl sm:text-2xl font-bold text-gray-700 mb-4 sm:mb-6 border-b-2 border-blue-400 pb-1 sm:pb-2 inline-block leading-relaxed">
+                    บิลรายการซื้อของ</h2>
+
+                <div class="flex items-center w-full mt-4 mb-6">
+                    <span
+                        class="font-semibold text-gray-800 mr-2 whitespace-nowrap text-sm sm:text-base">วัตถุประสงค์:</span>
+                    <input id="billPurpose" type="text" placeholder="เช่น ของใช้สำหรับงานคริสต์มาส, ค่าเดินทางไป..."
+                        class="border-b-2 border-gray-400 p-1 text-sm sm:text-lg text-gray-800 focus:outline-none focus:border-blue-600 w-full bg-transparent text-left">
+                </div>
+                <div
+                    class="flex flex-col sm:flex-row justify-between items-center text-sm sm:text-base text-gray-600 space-y-3 sm:space-y-0 sm:space-x-8">
+                    <div class="flex items-center w-full sm:w-1/2">
+                        <span class="font-semibold text-gray-800 mr-2 whitespace-nowrap">วันเดือนปี:</span>
+                        <input id="billDateDisplay" type="text" readonly
+                            class="text-sm sm:text-lg text-gray-800 focus:outline-none w-full bg-transparent text-center border-b-2 border-gray-400 p-1">
+                        <input id="billDate" type="hidden" value="">
+                    </div>
+                    <div class="flex items-center w-full sm:w-1/2">
+                        <span class="font-semibold text-gray-800 mr-2 whitespace-nowrap">ผู้รับผิดชอบ:</span>
+                        <input id="personInCharge" type="text" placeholder="กรุณากรอกชื่อผู้รับผิดชอบ"
+                            class="border-b-2 border-gray-400 p-1 text-sm sm:text-lg text-gray-800 focus:outline-none focus:border-blue-600 w-full text-center bg-transparent">
+                    </div>
+                </div>
+            </header>
+
+            <div class="overflow-x-auto mb-10 sm:mb-16 shadow-lg rounded-lg border border-gray-300">
+                <table class="min-w-full bg-white border-collapse border-0 bill-table rounded-lg overflow-hidden">
+                    <thead class="bg-blue-800 text-white shadow-md">
+                        <tr class="border-b-2 border-blue-900">
+                            <th
+                                class="py-2 px-2 sm:py-3 sm:px-4 text-left text-xs sm:text-sm font-bold border-r border-blue-900 w-3/6">
+                                ชื่อสินค้า</th>
+                            <th
+                                class="py-2 px-2 sm:py-3 sm:px-4 text-right text-xs sm:text-sm font-bold w-1/8 border-r border-blue-900">
+                                จำนวน</th>
+                            <th
+                                class="py-2 px-2 sm:py-3 sm:px-4 text-right text-xs sm:text-sm font-bold w-1/8 border-r border-blue-900">
+                                ราคา/หน่วย</th>
+                            <th class="py-2 px-2 sm:py-3 sm:px-4 text-right text-xs sm:text-sm font-bold w-1/8">
+                                ราคารวม</th>
+                            <th
+                                class="py-2 px-2 sm:py-3 sm:px-4 text-center text-xs sm:text-sm font-bold w-12 sm:w-16 print-hidden">
+                                ลบ</th>
+                        </tr>
+                    </thead>
+                    <tbody id="itemTableBody" class="text-gray-700">
+                    </tbody>
+                    <tfoot>
+                        <tr class="bg-white border-b border-gray-200 print-hidden">
+                            <td colspan="5" class="py-2 px-2 sm:py-3 sm:px-4 text-right">
+                                <button onclick="addItem()"
+                                    class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg shadow-md transition duration-200 text-sm sm:text-base w-full sm:w-auto flex items-center justify-center sm:float-right">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" fill="none"
+                                        viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                        <path stroke-linecap="round" stroke-linejoin="round"
+                                            d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                                    </svg>
+                                    เพิ่มรายการสินค้า
+                                </button>
+                            </td>
+                        </tr>
+                        <tr class="border-t-4 border-blue-600 bg-gray-100">
+                            <td colspan="3"
+                                class="py-3 px-2 sm:py-4 sm:px-4 text-right text-sm sm:text-lg font-extrabold text-blue-800 border-r-4 border-blue-600">
+                                รวมทั้งสิ้น</td>
+                            <td id="grandTotal"
+                                class="py-3 px-2 sm:py-4 sm:px-4 text-right text-md sm:text-xl font-black text-blue-800">
+                                0.00</td>
+                            <td class="print-hidden"></td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+
+            <div
+                class="flex flex-col sm:flex-row justify-around mt-16 sm:mt-24 text-sm sm:text-base space-y-8 sm:space-y-0">
+                <div class="text-center w-full sm:w-48 md:w-64">
+                    <p class="mb-8 sm:mb-10 text-gray-700 signature-line pb-1 w-full"></p>
+                    <p class="text-gray-600 font-medium">(ผู้รับผิดชอบ)</p>
+                </div>
+                <div class="text-center w-full sm:w-48 md:w-64">
+                    <p class="mb-8 sm:mb-10 text-gray-700 signature-line pb-1 w-full"></p>
+                    <p class="text-gray-600 font-medium">(ผู้อนุมัติ)</p>
+                </div>
+            </div>
+
+            <div id="exportDateTime" class="text-xs text-right text-gray-500 mt-10 print-only" style="display: none;">
+            </div>
+
+        </div>
+        <div class="mt-8 pt-6 sm:pt-8 border-t border-gray-200 print-hidden">
+            <h3 class="text-xl sm:text-2xl font-bold text-gray-800 mb-6">จัดการสลิปและเอกสาร</h3>
+
+            <div class="mt-4 p-4 sm:p-6 border-4 border-dashed border-blue-300 rounded-xl bg-blue-50">
+                <label class="block text-md sm:text-lg font-bold text-blue-800 mb-3">อัปโหลดรูปภาพสลิป/ใบเสร็จ</label>
+                <input type="file" id="receiptImageInput" accept="image/*" multiple onchange="handleImageUpload(event)"
+                    class="block w-full text-sm text-gray-600
+                    file:mr-4 file:py-2 file:px-4
+                    file:rounded-full file:border-0
+                    file:text-sm file:font-semibold
+                    file:bg-blue-100 file:text-blue-700
+                    hover:file:bg-blue-200 cursor-pointer
+                " />
+                <div id="imageStatus" class="mt-3 text-sm text-blue-600">รองรับไฟล์ JPG/PNG หลายไฟล์ (สูงสุด 5MB/ไฟล์)
+                </div>
+                <div id="receiptsPreviewContainer"
+                    class="mt-6 flex flex-wrap gap-4 sm:gap-6 justify-center sm:justify-start">
+                </div>
+            </div>
+
+            <div class="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-6 mt-8">
+                <button onclick="previewPDF()"
+                    class="flex-1 flex items-center justify-center bg-blue-700 hover:bg-blue-800 text-white font-bold py-4 px-8 rounded-xl shadow-xl transition duration-300 transform hover:scale-[1.02] text-lg">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 inline-block mr-3" fill="none"
+                        viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                            d="M2.458 12C3.732 7.943 7.523 5 12 5c4.477 0 8.268 2.943 9.542 7-1.274 4.057-5.065 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                    </svg>
+                    พรีวิว PDF
+                </button>
+                <button onclick="downloadPDF()"
+                    class="flex-1 flex items-center justify-center bg-red-700 hover:bg-red-800 text-white font-bold py-4 px-8 rounded-xl shadow-xl transition duration-300 transform hover:scale-[1.02] text-lg">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 inline-block mr-3" fill="none"
+                        viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                            d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                    </svg>
+                    ดาวน์โหลด PDF
+                </button>
+            </div>
+
+            <div id="messageBox"
+                class="mt-6 p-4 bg-yellow-100 text-yellow-800 border border-yellow-400 rounded-lg hidden font-medium text-sm sm:text-base">
+            </div>
+
+        </div>
+    </div>
+
+    <div id="pdfPreviewModal"
+        class="fixed inset-0 bg-gray-900 bg-opacity-75 flex items-center justify-center z-50 hidden p-4"
+        onclick="closeModal(event)">
+        <div class="bg-white p-6 sm:p-8 rounded-2xl shadow-3xl max-w-7xl w-full h-[95vh]"
+            onclick="event.stopPropagation()">
+            <div class="flex justify-between items-center mb-4 sm:mb-6 border-b pb-3">
+                <h2 class="text-xl sm:text-2xl font-bold text-gray-800">ตัวอย่างเอกสาร PDF</h2>
+                <button onclick="hideModal()"
+                    class="text-gray-500 hover:text-gray-700 text-3xl font-bold leading-none p-2 transition-colors">
+                    &times;
+                </button>
+            </div>
+            <iframe id="pdfIframe" class="w-full h-[85vh] rounded-xl border-2 border-gray-300"></iframe>
+        </div>
+    </div>
+
+
+    <script>
+        // Global state
+        let items = [];
+        let receiptImages = [];
+        const MessageDelay = 3000;
+
+        // Utility to generate a unique ID
+        const generateUniqueId = () => '_' + Math.random().toString(36).substr(2, 9);
+
+
+        // **NEW: Enter Key Handler**
+        const handleEnterKey = (event) => {
+            if (event.key === 'Enter') {
+                event.preventDefault(); // Prevent default form submission or line break
+                addItem();
+            }
+        };
+
+        // **NEW: Attach Enter Key Handlers**
+        const attachEnterKeyHandlers = () => {
+            // Select all relevant input fields that should trigger adding a new item
+            // billDateDisplay is excluded because it's readonly
+            const inputs = document.querySelectorAll('#itemTableBody input, #billPurpose, #personInCharge');
+            inputs.forEach(input => {
+                // Remove existing listener first to prevent duplicates after renderTable()
+                input.removeEventListener('keydown', handleEnterKey);
+                input.addEventListener('keydown', handleEnterKey);
+            });
+        };
+
+        // **NEW: Date Formatting and Initialization (dd/mm/yyyy)**
+        /**
+         * Formats a Date object or ISO string (yyyy-mm-dd) to dd/mm/yyyy (Thai format).
+         */
+        const formatDate = (dateValue) => {
+            if (!dateValue) return '';
+
+            let dateObj;
+            if (dateValue instanceof Date) {
+                dateObj = dateValue;
+            } else if (typeof dateValue === 'string') {
+                // Handle ISO format (yyyy-mm-dd) which is common from date pickers
+                const parts = dateValue.split('-');
+                if (parts.length === 3) {
+                    // Note: Month is 0-indexed in Date constructor (parts[1]-1)
+                    dateObj = new Date(parts[0], parts[1] - 1, parts[2]);
+                } else {
+                    return dateValue; // Return unformatted if format is not recognized
+                }
+            } else {
+                return dateValue;
+            }
+
+            const day = String(dateObj.getDate()).padStart(2, '0');
+            const month = String(dateObj.getMonth() + 1).padStart(2, '0');
+            const year = dateObj.getFullYear();
+
+            return `${day}/${month}/${year}`;
+        };
+
+        // NEW: Formats a Date object to dd/mm/yyyy hh:mm for export footer
+        const formatExportDateTime = (dateObj) => {
+            const day = String(dateObj.getDate()).padStart(2, '0');
+            const month = String(dateObj.getMonth() + 1).padStart(2, '0');
+            const year = dateObj.getFullYear();
+            const hour = String(dateObj.getHours()).padStart(2, '0');
+            const minute = String(dateObj.getMinutes()).padStart(2, '0');
+
+            return `${day}/${month}/${year} ${hour}:${minute}`;
+        };
+
+        /**
+         * Initializes the date field with the current date automatically.
+         */
+        const initializeDateInput = () => {
+            const dateDisplayInput = document.getElementById('billDateDisplay');
+            const dateInputFormatted = document.getElementById('billDate');
+
+            const today = new Date();
+            const todayFormatted = formatDate(today);
+
+            // Set today's date as the value in both the visible readonly input and the hidden input
+            dateInputFormatted.value = todayFormatted;
+            dateDisplayInput.value = todayFormatted;
+        };
+
+
+        // --- Core Application Logic ---
+
+        const calculateRowTotal = (qty, price) => {
+            const numQty = parseFloat(qty) || 0;
+            const numPrice = parseFloat(price) || 0;
+            return (numQty * numPrice).toFixed(2);
+        };
+
+        const updateItem = (index, field, value) => {
+            if (index >= 0 && index < items.length) {
+                if (field === 'qty' || field === 'price') {
+                    // FIXED: Store the raw string value (which can be empty '') to keep input field clear
+                    items[index][field] = value;
+
+                    // Use safe numeric values for calculation
+                    const item = items[index];
+                    const safeQty = parseFloat(item.qty) || 0;
+                    const safePrice = parseFloat(item.price) || 0;
+
+                    // Update total based on safe numeric values
+                    item.total = calculateRowTotal(safeQty, safePrice);
+
+                    document.getElementById(`total-${index}`).textContent = parseFloat(item.total).toLocaleString('en-US', {
+                        minimumFractionDigits: 2
+                    });
+                } else {
+                    items[index][field] = value;
+                }
+
+                calculateGrandTotal();
+            }
+        };
+
+        /**
+         * Renders the item table based on the 'items' array.
+         */
+        const renderTable = () => {
+            const tableBody = document.getElementById('itemTableBody');
+            tableBody.innerHTML = '';
+
+            if (items.length === 0) {
+                tableBody.innerHTML = `
+                    <tr>
+                        <td colspan="5" class="py-6 text-center text-gray-500 border-x-0 border-y-0 text-sm italic">
+                            ยังไม่มีรายการสินค้า. กดปุ่ม "เพิ่มรายการสินค้า" ด้านล่างนี้เพื่อเริ่มต้น.
+                        </td>
+                    </tr>
+                `;
+            }
+
+            items.forEach((item, index) => {
+                const row = document.createElement('tr');
+                row.className = 'border-b border-gray-200 hover:bg-gray-50 transition duration-150';
+
+                // Product Name Input - Width for mobile optimization (w-full used inside td)
+                row.innerHTML += `
+                    <td class="py-2 px-2 sm:py-3 sm:px-4 border-r border-gray-200 w-3/6">
+                        <input type="text" value="${item.name}" placeholder="ชื่อสินค้า/บริการ"
+                            oninput="updateItem(${index}, 'name', this.value)"
+                            class="w-full focus:outline-none text-sm sm:text-base bg-transparent" />
+                    </td>
+                `;
+
+                // Quantity Input - Value uses item.qty (which can be '' or a number)
+                row.innerHTML += `
+                    <td class="py-2 px-2 sm:py-3 sm:px-4 text-right border-r border-gray-200 w-1/8">
+                        <input type="number" value="${item.qty}" min="0"
+                            oninput="updateItem(${index}, 'qty', this.value)"
+                            class="w-full text-right focus:outline-none no-spinners text-sm sm:text-base bg-transparent" />
+                    </td>
+                `;
+
+                // Unit Price Input - Value uses item.price (which can be '' or a number)
+                row.innerHTML += `
+                    <td class="py-2 px-2 sm:py-3 sm:px-4 text-right border-r border-gray-200 w-1/8">
+                        <input type="number" value="${item.price}" min="0" step="0.01"
+                            oninput="updateItem(${index}, 'price', this.value)"
+                            class="w-full text-right focus:outline-none no-spinners text-sm sm:text-base bg-transparent" />
+                    </td>
+                `;
+
+                // Total Price (Display only)
+                row.innerHTML += `
+                    <td id="total-${index}" class="py-2 px-2 sm:py-3 sm:px-4 text-right font-semibold text-sm sm:text-base text-blue-800 w-1/8">
+                        ${parseFloat(item.total).toLocaleString('en-US', {
+                    minimumFractionDigits: 2
+                })}
+                    </td>
+                `;
+
+                // Delete Button
+                row.innerHTML += `
+                    <td class="py-2 px-2 sm:py-3 sm:px-4 text-center print-hidden w-12 sm:w-16">
+                        <button onclick="deleteItem(${index})" class="text-red-500 hover:text-red-700 text-lg transition-colors">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 sm:h-5 sm:w-5 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                            </svg>
+                        </button>
+                    </td>
+                `;
+
+                tableBody.appendChild(row);
+            });
+
+            // FIXED: Attach keydown listeners after the table is rendered
+            attachEnterKeyHandlers();
+        };
+
+        const calculateGrandTotal = () => {
+            // Note: item.total is maintained as a string representing a fixed float in updateItem
+            const grandTotal = items.reduce((sum, item) => sum + parseFloat(item.total), 0);
+            document.getElementById('grandTotal').textContent = grandTotal.toLocaleString('en-US', {
+                minimumFractionDigits: 2
+            });
+        };
+
+        const addItem = () => {
+            // FIXED: Set initial values to empty string '' to prevent '0' from showing
+            items.push({
+                name: '',
+                qty: '', // Changed from 1
+                price: '', // Changed from 0.00
+                total: '0.00'
+            });
+            renderTable();
+            calculateGrandTotal();
+        };
+
+        const deleteItem = (index) => {
+            items.splice(index, 1);
+            renderTable();
+            calculateGrandTotal();
+        };
+
+        const showMessage = (msg, type = 'warning') => {
+            const box = document.getElementById('messageBox');
+            let baseClasses = "mt-6 p-4 border rounded-lg font-medium text-sm sm:text-base";
+
+            if (type === 'error') {
+                box.className = `${baseClasses} bg-red-100 text-red-800 border-red-400`;
+            } else if (type === 'success') {
+                box.className = `${baseClasses} bg-green-100 text-green-800 border-green-400`;
+            } else { // default warning
+                box.className = `${baseClasses} bg-yellow-100 text-yellow-800 border-yellow-400`;
+            }
+
+            box.textContent = msg;
+            box.style.display = 'block';
+
+            setTimeout(() => {
+                box.style.display = 'none';
+            }, MessageDelay);
+        };
+
+        // --- Image Handling ---
+
+        const renderReceipts = () => {
+            const container = document.getElementById('receiptsPreviewContainer');
+            container.innerHTML = '';
+
+            if (receiptImages.length === 0) {
+                document.getElementById('receiptImageInput').value = null;
+                return;
+            }
+
+            receiptImages.forEach(image => {
+                const card = document.createElement('div');
+                card.id = `receipt-card-${image.id}`;
+                card.className = 'relative w-32 h-32 sm:w-36 sm:h-36 bg-gray-200 rounded-xl shadow-lg overflow-hidden flex-shrink-0 transition-transform hover:scale-[1.05] duration-200';
+                card.innerHTML = `
+                    <img src="${image.base64}" alt="Receipt Image" class="w-full h-full object-cover object-center">
+                    <button onclick="deleteReceipt('${image.id}')" 
+                            class="absolute top-1 right-1 sm:top-2 sm:right-2 bg-red-600 text-white rounded-full p-1 leading-none text-xs sm:text-base w-6 h-6 sm:w-7 sm:h-7 flex items-center justify-center shadow-xl hover:bg-red-800 transition transform hover:rotate-12">
+                        &times;
+                    </button>
+                `;
+                container.appendChild(card);
+            });
+        };
+
+        const deleteReceipt = (id) => {
+            const initialLength = receiptImages.length;
+            receiptImages = receiptImages.filter(img => img.id !== id);
+            if (receiptImages.length < initialLength) {
+                renderReceipts();
+                showMessage("ลบรูปภาพใบเสร็จแล้ว", 'success');
+            }
+        };
+
+        function handleImageUpload(event) {
+            const files = event.target.files;
+
+            if (files.length === 0) {
+                return;
+            }
+
+            let filesProcessed = 0;
+            let filesFailed = 0;
+            const totalFiles = files.length;
+            let newImagesCount = 0;
+
+            const checkCompletion = () => {
+                if (filesProcessed + filesFailed === totalFiles) {
+                    renderReceipts();
+                    if (filesFailed > 0) {
+                        showMessage(`อัปโหลดสำเร็จ ${newImagesCount} ไฟล์, ล้มเหลว ${filesFailed} ไฟล์ (ขนาดเกิน)`, 'warning');
+                    } else {
+                        showMessage(`อัปโหลดรูปภาพสลิป ${newImagesCount} ไฟล์เรียบร้อยแล้ว!`, 'success');
+                    }
+                }
+            };
+
+            for (let i = 0; i < totalFiles; i++) {
+                const file = files[i];
+
+                if (file.size > 5 * 1024 * 1024) { // 5MB limit
+                    console.error(`[Image Error] File ${file.name} is too large. Size: ${file.size}`);
+                    filesFailed++;
+                    checkCompletion();
+                    continue;
+                }
+
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    receiptImages.push({
+                        id: generateUniqueId(),
+                        base64: e.target.result,
+                        name: file.name
+                    });
+                    filesProcessed++;
+                    newImagesCount++;
+                    checkCompletion();
+                };
+                reader.onerror = (e) => {
+                    console.error(`[Image Error] Error reading file ${file.name}:`, e);
+                    filesFailed++;
+                    checkCompletion();
+                }
+                reader.readAsDataURL(file);
+            }
+            event.target.value = null;
+        }
+
+
+        // --- New: Cleanup function for empty rows before export (User Request) ---
+        /**
+         * Filters out rows that are completely empty (no name and zero total) from the global items array.
+         * Updates the DOM (renderTable) and total if items were removed.
+         */
+        const cleanEmptyItemsBeforeExport = () => {
+            const initialLength = items.length;
+
+            items = items.filter(item => {
+                const nameFilled = item.name.trim().length > 0;
+                const totalNonZero = (parseFloat(item.total) || 0) > 0;
+
+                // Keep the row if it has a name OR if it has a calculated total > 0.
+                // This ensures completely blank rows are removed.
+                return nameFilled || totalNonZero;
+            });
+
+            // Re-render only if something was removed to reflect changes in the UI before capture
+            if (items.length !== initialLength) {
+                renderTable();
+                calculateGrandTotal();
+            }
+        };
+
+
+        // --- NEW: Validation Logic ---
+
+        /**
+         * Checks if all required fields (Purpose, Date, Person, and at least one complete item) are filled.
+         * Runs *after* cleanEmptyItemsBeforeExport() has removed totally blank rows.
+         * @returns {string|null} Error message string if validation fails, otherwise null.
+         */
+        const validateForm = () => {
+            const billPurpose = document.getElementById('billPurpose').value.trim();
+            // Use the hidden formatted input for validation check
+            const billDate = document.getElementById('billDate').value.trim();
+            const personInCharge = document.getElementById('personInCharge').value.trim();
+
+            if (!billPurpose) {
+                document.getElementById('billPurpose').focus();
+                return "กรุณากรอก **วัตถุประสงค์** ของบิลรายการซื้อของ";
+            }
+            // Since the date is auto-filled, we check if it has a value.
+            if (!billDate) {
+                document.getElementById('personInCharge').focus();
+                return "พบข้อผิดพลาด: ไม่สามารถตั้งค่าวันเดือนปีปัจจุบันได้ (กรุณาตรวจสอบ Console)";
+            }
+            if (!personInCharge) {
+                document.getElementById('personInCharge').focus();
+                return "กรุณากรอก **ชื่อผู้รับผิดชอบ**";
+            }
+
+            // Filter items to include only those with a name AND quantity/price > 0
+            const validItems = items.filter(item => {
+                const nameValid = item.name.trim().length > 0;
+                // Item is considered fully valid if it has a name AND calculated total > 0
+                return nameValid && (parseFloat(item.total) || 0) > 0;
+            });
+
+            if (validItems.length === 0) {
+                // Try to focus the first item name input if items array is not empty
+                const firstItemNameInput = document.querySelector('#itemTableBody input[type="text"]');
+                if (firstItemNameInput) {
+                    firstItemNameInput.focus();
+                }
+                return "กรุณาเพิ่มรายการสินค้าที่ครบถ้วน (ชื่อสินค้า, จำนวน, และราคาต้องไม่เป็นศูนย์)";
+            }
+
+            // Optional: Check if any item has a name but 0 total (and warn if we have valid items too)
+            const incompleteItems = items.filter(item => {
+                const nameExists = item.name.trim().length > 0;
+                const totalZero = (parseFloat(item.total) || 0) === 0;
+                return nameExists && totalZero;
+            });
+
+            if (incompleteItems.length > 0 && validItems.length > 0) {
+                // Focus on the first incomplete item's quantity or price field for user clarity
+                const firstIncompleteRow = document.querySelector(`#itemTableBody input[value="${incompleteItems[0].name}"]`)?.closest('tr');
+                if (firstIncompleteRow) {
+                    // Try focusing the price input if possible
+                    const priceInput = firstIncompleteRow.querySelector('input[type="number"][oninput*="price"]');
+                    if (priceInput) priceInput.focus();
+                }
+                showMessage("พบรายการที่กรอกชื่อสินค้า แต่ราคารวมเป็น 0.00 บาท (โปรดตรวจสอบจำนวน/ราคาต่อหน่วย).", 'warning');
+            }
+
+
+            return null; // All required fields are valid
+        };
+
+
+        // --- PDF Generation Logic ---
+
+        /**
+         * Generates the multi-page PDF document.
+         * @returns {Promise<jsPDF>} A promise that resolves with the jsPDF instance.
+         */
+        const generatePDFDocument = async () => {
+            const {
+                jsPDF
+            } = window.jspdf;
+            const doc = new jsPDF('p', 'mm', 'a4');
+            const docWidth = doc.internal.pageSize.getWidth();
+            const docHeight = doc.internal.pageSize.getHeight();
+            const margin = 10;
+            const contentWidth = docWidth - 2 * margin;
+
+            // --- Page 1: Bill Summary (Capture via html2canvas) ---
+            const billContent = document.getElementById('billContent');
+            const h1 = billContent.querySelector('h1');
+            const h2 = billContent.querySelector('h2');
+            const logo = billContent.querySelector('.header-logo'); // Select the logo
+            let canvas;
+
+            // Store original styles to restore them correctly
+            const originalH1FontSize = h1 ? h1.style.fontSize : '';
+            const originalH2FontSize = h2 ? h2.style.fontSize : '';
+            const originalBillFontSize = billContent.style.fontSize;
+            const originalLogoWidth = logo ? logo.style.width : ''; // Store logo styles
+            const originalLogoHeight = logo ? logo.style.height : '';
+
+            // NEW: 1. Set the current export date/time
+            const exportDateTimeElement = document.getElementById('exportDateTime');
+            const now = new Date();
+            exportDateTimeElement.textContent = `พิมพ์เมื่อวันที่: ${formatExportDateTime(now)}`;
+            exportDateTimeElement.style.display = 'block'; // Make it visible for capture
+
+            try {
+                // Apply temporary styles for cleaner PDF image and expanded text
+
+                // Explicitly set the font size for the entire content area for capture
+                billContent.style.fontSize = '18px';
+
+                // Adjust header sizes for PDF capture
+                if (h1) h1.style.fontSize = '36px'; // Adjusted size
+                if (h2) h2.style.fontSize = '28px'; // Adjusted size
+                // Adjust logo size explicitly for PDF capture (matching print media query)
+                if (logo) {
+                    logo.style.width = '50px'; // Adjusted size
+                    logo.style.height = '50px'; // Adjusted size
+                }
+
+                // Use scale 3 for high resolution
+                canvas = await html2canvas(billContent, {
+                    scale: 3,
+                    useCORS: true,
+                    logging: false,
+                    ignoreElements: (element) => element.classList.contains('print-hidden')
+                });
+
+                const imgData = canvas.toDataURL('image/jpeg', 1.0);
+                const imgHeight = canvas.height * contentWidth / canvas.width;
+                doc.addImage(imgData, 'JPEG', margin, margin, contentWidth, imgHeight);
+
+            } catch (error) {
+                console.error("html2canvas capture or image adding failed:", error);
+                // Re-throw the error to be caught by the calling function (previewPDF/downloadPDF)
+                throw new Error("เกิดข้อผิดพลาดในการแปลงบิลเป็นรูปภาพสำหรับ PDF: " + error.message);
+
+            } finally {
+                // Restore styles after capture (ALWAYS runs, even if try block fails)
+
+                billContent.style.fontSize = originalBillFontSize;
+                if (h1) h1.style.fontSize = originalH1FontSize;
+                if (h2) h2.style.fontSize = originalH2FontSize;
+                // Restore logo size
+                if (logo) {
+                    logo.style.width = originalLogoWidth;
+                    logo.style.height = originalLogoHeight;
+                }
+
+                // NEW: 2. Hide the export date/time element and clear content after capture
+                exportDateTimeElement.style.display = 'none';
+                exportDateTimeElement.textContent = ''; // Clear content
+            }
+
+            // --- Subsequent Pages: Receipt Images ---
+            for (const [index, image] of receiptImages.entries()) {
+                doc.addPage();
+
+                // Add a title for the receipt page
+                doc.setFontSize(18);
+                doc.setTextColor(55, 65, 81); // Gray-700
+                // doc.text(`ใบเสร็จแนบ - หน้าที่ ${index + 2}`, margin, margin + 8);
+                doc.setFontSize(12);
+                doc.setTextColor(0, 0, 0);
+
+                try {
+                    const base64Parts = image.base64.split(';');
+                    const mimeType = base64Parts[0].split(':')[1];
+                    const imageFormat = mimeType.split('/')[1].toUpperCase();
+
+                    const img = new Image();
+                    img.src = image.base64;
+                    const imgLoadPromise = new Promise(resolve => img.onload = resolve);
+                    await Promise.race([imgLoadPromise, new Promise(r => setTimeout(r, 500))]);
+
+                    const imgRatio = img.width / img.height;
+
+                    const headerSpace = 25;
+                    const maxContentHeight = docHeight - 2 * margin - headerSpace;
+
+                    let imageWidth = contentWidth;
+                    let imageHeight = contentWidth / imgRatio;
+
+                    if (imageHeight > maxContentHeight) {
+                        imageHeight = maxContentHeight;
+                        imageWidth = imageHeight * imgRatio;
+                    }
+
+                    const xPos = (docWidth - imageWidth) / 2;
+                    const yPos = margin + headerSpace + (maxContentHeight - imageHeight) / 2;
+
+                    doc.addImage(image.base64, imageFormat, xPos, yPos, imageWidth, imageHeight);
+
+                } catch (error) {
+                    console.error("[PDF Error] Image processing error for PDF Page", index + 2, ":", error);
+                    doc.text("Error loading receipt image. File: " + image.name, docWidth / 2, docHeight / 2, {
+                        align: 'center'
+                    });
+                }
+            }
+
+            if (receiptImages.length === 0 && doc.getNumberOfPages() > 1) {
+                doc.deletePage(doc.getNumberOfPages());
+            }
+
+            return doc;
+        };
+
+        // --- Modal Control ---
+
+        const showModal = () => {
+            document.getElementById('pdfPreviewModal').classList.remove('hidden');
+        };
+
+        const hideModal = () => {
+            document.getElementById('pdfPreviewModal').classList.add('hidden');
+            document.getElementById('pdfIframe').src = 'about:blank';
+        };
+
+        const closeModal = (event) => {
+            if (event.target.id === 'pdfPreviewModal') {
+                hideModal();
+            }
+        };
+
+        // --- Button Handlers ---
+
+        const previewPDF = async () => {
+            // **NEW**: Clean up completely empty rows before validation and export
+            cleanEmptyItemsBeforeExport();
+
+            const validationError = validateForm();
+            if (validationError) {
+                showMessage(`❌ ${validationError}`, 'error');
+                return;
+            }
+
+            showMessage("กำลังสร้างตัวอย่าง PDF... โปรดรอสักครู่", 'warning');
+
+            try {
+                const doc = await generatePDFDocument();
+
+                if (!doc) {
+                    showMessage("ไม่สามารถสร้างเอกสาร PDF ได้ กรุณาตรวจสอบคอนโซล (F12) สำหรับรายละเอียด.", 'error');
+                    return;
+                }
+
+                const pdfDataUri = doc.output('datauristring');
+
+                if (!pdfDataUri || pdfDataUri.length < 1000) {
+                    showMessage("เอกสาร PDF ถูกสร้าง แต่ไม่สามารถแสดงตัวอย่างบนมือถือได้ (เนื่องจากข้อจำกัดของเบราว์เซอร์). กรุณาลองกด 'ดาวน์โหลด PDF' แทน.", 'error');
+                    console.error("PDF Data URI generation likely failed or resulting URI is too short. Try downloading instead.");
+                    return;
+                }
+
+                const iframe = document.getElementById('pdfIframe');
+                iframe.src = pdfDataUri;
+                showModal();
+                showMessage("ตัวอย่าง PDF พร้อมแสดงแล้ว!", 'success');
+            } catch (error) {
+                console.error("PDF Preview Error:", error);
+                const errorMessage = error.message.startsWith('เกิดข้อผิดพลาด') ? error.message : "เกิดข้อผิดพลาดในการสร้างตัวอย่าง PDF (ดู Console สำหรับรายละเอียดเพิ่มเติม)";
+                showMessage("เกิดข้อผิดพลาดในการสร้างตัวอย่าง PDF. กรุณาลองกด 'ดาวน์โหลด PDF' แทน.", 'error');
+            }
+        };
+
+        const downloadPDF = async () => {
+            // **NEW**: Clean up completely empty rows before validation and export
+            cleanEmptyItemsBeforeExport();
+
+            const validationError = validateForm();
+            if (validationError) {
+                showMessage(`❌ ${validationError}`, 'error');
+                return;
+            }
+
+            showMessage("กำลังสร้างและดาวน์โหลด PDF...", 'warning');
+
+            try {
+                const doc = await generatePDFDocument();
+                // Use the hidden formatted input value (dd/mm/yyyy) for the filename
+                const date = document.getElementById('billDate').value;
+                const person = document.getElementById('personInCharge').value || 'Unknown';
+                const filename = `Bill_Summary_${date.replace(/\//g, '-')}_${person.replace(/[^a-z0-9\u0E00-\u0E7F]/gi, '_')}.pdf`;
+
+                doc.save(filename);
+                showMessage("ดาวน์โหลด PDF สำเร็จ!", 'success');
+
+            } catch (error) {
+                console.error("PDF Download Error:", error);
+                const errorMessage = error.message.startsWith('เกิดข้อผิดพลาด') ? error.message : "เกิดข้อผิดพลาดในการดาวน์โหลด PDF";
+                showMessage("เกิดข้อผิดพลาดในการดาวน์โหลด PDF.", 'error');
+            }
+        };
+
+        // --- Initialization ---
+
+        document.addEventListener('DOMContentLoaded', () => {
+            addItem();
+            document.getElementById('personInCharge').value = '';
+
+            // FIXED: Initialize date input and attach key handlers
+            attachEnterKeyHandlers();
+            initializeDateInput();
+        });
+    </script>
+</body>
+
+</html>
