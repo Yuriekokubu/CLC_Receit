@@ -252,7 +252,8 @@
         // --- Logic ---
         let items = [];
         let receiptImages = [];
-        const ITEMS_PER_PAGE = 14;
+        const ITEMS_PER_FIRST_PAGE = 10; // ความจุสำหรับตารางรายการสินค้าในหน้าแรก (บรรทัดตาราง)
+        const ITEMS_PER_SUBSEQUENT_PAGE = 14; // ความจุสำหรับตารางรายการสินค้าในหน้าถัดไป
 
         // Utilities
         const generateUniqueId = () => '_' + Math.random().toString(36).substr(2, 9);
@@ -287,7 +288,7 @@
             document.getElementById('messageBox').classList.add('hidden');
         };
 
-        // --- ฟังก์ชันจัดการ Focus/Blur ---
+        // --- ฟังก์ชันจัดการ Focus/Blur (ส่วนลด) ---
         const handleDiscountFocus = (inputElement) => {
             if (inputElement.value === '0' || inputElement.value === '0.00') {
                 inputElement.value = '';
@@ -298,8 +299,31 @@
             if (inputElement.value.trim() === '') {
                 inputElement.value = '0';
             }
+            // เรียกใช้ updateItem เพื่อคำนวณใหม่หากมีการเปลี่ยนแปลง
             const index = parseInt(inputElement.getAttribute('data-index'));
             updateItem(index, 'discount', inputElement.value);
+        };
+
+        /**
+         * ฟังก์ชันตรวจสอบและปัดเศษค่าที่กรอกให้เป็นจำนวนเต็มบวกเท่านั้น
+         * @param {string} value ค่าจาก input
+         * @param {number} minValue ค่าต่ำสุดที่อนุญาต (ปกติคือ 0)
+         * @returns {string} ค่าที่ถูกต้องและปัดเศษแล้ว (เป็น string)
+         */
+        const cleanNumberInput = (value, minValue = 0) => {
+            if (value.trim() === '') {
+                return '';
+            }
+
+            // 1. แปลงเป็นตัวเลขและปัดเศษให้เป็นจำนวนเต็ม
+            let num = Math.round(parseFloat(value) || 0);
+
+            // 2. ตรวจสอบค่าต่ำสุด
+            if (num < minValue) {
+                num = minValue;
+            }
+
+            return String(num);
         };
 
 
@@ -310,8 +334,8 @@
             document.getElementById('billDate').value = strDate;
             document.getElementById('billDateDisplay').value = formatDate(strDate);
 
-            // เพิ่ม 7 แถวเริ่มต้น
-            for (let i = 0; i < 7; i++) {
+            // เพิ่ม 10 แถวเริ่มต้น (ตามความจุหน้าแรก)
+            for (let i = 0; i < ITEMS_PER_FIRST_PAGE; i++) {
                 addItem(false);
             }
             renderTable();
@@ -322,6 +346,56 @@
                     if (e.key === 'Enter') e.preventDefault();
                 });
             });
+
+            // --- START: Drag and Drop Logic ---
+            const uploadZone = document.getElementById('uploadZone');
+            const defaultClasses = ['border-green-500', 'bg-green-50', 'hover:bg-green-100'];
+            const highlightClasses = ['border-blue-700', 'bg-blue-100']; // สไตล์เน้นเมื่อลากไฟล์มาวาง
+
+            // ป้องกันพฤติกรรมเริ่มต้นของเบราว์เซอร์สำหรับเหตุการณ์ลากไฟล์
+            ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+                uploadZone.addEventListener(eventName, preventDefaults, false);
+            });
+
+            function preventDefaults(e) {
+                e.preventDefault();
+                e.stopPropagation();
+            }
+
+            // เน้นพื้นที่เมื่อมีการลากไฟล์เข้า
+            uploadZone.addEventListener('dragenter', highlight, false);
+            uploadZone.addEventListener('dragover', highlight, false);
+
+            // ยกเลิกการเน้นเมื่อลากไฟล์ออกหรือวางไฟล์แล้ว
+            uploadZone.addEventListener('dragleave', unhighlight, false);
+            uploadZone.addEventListener('drop', unhighlight, false);
+
+            function highlight(e) {
+                // เพิ่มสไตล์เน้น
+                uploadZone.classList.add(...highlightClasses);
+                // ลบสไตล์ปกติ
+                uploadZone.classList.remove(...defaultClasses);
+            }
+
+            function unhighlight(e) {
+                // ลบสไตล์เน้น
+                uploadZone.classList.remove(...highlightClasses);
+                // กลับไปใช้สไตล์ปกติ
+                uploadZone.classList.add(...defaultClasses);
+            }
+
+            // จัดการเหตุการณ์ Drop
+            uploadZone.addEventListener('drop', handleDrop, false);
+
+            function handleDrop(e) {
+                const dt = e.dataTransfer;
+                const files = dt.files;
+
+                // เรียกใช้ฟังก์ชันจัดการการอัปโหลดไฟล์ที่มีอยู่เดิม
+                handleImageUpload({ target: { files: files } });
+            }
+            // --- END: Drag and Drop Logic ---
+
         });
 
         // Table Logic
@@ -332,15 +406,24 @@
                 const tr = document.createElement('tr');
                 tr.className = 'border-b hover:bg-gray-50';
 
+                // *** การแก้ไข: ลบ step="0.01" และใช้ oninput เพื่อควบคุมค่าให้เป็นจำนวนเต็ม ***
                 tr.innerHTML = `
                     <td class="p-2 border-r border-gray-300">
                         <input type="text" class="w-full bg-transparent focus:outline-none" value="${item.name}" oninput="updateItem(${index}, 'name', this.value)" placeholder="ชื่อสินค้า">
                     </td>
                     <td class="p-2 border-r border-gray-300">
-                        <input type="number" class="w-full text-right bg-transparent focus:outline-none no-spinners" value="${item.qty}" oninput="updateItem(${index}, 'qty', this.value)" min="0">
+                        <input type="number" 
+                                class="w-full text-right bg-transparent focus:outline-none no-spinners" 
+                                value="${item.qty}" 
+                                oninput="this.value = cleanNumberInput(this.value, 0); updateItem(${index}, 'qty', this.value)" 
+                                min="0" inputmode="numeric" pattern="[0-9]*">
                     </td>
                     <td class="p-2 border-r border-gray-300">
-                        <input type="number" class="w-full text-right bg-transparent focus:outline-none no-spinners" value="${item.price}" oninput="updateItem(${index}, 'price', this.value)" min="0" step="0.01">
+                        <input type="number" 
+                                class="w-full text-right bg-transparent focus:outline-none no-spinners" 
+                                value="${item.price}" 
+                                oninput="this.value = cleanNumberInput(this.value, 0); updateItem(${index}, 'price', this.value)" 
+                                min="0" inputmode="numeric" pattern="[0-9]*">
                     </td>
                     <td class="p-2 border-r border-gray-300">
                         <input type="number" 
@@ -349,14 +432,18 @@
                             data-index="${index}"
                             onfocus="handleDiscountFocus(this)" 
                             onblur="handleDiscountBlur(this)" 
-                            oninput="updateItem(${index}, 'discount', this.value)" 
-                            min="0" step="0.01">
+                            oninput="this.value = cleanNumberInput(this.value, 0); updateItem(${index}, 'discount', this.value)" 
+                            min="0" inputmode="numeric" pattern="[0-9]*">
                     </td>
                     <td class="p-2 text-right font-semibold text-blue-800 border-r border-gray-300">
                         ${formatMoney(item.total)}
                     </td>
                     <td class="p-2 text-center">
-                        <button onclick="deleteItem(${index})" class="text-red-500 hover:text-red-700">&times;</button>
+                        <button onclick="deleteItem(${index})" class="text-red-600 hover:text-red-800 p-1 rounded-full hover:bg-red-100 transition duration-150" title="ลบรายการ">
+                            <svg class="w-5 h-5 inline-block" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                            </svg>
+                        </button>
                     </td>
                 `;
                 tbody.appendChild(tr);
@@ -366,7 +453,8 @@
 
         const updateItem = (index, field, value) => {
             // 1. ตรวจสอบและแปลงค่าว่างเป็น 0 สำหรับการคำนวณเสมอ
-            let sanitizedValue = value.trim() === '' ? '0' : value;
+            // เนื่องจากมีการใช้ cleanNumberInput ใน oninput แล้ว ค่า value ที่ได้มาจึงถูกปัดเศษแล้ว (ยกเว้นค่าว่าง)
+            let sanitizedValue = value.trim() === '' ? '' : value; // เก็บคืนค่าว่างให้เป็นค่าว่างเพื่อไม่ให้แสดง 0.00 ในช่องว่าง
 
             // 2. อัปเดตค่าของฟิลด์ปัจจุบันใน items[index] ด้วย sanitizedValue
             items[index][field] = sanitizedValue;
@@ -374,10 +462,11 @@
             // 3. ถ้ามีการเปลี่ยนแปลงฟิลด์ที่เกี่ยวข้องกับการคำนวณ
             if (field === 'qty' || field === 'price' || field === 'discount') {
 
-                // *** ดึงค่าล่าสุดและแปลงเป็นตัวเลขก่อนคำนวณทั้งหมดเพื่อป้องกันการคำนวณผิดลำดับ ***
-                const q = parseFloat(items[index].qty) || 0;
-                const p = parseFloat(items[index].price) || 0;
-                const d = parseFloat(items[index].discount) || 0;
+                // *** ดึงค่าล่าสุดและแปลงเป็นตัวเลข *แบบเต็ม* ก่อนคำนวณทั้งหมด ***
+                // ใช้ parseInt(value, 10) แทน parseFloat เพื่อให้แน่ใจว่าได้จำนวนเต็ม
+                const q = parseInt(items[index].qty, 10) || 0;
+                const p = parseInt(items[index].price, 10) || 0;
+                const d = parseInt(items[index].discount, 10) || 0;
 
                 // คำนวณใหม่: (จำนวน * ราคา) - ส่วนลด
                 items[index].total = (q * p) - d;
@@ -394,6 +483,7 @@
         };
 
         const addItem = (shouldRender = true) => {
+            // ค่าเริ่มต้นเป็น '' เพื่อให้ช่องว่าง
             items.push({ name: '', qty: '', price: '', discount: 0, total: 0 });
             if (shouldRender) {
                 renderTable();
@@ -406,6 +496,7 @@
         };
 
         const calculateGrandTotal = () => {
+            // ใช้ parseFloat เพื่อรวมผลรวม (Total) ซึ่งเป็นผลลัพธ์ของจำนวนเต็ม (ดังนั้นจะไม่มีปัญหาทศนิยม)
             const total = items.reduce((sum, item) => sum + (parseFloat(item.total) || 0), 0);
             document.getElementById('grandTotal').textContent = formatMoney(total);
         };
@@ -432,9 +523,12 @@
             container.innerHTML = '';
             receiptImages.forEach(img => {
                 container.innerHTML += `
-                    <div class="relative w-24 h-24 bg-gray-200 rounded overflow-hidden shadow">
-                        <img src="${img.base64}" class="w-full h-full object-cover">
-                        <button onclick="deleteReceipt('${img.id}')" class="absolute top-0 right-0 bg-red-600 text-white w-6 h-6 flex items-center justify-center rounded-bl">&times;</button>
+                    <div class="relative w-40 h-40 bg-white rounded-lg overflow-hidden shadow-2xl transition duration-300 hover:scale-[1.03] ring-2 ring-blue-600 ring-opacity-50 cursor-pointer group">
+                        <img src="${img.base64}" class="w-full h-full object-cover transition duration-300 group-hover:opacity-80">
+                        <button onclick="deleteReceipt('${img.id}')" 
+                            class="absolute top-0 right-0 bg-red-600 hover:bg-red-700 text-white font-bold w-7 h-7 flex items-center justify-center rounded-bl shadow-md transition duration-150 transform hover:scale-105" 
+                            title="ลบสลิป">&times;
+                        </button>
                     </div>
                 `;
             });
@@ -469,7 +563,7 @@
             let errorIndex = -1;
 
             // กรองรายการที่มีข้อมูล (มีชื่อสินค้า หรือมีผลรวมไม่เท่ากับ 0)
-            const itemsToValidate = items.filter(item => item.name.trim() !== '' || parseFloat(item.total) !== 0);
+            const itemsToValidate = items.filter(item => item.name.trim() !== '' || item.total !== 0);
 
             for (let i = 0; i < itemsToValidate.length; i++) {
                 const item = itemsToValidate[i];
@@ -477,19 +571,20 @@
                 // ค้นหาดัชนีเดิมเพื่อแจ้งเตือนผู้ใช้ให้ถูกต้อง
                 const originalIndex = items.indexOf(item);
 
-                const q = parseFloat(item.qty) || 0;
-                const p = parseFloat(item.price) || 0;
+                // ใช้ parseInt() ในการตรวจสอบ เพราะเราต้องการจำนวนเต็มบวกเท่านั้น
+                const q = parseInt(item.qty, 10) || 0;
+                const p = parseInt(item.price, 10) || 0;
 
                 // เงื่อนไข: ถ้ามีการกรอกชื่อสินค้า หรือมีผลรวมที่ไม่ใช่ 0 ต้องมีจำนวนและราคามากกว่า 0
-                if (item.name.trim() !== '' || parseFloat(item.total) !== 0) {
+                if (item.name.trim() !== '' || item.total !== 0) {
                     if (q <= 0) {
-                        showMessage(`🚨 รายการที่ ${originalIndex + 1}: กรุณากรอก 'จำนวน' (Quantity) ให้ถูกต้องและมากกว่า 0`);
+                        showMessage(`🚨 รายการที่ ${originalIndex + 1}: กรุณากรอก 'จำนวน' (Quantity) ให้ถูกต้องและเป็นจำนวนเต็มบวก`);
                         errorFound = true;
                         errorIndex = originalIndex;
                         break;
                     }
                     if (p <= 0) {
-                        showMessage(`🚨 รายการที่ ${originalIndex + 1}: กรุณากรอก 'ราคา/หน่วย' (Price) ให้ถูกต้องและมากกว่า 0`);
+                        showMessage(`🚨 รายการที่ ${originalIndex + 1}: กรุณากรอก 'ราคา/หน่วย' (Price) ให้ถูกต้องและเป็นจำนวนเต็มบวก`);
                         errorFound = true;
                         errorIndex = originalIndex;
                         break;
@@ -515,7 +610,15 @@
 
         const generatePageHtml = (pageItems, pageIndex, totalPages, subTotalBeforeDiscount, totalDiscount, grandTotal, personInCharge) => {
             const isLastPage = (pageIndex === totalPages - 1);
-            const startNum = (pageIndex * ITEMS_PER_PAGE) + 1;
+
+            // คำนวณลำดับเริ่มต้นสำหรับรายการในหน้านั้นๆ
+            let startNum;
+            if (pageIndex === 0) {
+                startNum = 1;
+            } else {
+                // หน้าถัดไป: เริ่มต้นจาก (รายการหน้าแรก + (ดัชนีหน้าถัดไป * ความจุหน้าถัดไป)) + 1
+                startNum = ITEMS_PER_FIRST_PAGE + ((pageIndex - 1) * ITEMS_PER_SUBSEQUENT_PAGE) + 1;
+            }
 
             // 1. Build Table Body
             let tplBodyContent = '';
@@ -671,9 +774,10 @@
             let totalDiscount = 0;
 
             validItems.forEach(item => {
-                const q = parseFloat(item.qty) || 0;
-                const p = parseFloat(item.price) || 0;
-                const d = parseFloat(item.discount) || 0;
+                // ใช้ parseInt() ในการคำนวณเนื่องจากเราบังคับให้เป็นจำนวนเต็ม
+                const q = parseInt(item.qty, 10) || 0;
+                const p = parseInt(item.price, 10) || 0;
+                const d = parseInt(item.discount, 10) || 0;
 
                 const itemSubTotal = q * p;
                 subTotalBeforeDiscount += itemSubTotal;
@@ -683,8 +787,19 @@
             // คำนวณยอดรวมสุทธิ (Grand Total)
             const grandTotal = subTotalBeforeDiscount - totalDiscount;
 
-            // Calculate total pages for item table
-            const totalItemPages = Math.max(1, Math.ceil(validItems.length / ITEMS_PER_PAGE));
+            // *** NEW: Calculate total pages for item table with mixed capacities ***
+            let totalItemPages;
+            if (validItems.length === 0) {
+                totalItemPages = 1;
+            } else if (validItems.length <= ITEMS_PER_FIRST_PAGE) {
+                totalItemPages = 1;
+            } else {
+                const remainingItems = validItems.length - ITEMS_PER_FIRST_PAGE;
+                const subsequentPages = Math.ceil(remainingItems / ITEMS_PER_SUBSEQUENT_PAGE);
+                totalItemPages = 1 + subsequentPages;
+            }
+            // *** END NEW PAGINATION LOGIC ***
+
 
             // Use a temporary container to render HTML for canvas capture
             const tempContainer = document.getElementById('pdfTemplate');
@@ -695,12 +810,23 @@
                 for (let i = 0; i < totalItemPages; i++) {
                     if (i > 0) doc.addPage();
 
-                    // Get items for the current page
-                    const start = i * ITEMS_PER_PAGE;
-                    const end = start + ITEMS_PER_PAGE;
-                    const pageItems = validItems.slice(start, end);
+                    let start, end, pageItems;
 
-                    // Generate HTML for the current page (ส่งค่าการคำนวณใหม่เข้าไปด้วย)
+                    if (i === 0) {
+                        // หน้าแรก: 10 รายการ
+                        start = 0;
+                        end = ITEMS_PER_FIRST_PAGE;
+                    } else {
+                        // หน้าถัดไป: เริ่มต้นจากรายการที่ 11
+                        const offset = ITEMS_PER_FIRST_PAGE;
+                        start = offset + (i - 1) * ITEMS_PER_SUBSEQUENT_PAGE;
+                        end = start + ITEMS_PER_SUBSEQUENT_PAGE;
+                    }
+
+                    // Get items for the current page
+                    pageItems = validItems.slice(start, end);
+
+                    // Generate HTML for the current page
                     const pageHtml = generatePageHtml(pageItems, i, totalItemPages, subTotalBeforeDiscount, totalDiscount, grandTotal, personInCharge);
                     tempContainer.innerHTML = pageHtml;
 
