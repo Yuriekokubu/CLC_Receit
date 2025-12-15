@@ -71,7 +71,7 @@
         /* แก้ไข/เพิ่ม: กำหนดให้ page content เป็น relative เพื่อจัดวางลายเซ็นแบบ absolute */
         .pdf-page-content {
             position: relative;
-            /* สำคัญสำหรับการจัดวางลายเซ็น */
+            /* สำคัญสำหรับการจัดวางลายเซ็นและลายน้ำ */
             width: 800px;
             min-height: 1123px;
             /* A4 height at 96 DPI equivalent to 800px width */
@@ -79,6 +79,19 @@
             box-sizing: border-box;
             color: #000;
             background-color: white;
+        }
+
+        /* เพิ่ม: สไตล์สำหรับ PDF Logo */
+        .pdf-page-content .pdf-logo {
+            width: 70px;
+            /* ขนาดโลโก้ใน PDF */
+            height: 70px;
+            border: 3px solid #1e3a8a;
+            /* ขอบหนาเป็นสีน้ำเงินเข้ม */
+            border-radius: 50%;
+            /* ทรงกลม */
+            box-sizing: border-box;
+            display: inline-block;
         }
 
         /* สไตล์ตารางภายใน Template */
@@ -111,6 +124,38 @@
             padding-bottom: 10px;
         }
 
+        /* เพิ่ม: สไตล์สำหรับ Watermark */
+        .pdf-watermark {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) rotate(-45deg);
+            font-size: 5em;
+            /* 5em is about 80px */
+            color: #d1d5db;
+            /* Gray-300 */
+            opacity: 0.3;
+            z-index: -1;
+            /* ให้อยู่ด้านหลังเนื้อหา */
+            pointer-events: none;
+            width: 100%;
+            text-align: center;
+            font-weight: 800;
+            /* Extra bold */
+            white-space: nowrap;
+        }
+
+        /* เพิ่ม: สไตล์สำหรับ Header Logo ในหน้าเว็บ (จำลองโลโก้ให้ดูเด่น) */
+        .header-logo-from-css {
+            /* ถ้าไม่มีรูปภาพจริง จะใช้สีและเงาจำลอง */
+            background-color: #ffffff;
+            /* Blue-900 */
+            border-radius: 50%;
+            /* เพิ่มวงแหวนรอบนอกให้ดูโดดเด่น */
+            box-shadow: 0 0 0 4px #bfdbfe, 0 0 0 6px #1e3a8a;
+            /* วงแหวนสีฟ้าอ่อนและน้ำเงินเข้ม */
+        }
+
         /* เพิ่ม: สไตล์สำหรับ Message Box */
         .message-box-error {
             background-color: #fef2f2;
@@ -126,27 +171,37 @@
 <body class="bg-gray-50 min-h-screen font-sans flex flex-col items-center py-8">
 
     <div class="max-w-7xl mx-auto w-full bg-white p-6 sm:p-8 md:p-12 rounded-2xl shadow-3xl">
-
+        <div id="messageBox" class="m-6 p-4 rounded-lg hidden font-medium text-center"></div>
         <div id="billContent" class="bill-container p-4 sm:p-6 md:p-8 border-4 border-gray-300 rounded-xl bg-white">
 
             <header class="text-center mb-6 sm:mb-8 md:mb-10">
                 <div class="flex items-center justify-center mb-5 sm:mb-6">
-                    <div class="header-logo-from-css w-4 h-5 sm:w-12 sm:h-12 mr-3 object-contain" alt="Church Logo"
+                    <div class="header-logo-from-css w-16 h-16 sm:w-20 sm:h-20 mr-4 object-contain" alt="Church Logo"
                         title="Church Logo">
                     </div>
 
-                    <h1 class="text-xl sm:text-3xl font-extrabold text-blue-900 tracking-wide">
+                    <h1 class="text-xl sm:text-4xl font-extrabold text-blue-900 tracking-wide">
                         คริสตจักรลูกของความสว่าง</h1>
                 </div>
                 <h2
                     class="text-xl sm:text-2xl font-bold text-gray-700 mb-4 inline-block border-b-2 border-blue-400 pb-2">
                     บิลรายการซื้อของ</h2>
 
-                <div class="flex items-center w-full mt-4 mb-6">
-                    <span class="font-semibold text-gray-800 mr-2 whitespace-nowrap">วัตถุประสงค์:</span>
-                    <input id="billPurpose" type="text" placeholder="เช่น ของใช้สำหรับงานคริสต์มาส..."
-                        class="border-b-2 border-gray-400 p-1 text-lg text-gray-800 focus:outline-none focus:border-blue-600 w-full bg-transparent">
+                <div
+                    class="flex flex-col sm:flex-row justify-between items-start w-full mt-4 mb-6 space-y-4 sm:space-y-0 sm:space-x-8">
+                    <div class="flex items-center w-full sm:w-1/2">
+                        <span class="font-semibold text-gray-800 mr-2 whitespace-nowrap">วัตถุประสงค์:</span>
+                        <input id="billPurpose" type="text" placeholder="เช่น ของใช้สำหรับงานคริสต์มาส..."
+                            class="border-b-2 border-gray-400 p-1 text-lg text-gray-800 focus:outline-none focus:border-blue-600 w-full bg-transparent">
+                    </div>
+                    <div class="flex items-center w-full sm:w-1/2">
+                        <span class="font-semibold text-gray-800 mr-2 whitespace-nowrap">หมวดหมู่:</span>
+                        <select id="billCategory"
+                            class="border-b-2 border-gray-400 p-1 text-lg text-gray-800 focus:outline-none focus:border-blue-600 w-full bg-transparent text-center font-bold">
+                        </select>
+                    </div>
                 </div>
+
                 <div class="flex flex-col sm:flex-row justify-between items-center space-y-3 sm:space-y-0 sm:space-x-8">
                     <div class="flex items-center w-full sm:w-1/2">
                         <span class="font-semibold text-gray-800 mr-2 whitespace-nowrap">วันเดือนปี:</span>
@@ -194,9 +249,6 @@
                     </tfoot>
                 </table>
             </div>
-
-            <div id="messageBox" class="mt-6 p-4 rounded-lg hidden font-medium text-center"></div>
-
         </div>
 
         <div class="mt-8 pt-6 border-t border-gray-200">
@@ -253,7 +305,34 @@
         let items = [];
         let receiptImages = [];
         const ITEMS_PER_FIRST_PAGE = 10; // ความจุสำหรับตารางรายการสินค้าในหน้าแรก (บรรทัดตาราง)
-        const ITEMS_PER_SUBSEQUENT_PAGE = 14; // ความจุสำหรับตารางรายการสินค้าในหน้าถัดไป
+        const ITEMS_PER_SUBSEQUENT_PAGE = 10; // ความจุสำหรับตารางรายการสินค้าในหน้าถัดไป
+
+        // NEW: Define Category structure (จากคำขอครั้งก่อน)
+        const CATEGORIES = {
+            'อาหาร': ['อาหารเที่ยงวันอาทิตย์', 'อาหาร'],
+            'อุปกรณ์': ['อุปกรณ์'],
+            'สำนักงาน/เบ็ดเตล็ด': ['สำนักงาน', 'ของขวัญ', 'ต้อนรับ', 'หางบัตร', 'ทั่วไป', 'อื่นๆ']
+        };
+
+        // NEW: Function to populate the category dropdown (จากคำขอครั้งก่อน)
+        const populateCategories = () => {
+            const select = document.getElementById('billCategory');
+            select.innerHTML = '<option value="">-- เลือกหมวดหมู่ --</option>'; // Default/Empty Option
+
+            // Grouped Options
+            for (const group in CATEGORIES) {
+                const optgroup = document.createElement('optgroup');
+                optgroup.label = group;
+                CATEGORIES[group].forEach(category => {
+                    const option = document.createElement('option');
+                    option.value = category;
+                    option.textContent = category;
+                    optgroup.appendChild(option);
+                });
+                select.appendChild(optgroup);
+            }
+        };
+
 
         // Utilities
         const generateUniqueId = () => '_' + Math.random().toString(36).substr(2, 9);
@@ -301,16 +380,21 @@
             }
             // เรียกใช้ updateItem เพื่อคำนวณใหม่หากมีการเปลี่ยนแปลง
             const index = parseInt(inputElement.getAttribute('data-index'));
-            updateItem(index, 'discount', inputElement.value);
+            // ต้องเรียก cleanDecimalInput อีกครั้งเพื่อให้ค่าเป็นไปตามกฎก่อนส่งไป updateItem
+            const cleanedValue = cleanDecimalInput(inputElement.value, 2, 0);
+            inputElement.value = cleanedValue; // อัปเดตค่าในช่อง input
+            updateItem(index, 'discount', cleanedValue);
         };
 
+        // *** START: NEW/MODIFIED NUMBER INPUT FUNCTIONS ***
         /**
          * ฟังก์ชันตรวจสอบและปัดเศษค่าที่กรอกให้เป็นจำนวนเต็มบวกเท่านั้น
+         * (ใช้สำหรับ: จำนวน)
          * @param {string} value ค่าจาก input
          * @param {number} minValue ค่าต่ำสุดที่อนุญาต (ปกติคือ 0)
          * @returns {string} ค่าที่ถูกต้องและปัดเศษแล้ว (เป็น string)
          */
-        const cleanNumberInput = (value, minValue = 0) => {
+        const cleanIntegerInput = (value, minValue = 0) => {
             if (value.trim() === '') {
                 return '';
             }
@@ -326,6 +410,67 @@
             return String(num);
         };
 
+        /**
+         * NEW: ฟังก์ชันตรวจสอบและกรองค่าที่กรอกให้เป็นทศนิยมบวก (สูงสุด 2 ตำแหน่ง)
+         * (ใช้สำหรับ: ราคา/หน่วย, ส่วนลด)
+         * - อนุญาตเฉพาะตัวเลขและจุดทศนิยม (.) เท่านั้น
+         * - ป้องกันค่าติดลบ
+         * @param {string} value ค่าจาก input
+         * @param {number} decimalPlaces จำนวนทศนิยมสูงสุดที่อนุญาต
+         * @param {number} minValue ค่าต่ำสุดที่อนุญาต (ปกติคือ 0)
+         * @returns {string} ค่าที่ถูกต้องและปัดเศษแล้ว (เป็น string)
+         */
+        const cleanDecimalInput = (value, decimalPlaces = 2, minValue = 0) => {
+            if (value.trim() === '') {
+                return '';
+            }
+
+            // 1. กรองตัวอักษร: อนุญาตเฉพาะตัวเลข (0-9) และจุดทศนิยม (.) เท่านั้น
+            let cleanValue = value.replace(/[^0-9.]/g, '');
+
+            // 2. จัดการจุดทศนิยมเกิน 1 ตำแหน่ง (เช่น 1.2.3 -> 1.23)
+            const parts = cleanValue.split('.');
+            if (parts.length > 2) {
+                cleanValue = parts[0] + '.' + parts.slice(1).join('');
+            }
+
+            // 3. จัดการกรณีที่ผู้ใช้พิมพ์แค่ '.'
+            if (cleanValue === '.') {
+                return '0.'; // เมื่อพิมพ์ '.' ให้แสดง '0.'
+            }
+
+            if (cleanValue.trim() === '') {
+                return '';
+            }
+
+            // 4. หากผู้ใช้กำลังพิมพ์จุดทศนิยม (เช่น '12.') ให้แสดงค่าไว้
+            if (cleanValue.endsWith('.') && cleanValue.length > 1) {
+                return cleanValue;
+            }
+
+            // 5. แปลงเป็นตัวเลขเพื่อตรวจสอบค่าต่ำสุดและจำกัดทศนิยม
+            let num = parseFloat(cleanValue) || 0;
+
+            // 6. ป้องกันค่าลบ
+            if (num < minValue) {
+                num = minValue;
+            }
+
+            // 7. จำกัดทศนิยมส่วนเกิน (ตัดทิ้ง ไม่ปัดเศษ)
+            const strNum = String(num);
+            if (strNum.includes('.')) {
+                const parts = strNum.split('.');
+                if (parts[1] && parts[1].length > decimalPlaces) {
+                    const factor = Math.pow(10, decimalPlaces);
+                    // ใช้ Math.floor เพื่อ "ตัด" ทศนิยม ไม่ใช่ "ปัดเศษ"
+                    num = Math.floor(num * factor) / factor;
+                }
+            }
+
+            return String(num);
+        };
+        // *** END: NEW/MODIFIED NUMBER INPUT FUNCTIONS ***
+
 
         // Init Date
         document.addEventListener('DOMContentLoaded', () => {
@@ -333,6 +478,9 @@
             const strDate = today.toISOString().split('T')[0];
             document.getElementById('billDate').value = strDate;
             document.getElementById('billDateDisplay').value = formatDate(strDate);
+
+            // NEW: Populate categories on load
+            populateCategories();
 
             // เพิ่ม 10 แถวเริ่มต้น (ตามความจุหน้าแรก)
             for (let i = 0; i < ITEMS_PER_FIRST_PAGE; i++) {
@@ -368,7 +516,7 @@
 
             // ยกเลิกการเน้นเมื่อลากไฟล์ออกหรือวางไฟล์แล้ว
             uploadZone.addEventListener('dragleave', unhighlight, false);
-            uploadZone.addEventListener('drop', unhighlight, false);
+            uploadZone.addEventListener('drop', handleDrop, false);
 
             function highlight(e) {
                 // เพิ่มสไตล์เน้น
@@ -406,7 +554,6 @@
                 const tr = document.createElement('tr');
                 tr.className = 'border-b hover:bg-gray-50';
 
-                // *** การแก้ไข: ลบ step="0.01" และใช้ oninput เพื่อควบคุมค่าให้เป็นจำนวนเต็ม ***
                 tr.innerHTML = `
                     <td class="p-2 border-r border-gray-300">
                         <input type="text" class="w-full bg-transparent focus:outline-none" value="${item.name}" oninput="updateItem(${index}, 'name', this.value)" placeholder="ชื่อสินค้า">
@@ -415,25 +562,25 @@
                         <input type="number" 
                                 class="w-full text-right bg-transparent focus:outline-none no-spinners" 
                                 value="${item.qty}" 
-                                oninput="this.value = cleanNumberInput(this.value, 0); updateItem(${index}, 'qty', this.value)" 
+                                oninput="this.value = cleanIntegerInput(this.value, 0); updateItem(${index}, 'qty', this.value)" 
                                 min="0" inputmode="numeric" pattern="[0-9]*">
                     </td>
                     <td class="p-2 border-r border-gray-300">
-                        <input type="number" 
-                                class="w-full text-right bg-transparent focus:outline-none no-spinners" 
+                        <input type="text" 
+                                class="w-full text-right bg-transparent focus:outline-none" 
                                 value="${item.price}" 
-                                oninput="this.value = cleanNumberInput(this.value, 0); updateItem(${index}, 'price', this.value)" 
-                                min="0" inputmode="numeric" pattern="[0-9]*">
+                                oninput="this.value = cleanDecimalInput(this.value, 2, 0); updateItem(${index}, 'price', this.value)" 
+                                inputmode="decimal">
                     </td>
                     <td class="p-2 border-r border-gray-300">
-                        <input type="number" 
-                            class="w-full text-right bg-transparent focus:outline-none no-spinners text-red-600" 
+                        <input type="text" 
+                            class="w-full text-right bg-transparent focus:outline-none text-red-600" 
                             value="${item.discount}" 
                             data-index="${index}"
                             onfocus="handleDiscountFocus(this)" 
                             onblur="handleDiscountBlur(this)" 
-                            oninput="this.value = cleanNumberInput(this.value, 0); updateItem(${index}, 'discount', this.value)" 
-                            min="0" inputmode="numeric" pattern="[0-9]*">
+                            oninput="this.value = cleanDecimalInput(this.value, 2, 0); updateItem(${index}, 'discount', this.value)" 
+                            inputmode="decimal">
                     </td>
                     <td class="p-2 text-right font-semibold text-blue-800 border-r border-gray-300">
                         ${formatMoney(item.total)}
@@ -453,7 +600,6 @@
 
         const updateItem = (index, field, value) => {
             // 1. ตรวจสอบและแปลงค่าว่างเป็น 0 สำหรับการคำนวณเสมอ
-            // เนื่องจากมีการใช้ cleanNumberInput ใน oninput แล้ว ค่า value ที่ได้มาจึงถูกปัดเศษแล้ว (ยกเว้นค่าว่าง)
             let sanitizedValue = value.trim() === '' ? '' : value; // เก็บคืนค่าว่างให้เป็นค่าว่างเพื่อไม่ให้แสดง 0.00 ในช่องว่าง
 
             // 2. อัปเดตค่าของฟิลด์ปัจจุบันใน items[index] ด้วย sanitizedValue
@@ -462,14 +608,19 @@
             // 3. ถ้ามีการเปลี่ยนแปลงฟิลด์ที่เกี่ยวข้องกับการคำนวณ
             if (field === 'qty' || field === 'price' || field === 'discount') {
 
-                // *** ดึงค่าล่าสุดและแปลงเป็นตัวเลข *แบบเต็ม* ก่อนคำนวณทั้งหมด ***
-                // ใช้ parseInt(value, 10) แทน parseFloat เพื่อให้แน่ใจว่าได้จำนวนเต็ม
+                // *** ดึงค่าล่าสุดและแปลงเป็นตัวเลข *แบบเต็ม/ทศนิยม* ก่อนคำนวณทั้งหมด ***
+                // qty ใช้ parseInt
                 const q = parseInt(items[index].qty, 10) || 0;
-                const p = parseInt(items[index].price, 10) || 0;
-                const d = parseInt(items[index].discount, 10) || 0;
+                // price และ discount ใช้ parseFloat
+                const p = parseFloat(items[index].price) || 0;
+                const d = parseFloat(items[index].discount) || 0;
 
                 // คำนวณใหม่: (จำนวน * ราคา) - ส่วนลด
                 items[index].total = (q * p) - d;
+
+                // ปัดเศษผลรวมให้เหลือทศนิยม 2 ตำแหน่งเท่านั้น
+                items[index].total = Math.round(items[index].total * 100) / 100;
+
 
                 // 4. อัปเดตตัวเลขในตาราง (DOM) โดยไม่ต้อง Render ใหม่ทั้งหมด 
                 const tbody = document.getElementById('itemTableBody');
@@ -496,9 +647,11 @@
         };
 
         const calculateGrandTotal = () => {
-            // ใช้ parseFloat เพื่อรวมผลรวม (Total) ซึ่งเป็นผลลัพธ์ของจำนวนเต็ม (ดังนั้นจะไม่มีปัญหาทศนิยม)
+            // ใช้ parseFloat เพื่อรวมผลรวม (Total) 
             const total = items.reduce((sum, item) => sum + (parseFloat(item.total) || 0), 0);
-            document.getElementById('grandTotal').textContent = formatMoney(total);
+            // ปัดเศษผลรวมสุดท้ายให้เหลือทศนิยม 2 ตำแหน่ง
+            const roundedTotal = Math.round(total * 100) / 100;
+            document.getElementById('grandTotal').textContent = formatMoney(roundedTotal);
         };
 
         // Image Handling
@@ -543,6 +696,7 @@
         const validateInputs = () => {
             hideMessage(); // ซ่อนข้อความเก่าเสมอเมื่อเริ่มต้นการตรวจสอบ
 
+            const category = document.getElementById('billCategory').value; // NEW
             const purpose = document.getElementById('billPurpose').value.trim();
             const person = document.getElementById('personInCharge').value.trim();
 
@@ -550,6 +704,11 @@
             if (purpose === '') {
                 showMessage("🚨 กรุณากรอก 'วัตถุประสงค์' ให้ครบถ้วน");
                 document.getElementById('billPurpose').focus();
+                return false;
+            }
+            if (category === '') { // NEW
+                showMessage("🚨 กรุณาเลือก 'หมวดหมู่' ให้ครบถ้วน");
+                document.getElementById('billCategory').focus();
                 return false;
             }
             if (person === '') {
@@ -571,9 +730,10 @@
                 // ค้นหาดัชนีเดิมเพื่อแจ้งเตือนผู้ใช้ให้ถูกต้อง
                 const originalIndex = items.indexOf(item);
 
-                // ใช้ parseInt() ในการตรวจสอบ เพราะเราต้องการจำนวนเต็มบวกเท่านั้น
+                // ใช้ parseInt() และ parseFloat() ในการตรวจสอบ
                 const q = parseInt(item.qty, 10) || 0;
-                const p = parseInt(item.price, 10) || 0;
+                const p = parseFloat(item.price) || 0; // ใช้ parseFloat
+                const d = parseFloat(item.discount) || 0; // ใช้ parseFloat
 
                 // เงื่อนไข: ถ้ามีการกรอกชื่อสินค้า หรือมีผลรวมที่ไม่ใช่ 0 ต้องมีจำนวนและราคามากกว่า 0
                 if (item.name.trim() !== '' || item.total !== 0) {
@@ -584,11 +744,12 @@
                         break;
                     }
                     if (p <= 0) {
-                        showMessage(`🚨 รายการที่ ${originalIndex + 1}: กรุณากรอก 'ราคา/หน่วย' (Price) ให้ถูกต้องและเป็นจำนวนเต็มบวก`);
+                        showMessage(`🚨 รายการที่ ${originalIndex + 1}: กรุณากรอก 'ราคา/หน่วย' (Price) ให้ถูกต้องและเป็นตัวเลขบวก`);
                         errorFound = true;
                         errorIndex = originalIndex;
                         break;
                     }
+                    // ส่วนลดไม่จำเป็นต้องบังคับ > 0 แต่มันควรจะต้องไม่เป็นลบ (ซึ่งถูกคุมด้วย cleanDecimalInput แล้ว)
                 }
             }
 
@@ -628,13 +789,18 @@
             } else {
                 pageItems.forEach((item, index) => {
                     const currentNum = startNum + index;
+                    // ในตาราง PDF ต้องแสดง price แบบ formatMoney(2 ทศนิยม)
+                    const itemPriceDisplay = item.price ? formatMoney(item.price) : '-';
+                    const itemDiscountDisplay = item.discount && parseFloat(item.discount) > 0 ? formatMoney(item.discount) : '-';
+
+
                     tplBodyContent += `
                         <tr>
                             <td class="text-center">${currentNum}</td>
                             <td>${item.name}</td>
                             <td class="text-right">${item.qty || '-'}</td>
-                            <td class="text-right">${item.price ? formatMoney(item.price) : '-'}</td>
-                            <td class="text-right text-red-600">${item.discount && item.discount > 0 ? formatMoney(item.discount) : '-'}</td>
+                            <td class="text-right">${itemPriceDisplay}</td>
+                            <td class="text-right text-red-600">${itemDiscountDisplay}</td>
                             <td class="text-right font-medium">${formatMoney(item.total)}</td>
                         </tr>
                     `;
@@ -698,6 +864,10 @@
                             <td class="border-b border-gray-400 py-2 border-t-0 border-l-0 border-r-0 w-full">${personInCharge || '-'}</td>
                         </tr>
                         <tr>
+                            <td class="font-bold w-32 py-2 border-0">หมวดหมู่:</td>
+                            <td class="border-b border-gray-400 py-2 border-t-0 border-l-0 border-r-0 w-full">${document.getElementById('billCategory').value || '-'}</td>
+                        </tr>
+                        <tr>
                             <td class="font-bold w-32 py-2 border-0">วัตถุประสงค์:</td>
                             <td class="border-b border-gray-400 py-2 border-t-0 border-l-0 border-r-0 w-full">${document.getElementById('billPurpose').value || '-'}</td>
                         </tr>
@@ -712,11 +882,11 @@
 
             const mainHeaderHtml = `
                 <div class="flex items-center justify-between template-header-line">
-                    <div class="flex items-center">
-                        <div class="pdf-logo mr-5">
+                    <div class="flex items-center space-x-4">
+                        <div class="pdf-logo mr-2">
                         </div>
-                        <div>
-                            <h1 class="text-3xl font-extrabold text-blue-900 mb-3">คริสตจักรลูกของความสว่าง</h1>
+                        <div class="ml-2">
+                            <h1 class="text-3xl font-extrabold text-blue-900 mb-2">คริสตจักรลูกของความสว่าง</h1>
                             <p class="text-sm text-gray-500">Children of Light Church</p>
                         </div>
                     </div>
@@ -726,6 +896,9 @@
                     </div>
                 </div>
             `;
+
+            // NEW: Watermark HTML
+            const watermarkHtml = `<div class="pdf-watermark">คริสตจักรลูกของความสว่าง</div>`;
 
 
             return `
@@ -752,6 +925,8 @@
                         </table>
                     </div>
 
+                    ${watermarkHtml}
+
                     ${signatureBlock}
                 </div>
             `;
@@ -774,18 +949,25 @@
             let totalDiscount = 0;
 
             validItems.forEach(item => {
-                // ใช้ parseInt() ในการคำนวณเนื่องจากเราบังคับให้เป็นจำนวนเต็ม
+                // ใช้ parseInt() สำหรับจำนวนเต็ม, parseFloat() สำหรับราคาและส่วนลด
                 const q = parseInt(item.qty, 10) || 0;
-                const p = parseInt(item.price, 10) || 0;
-                const d = parseInt(item.discount, 10) || 0;
+                const p = parseFloat(item.price) || 0;
+                const d = parseFloat(item.discount) || 0;
 
                 const itemSubTotal = q * p;
                 subTotalBeforeDiscount += itemSubTotal;
                 totalDiscount += d;
             });
 
+            // ปัดเศษผลรวมก่อนหักส่วนลด และรวมส่วนลด ให้เหลือ 2 ตำแหน่ง เพื่อความแม่นยำ
+            subTotalBeforeDiscount = Math.round(subTotalBeforeDiscount * 100) / 100;
+            totalDiscount = Math.round(totalDiscount * 100) / 100;
+
             // คำนวณยอดรวมสุทธิ (Grand Total)
             const grandTotal = subTotalBeforeDiscount - totalDiscount;
+            // ปัดเศษผลรวมสุดท้าย
+            const finalGrandTotal = Math.round(grandTotal * 100) / 100;
+
 
             // *** NEW: Calculate total pages for item table with mixed capacities ***
             let totalItemPages;
@@ -827,7 +1009,7 @@
                     pageItems = validItems.slice(start, end);
 
                     // Generate HTML for the current page
-                    const pageHtml = generatePageHtml(pageItems, i, totalItemPages, subTotalBeforeDiscount, totalDiscount, grandTotal, personInCharge);
+                    const pageHtml = generatePageHtml(pageItems, i, totalItemPages, subTotalBeforeDiscount, totalDiscount, finalGrandTotal, personInCharge);
                     tempContainer.innerHTML = pageHtml;
 
                     // Capture the current page content
