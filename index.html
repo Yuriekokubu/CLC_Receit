@@ -243,6 +243,21 @@
         </div>
 
         <div class="mt-8 pt-6 border-t border-gray-200">
+            <h3 class="text-xl font-bold text-gray-800 mb-4">เซ็นลายเซ็นออนไลน์ (ไม่บังคับ)</h3>
+
+            <div class="bg-white p-4 rounded-lg border border-gray-300 mb-4">
+                <canvas id="signatureCanvas" width="400" height="200" class="border border-gray-400 bg-white cursor-crosshair"></canvas>
+                <div class="mt-2 flex space-x-4">
+                    <button onclick="clearSignature()" class="bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded">
+                        ล้างลายเซ็น
+                    </button>
+                    <button onclick="saveSignature()" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded">
+                        บันทึกลายเซ็น
+                    </button>
+                </div>
+                <p class="text-sm text-gray-600 mt-2">ใช้เมาส์หรือนิ้วเพื่อเซ็นลายเซ็นในช่องด้านบน</p>
+            </div>
+
             <h3 class="text-xl font-bold text-gray-800 mb-4">แนบสลิป/ใบเสร็จ</h3>
 
             <div id="uploadZone" onclick="document.getElementById('receiptImageInput').click()"
@@ -292,9 +307,10 @@
     </div>
 
     <script>
-        // --- Logic ---
         let items = [];
         let receiptImages = [];
+        let signatureData = null; // สำหรับเก็บลายเซ็น
+        let hasDrawn = false; // สำหรับตรวจสอบว่ามีการวาดลายเซ็นหรือไม่
         const ITEMS_PER_FIRST_PAGE = 10;
         const ITEMS_PER_SUBSEQUENT_PAGE = 10;
         const CUSTOM_CATEGORY_KEY = 'อื่นๆ';
@@ -502,6 +518,9 @@
             if (typeof window.jspdf === 'undefined' || typeof window.html2canvas === 'undefined') {
                 showMessage("🚨 ไม่สามารถโหลดไลบรารีที่จำเป็นได้ กรุณาตรวจสอบการเชื่อมต่ออินเทอร์เน็ตหรือลองใหม่อีกครั้ง", true);
             }
+
+            // Initialize signature canvas
+            initSignatureCanvas();
 
             // --- Drag and Drop Logic (omitted for brevity, assume working) ---
             const uploadZone = document.getElementById('uploadZone');
@@ -828,13 +847,15 @@
             let signatureBlock = '';
             if (isLastPage) {
                 const signerName = personInCharge || '.......................................................';
+                const signatureImageHtml = signatureData ? `<img src="${signatureData}" style="position: absolute; top: -90px; left: 50%; transform: translateX(-50%); max-width: 200px; max-height: 80px;" alt="ลายเซ็น">` : '';
                 signatureBlock = `
                     <div class="pdf-signature-block" style="position: absolute; bottom: 50px; width: 700px; left: 50px;">
                         <div class="flex justify-between px-10">
-                            <div class="text-center" style="width: 250px;">
-                                <div class="border-b border-gray-400 w-full mb-2"></div> 
+                            <div class="text-center" style="width: 250px; position: relative;">
+                                <div class="border-b border-gray-400 w-full mb-2"></div>
                                 <p class="font-bold">(${signerName})</p>
                                 <p class="text-sm text-gray-500">ผู้ขอเบิกจ่าย</p>
+                                ${signatureImageHtml}
                             </div>
                             <div class="text-center" style="width: 250px;">
                                 <div class="border-b border-gray-400 w-full mb-2"></div>
@@ -1041,6 +1062,7 @@
             if (!validateInputs()) {
                 return;
             }
+            autoSaveSignature();
             if (typeof window.jspdf === 'undefined' || typeof window.html2canvas === 'undefined') {
                 showMessage("🚨 ไม่สามารถโหลดไลบรารีที่จำเป็นได้ กรุณาตรวจสอบการเชื่อมต่ออินเทอร์เน็ตหรือลองใหม่อีกครั้ง", true);
                 return;
@@ -1057,6 +1079,7 @@
             if (!validateInputs()) {
                 return;
             }
+            autoSaveSignature();
             if (typeof window.jspdf === 'undefined' || typeof window.html2canvas === 'undefined') {
                 showMessage("🚨 ไม่สามารถโหลดไลบรารีที่จำเป็นได้ กรุณาตรวจสอบการเชื่อมต่ออินเทอร์เน็ตหรือลองใหม่อีกครั้ง", true);
                 return;
@@ -1082,6 +1105,85 @@
         // Modal Controls
         const closeModal = (e) => { if (e.target.id === 'pdfPreviewModal') hideModal(); };
         const hideModal = () => { document.getElementById('pdfPreviewModal').classList.add('hidden'); document.getElementById('pdfIframe').src = ''; };
+
+        // --- Signature Functions ---
+        let isDrawing = false;
+        let context;
+
+        const initSignatureCanvas = () => {
+            const canvas = document.getElementById('signatureCanvas');
+            context = canvas.getContext('2d');
+            context.lineWidth = 2;
+            context.lineCap = 'round';
+            context.strokeStyle = '#000';
+
+            // Mouse events
+            canvas.addEventListener('mousedown', startDrawing);
+            canvas.addEventListener('mousemove', draw);
+            canvas.addEventListener('mouseup', stopDrawing);
+            canvas.addEventListener('mouseout', stopDrawing);
+
+            // Touch events for mobile
+            canvas.addEventListener('touchstart', startDrawingTouch);
+            canvas.addEventListener('touchmove', drawTouch);
+            canvas.addEventListener('touchend', stopDrawing);
+        };
+
+        const startDrawing = (e) => {
+            isDrawing = true;
+            hasDrawn = true;
+            context.beginPath();
+            context.moveTo(e.offsetX, e.offsetY);
+        };
+
+        const draw = (e) => {
+            if (!isDrawing) return;
+            context.lineTo(e.offsetX, e.offsetY);
+            context.stroke();
+        };
+
+        const stopDrawing = () => {
+            isDrawing = false;
+        };
+
+        const startDrawingTouch = (e) => {
+            e.preventDefault();
+            hasDrawn = true;
+            const rect = e.target.getBoundingClientRect();
+            const x = e.touches[0].clientX - rect.left;
+            const y = e.touches[0].clientY - rect.top;
+            isDrawing = true;
+            context.beginPath();
+            context.moveTo(x, y);
+        };
+
+        const drawTouch = (e) => {
+            e.preventDefault();
+            if (!isDrawing) return;
+            const rect = e.target.getBoundingClientRect();
+            const x = e.touches[0].clientX - rect.left;
+            const y = e.touches[0].clientY - rect.top;
+            context.lineTo(x, y);
+            context.stroke();
+        };
+
+        const clearSignature = () => {
+            context.clearRect(0, 0, 400, 200);
+            signatureData = null;
+            hasDrawn = false;
+        };
+
+        const autoSaveSignature = () => {
+            if (hasDrawn && !signatureData) {
+                const canvas = document.getElementById('signatureCanvas');
+                signatureData = canvas.toDataURL('image/png');
+            }
+        };
+
+        const saveSignature = () => {
+            autoSaveSignature();
+            showMessage("บันทึกลายเซ็นเรียบร้อยแล้ว!", false);
+        };
 
     </script>
 </body>
