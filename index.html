@@ -146,7 +146,8 @@
 
     <div class="max-w-7xl mx-auto w-full bg-white p-4 sm:p-6 md:p-8 lg:p-12 rounded-2xl shadow-3xl">
         <div id="messageBox" class="m-6 p-4 rounded-lg hidden font-medium text-center"></div>
-        <div id="billContent" class="bill-container p-3 sm:p-4 md:p-6 lg:p-8 border-4 border-gray-300 rounded-xl bg-white">
+        <div id="billContent"
+            class="bill-container p-3 sm:p-4 md:p-6 lg:p-8 border-4 border-gray-300 rounded-xl bg-white">
 
             <header class="text-center mb-6 sm:mb-8 md:mb-10">
                 <div class="flex items-center justify-center mb-5 sm:mb-6">
@@ -206,10 +207,14 @@
                 <table class="min-w-full bg-white border-collapse">
                     <thead class="bg-blue-800 text-white">
                         <tr>
-                            <th class="py-3 px-2 sm:px-4 text-left font-bold w-3/12 border-r border-blue-600">ชื่อสินค้า</th>
-                            <th class="py-3 px-2 sm:px-4 text-right font-bold w-1/12 border-r border-blue-600">จำนวน</th>
-                            <th class="py-3 px-2 sm:px-4 text-right font-bold w-1/12 border-r border-blue-600">ราคา/หน่วย</th>
-                            <th class="py-3 px-2 sm:px-4 text-right font-bold w-1/12 border-r border-blue-600">ส่วนลด (บาท)</th>
+                            <th class="py-3 px-2 sm:px-4 text-left font-bold w-3/12 border-r border-blue-600">ชื่อสินค้า
+                            </th>
+                            <th class="py-3 px-2 sm:px-4 text-right font-bold w-1/12 border-r border-blue-600">จำนวน
+                            </th>
+                            <th class="py-3 px-2 sm:px-4 text-right font-bold w-1/12 border-r border-blue-600">
+                                ราคา/หน่วย</th>
+                            <th class="py-3 px-2 sm:px-4 text-right font-bold w-1/12 border-r border-blue-600">ส่วนลด
+                                (บาท)</th>
                             <th class="py-3 px-2 sm:px-4 text-right font-bold w-2/12 border-r border-blue-600">รวม
                                 (หลังหักส่วนลด)</th>
                             <th class="py-3 px-2 sm:px-4 text-center font-bold w-1/12">ลบ</th>
@@ -226,7 +231,8 @@
                             </td>
                         </tr>
                         <tr class="bg-gray-100 border-t-4 border-blue-600">
-                            <td colspan="4" class="py-4 px-4 text-right font-extrabold text-blue-800 text-xl">รวมทั้งสิ้นสุทธิ
+                            <td colspan="4" class="py-4 px-4 text-right font-extrabold text-blue-800 text-xl">
+                                รวมทั้งสิ้นสุทธิ
                             </td>
                             <td id="grandTotal" class="py-4 px-4 text-right text-xl font-black text-blue-800">0.00</td>
                             <td></td>
@@ -297,8 +303,8 @@
         const CATEGORIES = {
             'อาหาร': ['อาหารเที่ยงวันอาทิตย์', 'อาหาร'],
             'อุปกรณ์': ['อุปกรณ์'],
-            'สำนักงาน/เบ็ดเตล็ด': ['สำนักงาน', 'ของขวัญ', 'ต้อนรับ', 'หางบัตร', 'ทั่วไป', 'อื่นๆ'],
-            'พันธกิจ': ['พันธกิจเด็ก']
+            'พันธกิจ': ['พันธกิจเด็ก'],
+            'สำนักงาน/เบ็ดเตล็ด': ['สำนักงาน', 'ของขวัญ', 'ต้อนรับ', 'หางบัตร', 'ทั่วไป', 'อื่นๆ']
         };
 
         // NEW: Function to populate the category dropdown
@@ -549,38 +555,38 @@
                         <input type="text" class="w-full bg-transparent focus:outline-none text-sm sm:text-base" value="${item.name}" oninput="updateItem(${index}, 'name', this.value)" placeholder="ชื่อสินค้า">
                     </td>
                     <td class="p-1 sm:p-2 border-r border-gray-300">
-                        <input type="number" 
-                                class="w-full text-right bg-transparent focus:outline-none no-spinners text-sm sm:text-base" 
-                                value="${item.qty}" 
-                                oninput="this.value = cleanNumberInput(this.value, 0); updateItem(${index}, 'qty', this.value)" 
+                        <input type="number"
+                                class="w-full text-right bg-transparent focus:outline-none no-spinners text-sm sm:text-base"
+                                value="${item.qty}"
+                                oninput="this.value = cleanNumberInput(this.value, 0); updateItem(${index}, 'qty', this.value)"
                                 min="0" inputmode="numeric" pattern="[0-9]*">
                     </td>
                     <td class="p-1 sm:p-2 border-r border-gray-300">
                         <input
-  type="text"
-  inputmode="decimal"
-  class="w-full text-right bg-transparent focus:outline-none no-spinners text-sm sm:text-base"
-  value="${item.price}"
-  oninput="
-    this.value = cleanDecimalInput(this.value, 3, 0);
-    updateItem(${index}, 'price', this.value)
-  "
->
+                            type="text"
+                            inputmode="decimal"
+                            class="w-full text-right bg-transparent focus:outline-none no-spinners text-sm sm:text-base"
+                            value="${item.price}"
+                            oninput="
+                                this.value = cleanDecimalInput(this.value, 3, 0);
+                                updateItem(${index}, 'price', this.value)
+                            "
+                        >
                     </td>
                     <td class="p-1 sm:p-2 border-r border-gray-300">
                         <input
-  type="text"
-  inputmode="decimal"
-  class="w-full text-right bg-transparent focus:outline-none no-spinners text-red-600 text-sm sm:text-base"
-  value="${item.discount}"
-  oninput="
-    this.value = cleanDecimalInput(this.value, 3, 0);
-    updateItem(${index}, 'discount', this.value)
-  "
-  onfocus="handleDiscountFocus(this)"
-  onblur="handleDiscountBlur(this)"
-  data-index="${index}"
->
+                            type="text"
+                            inputmode="decimal"
+                            class="w-full text-right bg-transparent focus:outline-none no-spinners text-red-600 text-sm sm:text-base"
+                            value="${item.discount}"
+                            oninput="
+                                this.value = cleanDecimalInput(this.value, 3, 0);
+                                updateItem(${index}, 'discount', this.value)
+                            "
+                            onfocus="handleDiscountFocus(this)"
+                            onblur="handleDiscountBlur(this)"
+                            data-index="${index}"
+                        >
                     </td>
                     <td class="p-1 sm:p-2 text-right font-semibold text-blue-800 border-r border-gray-300 text-sm sm:text-base">
                         ${formatMoney(item.total)}
