@@ -196,9 +196,20 @@
                     </div>
                     <div class="flex items-center w-full sm:w-1/2">
                         <span class="font-semibold text-gray-800 mr-2 whitespace-nowrap">หมวดหมู่:</span>
-                        <select id="billCategory"
-                            class="border-b-2 border-gray-400 p-1 text-lg text-gray-800 focus:outline-none focus:border-blue-600 w-full bg-transparent text-center font-bold">
-                        </select>
+                        <div class="relative w-full">
+                            <select id="billCategory" onchange="handleCategoryChange(this.value)"
+                                class="border-b-2 border-gray-400 p-1 text-lg text-gray-800 focus:outline-none focus:border-blue-600 w-full bg-transparent text-center font-bold transition-opacity duration-300">
+                            </select>
+
+                            <div id="customCategoryWrapper" class="absolute inset-0 hidden flex items-center">
+                                <input id="customCategoryInput" type="text" placeholder="ระบุหมวดหมู่เอง..."
+                                    class="border-b-2 border-blue-600 p-1 text-lg text-gray-800 focus:outline-none w-full bg-transparent text-center font-bold pr-8">
+                                <button onclick="revertToCategorySelect()" title="กลับไปเลือกรายการ"
+                                    class="absolute right-0 top-1/2 -translate-y-1/2 text-gray-500 hover:text-red-500 p-1 text-xl font-bold leading-none">
+                                    &times;
+                                </button>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
@@ -313,6 +324,7 @@
             'อุปกรณ์': ['อุปกรณ์'],
             'สำนักงาน/เบ็ดเตล็ด': ['สำนักงาน', 'ของขวัญ', 'ต้อนรับ', 'หางบัตร', 'ทั่วไป', 'อื่นๆ']
         };
+        const CUSTOM_CATEGORY_KEY = 'อื่นๆ'; // <--- NEW CONSTANT
 
         // NEW: Function to populate the category dropdown (จากคำขอครั้งก่อน)
         const populateCategories = () => {
@@ -367,6 +379,66 @@
             document.getElementById('messageBox').classList.add('hidden');
         };
 
+
+        // --- START: NEW CATEGORY HANDLER FUNCTIONS ---
+
+        /**
+         * ดึงค่าหมวดหมู่ปัจจุบัน โดยตรวจสอบจาก Select box และ Custom input
+         */
+        const getCurrentCategoryValue = () => {
+            const select = document.getElementById('billCategory');
+            const customInput = document.getElementById('customCategoryInput');
+            const selectedValue = select.value.trim();
+
+            if (selectedValue === CUSTOM_CATEGORY_KEY) {
+                // ถ้าเลือก 'อื่นๆ' ให้ดึงค่าจากช่องพิมพ์เอง
+                return customInput.value.trim() || '';
+            }
+            // ถ้าเลือกหมวดหมู่ปกติ ให้ใช้ค่าจาก Select box
+            return selectedValue;
+        };
+
+        /**
+         * จัดการเมื่อค่าใน Select Box เปลี่ยน
+         */
+        const handleCategoryChange = (selectedValue) => {
+            const select = document.getElementById('billCategory');
+            const customWrapper = document.getElementById('customCategoryWrapper');
+            const customInput = document.getElementById('customCategoryInput');
+
+            if (selectedValue === CUSTOM_CATEGORY_KEY) {
+                // Show custom input, hide select visually
+                // ใช้ opacity-0, pointer-events-none, absolute, z-0 เพื่อซ่อน Select และให้ Input ใช้งานได้เต็มที่
+                select.classList.add('opacity-0', 'pointer-events-none', 'absolute', 'z-0');
+                customWrapper.classList.remove('hidden');
+                customInput.value = ''; // Clear previous input
+                customInput.focus();
+            } else {
+                // Hide custom input, show select
+                customWrapper.classList.add('hidden');
+                select.classList.remove('opacity-0', 'pointer-events-none', 'absolute', 'z-0');
+            }
+        };
+
+        /**
+         * จัดการเมื่อผู้ใช้กดปุ่มยกเลิกการพิมพ์เอง
+         */
+        const revertToCategorySelect = () => {
+            const select = document.getElementById('billCategory');
+            const customWrapper = document.getElementById('customCategoryWrapper');
+            const customInput = document.getElementById('customCategoryInput');
+
+            // Reset custom value, hide custom input, show select
+            customInput.value = '';
+            customWrapper.classList.add('hidden');
+            select.classList.remove('opacity-0', 'pointer-events-none', 'absolute', 'z-0');
+            select.value = ''; // รีเซ็ต Select box เป็นค่าว่างเริ่มต้น
+            select.focus();
+        };
+
+        // --- END: NEW CATEGORY HANDLER FUNCTIONS ---
+
+
         // --- ฟังก์ชันจัดการ Focus/Blur (ส่วนลด) ---
         const handleDiscountFocus = (inputElement) => {
             if (inputElement.value === '0' || inputElement.value === '0.00') {
@@ -380,21 +452,16 @@
             }
             // เรียกใช้ updateItem เพื่อคำนวณใหม่หากมีการเปลี่ยนแปลง
             const index = parseInt(inputElement.getAttribute('data-index'));
-            // ต้องเรียก cleanDecimalInput อีกครั้งเพื่อให้ค่าเป็นไปตามกฎก่อนส่งไป updateItem
-            const cleanedValue = cleanDecimalInput(inputElement.value, 2, 0);
-            inputElement.value = cleanedValue; // อัปเดตค่าในช่อง input
-            updateItem(index, 'discount', cleanedValue);
+            updateItem(index, 'discount', inputElement.value);
         };
 
-        // *** START: NEW/MODIFIED NUMBER INPUT FUNCTIONS ***
         /**
          * ฟังก์ชันตรวจสอบและปัดเศษค่าที่กรอกให้เป็นจำนวนเต็มบวกเท่านั้น
-         * (ใช้สำหรับ: จำนวน)
          * @param {string} value ค่าจาก input
          * @param {number} minValue ค่าต่ำสุดที่อนุญาต (ปกติคือ 0)
          * @returns {string} ค่าที่ถูกต้องและปัดเศษแล้ว (เป็น string)
          */
-        const cleanIntegerInput = (value, minValue = 0) => {
+        const cleanNumberInput = (value, minValue = 0) => {
             if (value.trim() === '') {
                 return '';
             }
@@ -409,67 +476,6 @@
 
             return String(num);
         };
-
-        /**
-         * NEW: ฟังก์ชันตรวจสอบและกรองค่าที่กรอกให้เป็นทศนิยมบวก (สูงสุด 2 ตำแหน่ง)
-         * (ใช้สำหรับ: ราคา/หน่วย, ส่วนลด)
-         * - อนุญาตเฉพาะตัวเลขและจุดทศนิยม (.) เท่านั้น
-         * - ป้องกันค่าติดลบ
-         * @param {string} value ค่าจาก input
-         * @param {number} decimalPlaces จำนวนทศนิยมสูงสุดที่อนุญาต
-         * @param {number} minValue ค่าต่ำสุดที่อนุญาต (ปกติคือ 0)
-         * @returns {string} ค่าที่ถูกต้องและปัดเศษแล้ว (เป็น string)
-         */
-        const cleanDecimalInput = (value, decimalPlaces = 2, minValue = 0) => {
-            if (value.trim() === '') {
-                return '';
-            }
-
-            // 1. กรองตัวอักษร: อนุญาตเฉพาะตัวเลข (0-9) และจุดทศนิยม (.) เท่านั้น
-            let cleanValue = value.replace(/[^0-9.]/g, '');
-
-            // 2. จัดการจุดทศนิยมเกิน 1 ตำแหน่ง (เช่น 1.2.3 -> 1.23)
-            const parts = cleanValue.split('.');
-            if (parts.length > 2) {
-                cleanValue = parts[0] + '.' + parts.slice(1).join('');
-            }
-
-            // 3. จัดการกรณีที่ผู้ใช้พิมพ์แค่ '.'
-            if (cleanValue === '.') {
-                return '0.'; // เมื่อพิมพ์ '.' ให้แสดง '0.'
-            }
-
-            if (cleanValue.trim() === '') {
-                return '';
-            }
-
-            // 4. หากผู้ใช้กำลังพิมพ์จุดทศนิยม (เช่น '12.') ให้แสดงค่าไว้
-            if (cleanValue.endsWith('.') && cleanValue.length > 1) {
-                return cleanValue;
-            }
-
-            // 5. แปลงเป็นตัวเลขเพื่อตรวจสอบค่าต่ำสุดและจำกัดทศนิยม
-            let num = parseFloat(cleanValue) || 0;
-
-            // 6. ป้องกันค่าลบ
-            if (num < minValue) {
-                num = minValue;
-            }
-
-            // 7. จำกัดทศนิยมส่วนเกิน (ตัดทิ้ง ไม่ปัดเศษ)
-            const strNum = String(num);
-            if (strNum.includes('.')) {
-                const parts = strNum.split('.');
-                if (parts[1] && parts[1].length > decimalPlaces) {
-                    const factor = Math.pow(10, decimalPlaces);
-                    // ใช้ Math.floor เพื่อ "ตัด" ทศนิยม ไม่ใช่ "ปัดเศษ"
-                    num = Math.floor(num * factor) / factor;
-                }
-            }
-
-            return String(num);
-        };
-        // *** END: NEW/MODIFIED NUMBER INPUT FUNCTIONS ***
 
 
         // Init Date
@@ -516,7 +522,7 @@
 
             // ยกเลิกการเน้นเมื่อลากไฟล์ออกหรือวางไฟล์แล้ว
             uploadZone.addEventListener('dragleave', unhighlight, false);
-            uploadZone.addEventListener('drop', handleDrop, false);
+            uploadZone.addEventListener('drop', unhighlight, false);
 
             function highlight(e) {
                 // เพิ่มสไตล์เน้น
@@ -554,6 +560,7 @@
                 const tr = document.createElement('tr');
                 tr.className = 'border-b hover:bg-gray-50';
 
+                // *** การแก้ไข: ลบ step="0.01" และใช้ oninput เพื่อควบคุมค่าให้เป็นจำนวนเต็ม ***
                 tr.innerHTML = `
                     <td class="p-2 border-r border-gray-300">
                         <input type="text" class="w-full bg-transparent focus:outline-none" value="${item.name}" oninput="updateItem(${index}, 'name', this.value)" placeholder="ชื่อสินค้า">
@@ -562,25 +569,25 @@
                         <input type="number" 
                                 class="w-full text-right bg-transparent focus:outline-none no-spinners" 
                                 value="${item.qty}" 
-                                oninput="this.value = cleanIntegerInput(this.value, 0); updateItem(${index}, 'qty', this.value)" 
+                                oninput="this.value = cleanNumberInput(this.value, 0); updateItem(${index}, 'qty', this.value)" 
                                 min="0" inputmode="numeric" pattern="[0-9]*">
                     </td>
                     <td class="p-2 border-r border-gray-300">
-                        <input type="text" 
-                                class="w-full text-right bg-transparent focus:outline-none" 
+                        <input type="number" 
+                                class="w-full text-right bg-transparent focus:outline-none no-spinners" 
                                 value="${item.price}" 
-                                oninput="this.value = cleanDecimalInput(this.value, 2, 0); updateItem(${index}, 'price', this.value)" 
-                                inputmode="decimal">
+                                oninput="this.value = cleanNumberInput(this.value, 0); updateItem(${index}, 'price', this.value)" 
+                                min="0" inputmode="numeric" pattern="[0-9]*">
                     </td>
                     <td class="p-2 border-r border-gray-300">
-                        <input type="text" 
-                            class="w-full text-right bg-transparent focus:outline-none text-red-600" 
+                        <input type="number" 
+                            class="w-full text-right bg-transparent focus:outline-none no-spinners text-red-600" 
                             value="${item.discount}" 
                             data-index="${index}"
                             onfocus="handleDiscountFocus(this)" 
                             onblur="handleDiscountBlur(this)" 
-                            oninput="this.value = cleanDecimalInput(this.value, 2, 0); updateItem(${index}, 'discount', this.value)" 
-                            inputmode="decimal">
+                            oninput="this.value = cleanNumberInput(this.value, 0); updateItem(${index}, 'discount', this.value)" 
+                            min="0" inputmode="numeric" pattern="[0-9]*">
                     </td>
                     <td class="p-2 text-right font-semibold text-blue-800 border-r border-gray-300">
                         ${formatMoney(item.total)}
@@ -600,6 +607,7 @@
 
         const updateItem = (index, field, value) => {
             // 1. ตรวจสอบและแปลงค่าว่างเป็น 0 สำหรับการคำนวณเสมอ
+            // เนื่องจากมีการใช้ cleanNumberInput ใน oninput แล้ว ค่า value ที่ได้มาจึงถูกปัดเศษแล้ว (ยกเว้นค่าว่าง)
             let sanitizedValue = value.trim() === '' ? '' : value; // เก็บคืนค่าว่างให้เป็นค่าว่างเพื่อไม่ให้แสดง 0.00 ในช่องว่าง
 
             // 2. อัปเดตค่าของฟิลด์ปัจจุบันใน items[index] ด้วย sanitizedValue
@@ -608,19 +616,14 @@
             // 3. ถ้ามีการเปลี่ยนแปลงฟิลด์ที่เกี่ยวข้องกับการคำนวณ
             if (field === 'qty' || field === 'price' || field === 'discount') {
 
-                // *** ดึงค่าล่าสุดและแปลงเป็นตัวเลข *แบบเต็ม/ทศนิยม* ก่อนคำนวณทั้งหมด ***
-                // qty ใช้ parseInt
+                // *** ดึงค่าล่าสุดและแปลงเป็นตัวเลข *แบบเต็ม* ก่อนคำนวณทั้งหมด ***
+                // ใช้ parseInt(value, 10) แทน parseFloat เพื่อให้แน่ใจว่าได้จำนวนเต็ม
                 const q = parseInt(items[index].qty, 10) || 0;
-                // price และ discount ใช้ parseFloat
-                const p = parseFloat(items[index].price) || 0;
-                const d = parseFloat(items[index].discount) || 0;
+                const p = parseInt(items[index].price, 10) || 0;
+                const d = parseInt(items[index].discount, 10) || 0;
 
                 // คำนวณใหม่: (จำนวน * ราคา) - ส่วนลด
                 items[index].total = (q * p) - d;
-
-                // ปัดเศษผลรวมให้เหลือทศนิยม 2 ตำแหน่งเท่านั้น
-                items[index].total = Math.round(items[index].total * 100) / 100;
-
 
                 // 4. อัปเดตตัวเลขในตาราง (DOM) โดยไม่ต้อง Render ใหม่ทั้งหมด 
                 const tbody = document.getElementById('itemTableBody');
@@ -647,11 +650,9 @@
         };
 
         const calculateGrandTotal = () => {
-            // ใช้ parseFloat เพื่อรวมผลรวม (Total) 
+            // ใช้ parseFloat เพื่อรวมผลรวม (Total) ซึ่งเป็นผลลัพธ์ของจำนวนเต็ม (ดังนั้นจะไม่มีปัญหาทศนิยม)
             const total = items.reduce((sum, item) => sum + (parseFloat(item.total) || 0), 0);
-            // ปัดเศษผลรวมสุดท้ายให้เหลือทศนิยม 2 ตำแหน่ง
-            const roundedTotal = Math.round(total * 100) / 100;
-            document.getElementById('grandTotal').textContent = formatMoney(roundedTotal);
+            document.getElementById('grandTotal').textContent = formatMoney(total);
         };
 
         // Image Handling
@@ -696,7 +697,7 @@
         const validateInputs = () => {
             hideMessage(); // ซ่อนข้อความเก่าเสมอเมื่อเริ่มต้นการตรวจสอบ
 
-            const category = document.getElementById('billCategory').value; // NEW
+            const category = getCurrentCategoryValue(); // <-- ใช้ฟังก์ชันใหม่
             const purpose = document.getElementById('billPurpose').value.trim();
             const person = document.getElementById('personInCharge').value.trim();
 
@@ -706,9 +707,18 @@
                 document.getElementById('billPurpose').focus();
                 return false;
             }
-            if (category === '') { // NEW
-                showMessage("🚨 กรุณาเลือก 'หมวดหมู่' ให้ครบถ้วน");
-                document.getElementById('billCategory').focus();
+            if (category === '') { // <-- ตรวจสอบค่าที่ได้จากฟังก์ชันใหม่
+                showMessage("🚨 กรุณาเลือกหรือระบุ 'หมวดหมู่' ให้ครบถ้วน");
+
+                const select = document.getElementById('billCategory');
+                const customInput = document.getElementById('customCategoryInput');
+
+                // โฟกัสถูกช่อง
+                if (select.value === CUSTOM_CATEGORY_KEY) {
+                    customInput.focus();
+                } else {
+                    select.focus();
+                }
                 return false;
             }
             if (person === '') {
@@ -730,10 +740,9 @@
                 // ค้นหาดัชนีเดิมเพื่อแจ้งเตือนผู้ใช้ให้ถูกต้อง
                 const originalIndex = items.indexOf(item);
 
-                // ใช้ parseInt() และ parseFloat() ในการตรวจสอบ
+                // ใช้ parseInt() ในการตรวจสอบ เพราะเราต้องการจำนวนเต็มบวกเท่านั้น
                 const q = parseInt(item.qty, 10) || 0;
-                const p = parseFloat(item.price) || 0; // ใช้ parseFloat
-                const d = parseFloat(item.discount) || 0; // ใช้ parseFloat
+                const p = parseInt(item.price, 10) || 0;
 
                 // เงื่อนไข: ถ้ามีการกรอกชื่อสินค้า หรือมีผลรวมที่ไม่ใช่ 0 ต้องมีจำนวนและราคามากกว่า 0
                 if (item.name.trim() !== '' || item.total !== 0) {
@@ -744,12 +753,11 @@
                         break;
                     }
                     if (p <= 0) {
-                        showMessage(`🚨 รายการที่ ${originalIndex + 1}: กรุณากรอก 'ราคา/หน่วย' (Price) ให้ถูกต้องและเป็นตัวเลขบวก`);
+                        showMessage(`🚨 รายการที่ ${originalIndex + 1}: กรุณากรอก 'ราคา/หน่วย' (Price) ให้ถูกต้องและเป็นจำนวนเต็มบวก`);
                         errorFound = true;
                         errorIndex = originalIndex;
                         break;
                     }
-                    // ส่วนลดไม่จำเป็นต้องบังคับ > 0 แต่มันควรจะต้องไม่เป็นลบ (ซึ่งถูกคุมด้วย cleanDecimalInput แล้ว)
                 }
             }
 
@@ -789,18 +797,13 @@
             } else {
                 pageItems.forEach((item, index) => {
                     const currentNum = startNum + index;
-                    // ในตาราง PDF ต้องแสดง price แบบ formatMoney(2 ทศนิยม)
-                    const itemPriceDisplay = item.price ? formatMoney(item.price) : '-';
-                    const itemDiscountDisplay = item.discount && parseFloat(item.discount) > 0 ? formatMoney(item.discount) : '-';
-
-
                     tplBodyContent += `
                         <tr>
                             <td class="text-center">${currentNum}</td>
                             <td>${item.name}</td>
                             <td class="text-right">${item.qty || '-'}</td>
-                            <td class="text-right">${itemPriceDisplay}</td>
-                            <td class="text-right text-red-600">${itemDiscountDisplay}</td>
+                            <td class="text-right">${item.price ? formatMoney(item.price) : '-'}</td>
+                            <td class="text-right text-red-600">${item.discount && item.discount > 0 ? formatMoney(item.discount) : '-'}</td>
                             <td class="text-right font-medium">${formatMoney(item.total)}</td>
                         </tr>
                     `;
@@ -865,7 +868,7 @@
                         </tr>
                         <tr>
                             <td class="font-bold w-32 py-2 border-0">หมวดหมู่:</td>
-                            <td class="border-b border-gray-400 py-2 border-t-0 border-l-0 border-r-0 w-full">${document.getElementById('billCategory').value || '-'}</td>
+                            <td class="border-b border-gray-400 py-2 border-t-0 border-l-0 border-r-0 w-full">${getCurrentCategoryValue() || '-'}</td>
                         </tr>
                         <tr>
                             <td class="font-bold w-32 py-2 border-0">วัตถุประสงค์:</td>
@@ -949,25 +952,18 @@
             let totalDiscount = 0;
 
             validItems.forEach(item => {
-                // ใช้ parseInt() สำหรับจำนวนเต็ม, parseFloat() สำหรับราคาและส่วนลด
+                // ใช้ parseInt() ในการคำนวณเนื่องจากเราบังคับให้เป็นจำนวนเต็ม
                 const q = parseInt(item.qty, 10) || 0;
-                const p = parseFloat(item.price) || 0;
-                const d = parseFloat(item.discount) || 0;
+                const p = parseInt(item.price, 10) || 0;
+                const d = parseInt(item.discount, 10) || 0;
 
                 const itemSubTotal = q * p;
                 subTotalBeforeDiscount += itemSubTotal;
                 totalDiscount += d;
             });
 
-            // ปัดเศษผลรวมก่อนหักส่วนลด และรวมส่วนลด ให้เหลือ 2 ตำแหน่ง เพื่อความแม่นยำ
-            subTotalBeforeDiscount = Math.round(subTotalBeforeDiscount * 100) / 100;
-            totalDiscount = Math.round(totalDiscount * 100) / 100;
-
             // คำนวณยอดรวมสุทธิ (Grand Total)
             const grandTotal = subTotalBeforeDiscount - totalDiscount;
-            // ปัดเศษผลรวมสุดท้าย
-            const finalGrandTotal = Math.round(grandTotal * 100) / 100;
-
 
             // *** NEW: Calculate total pages for item table with mixed capacities ***
             let totalItemPages;
@@ -1009,7 +1005,7 @@
                     pageItems = validItems.slice(start, end);
 
                     // Generate HTML for the current page
-                    const pageHtml = generatePageHtml(pageItems, i, totalItemPages, subTotalBeforeDiscount, totalDiscount, finalGrandTotal, personInCharge);
+                    const pageHtml = generatePageHtml(pageItems, i, totalItemPages, subTotalBeforeDiscount, totalDiscount, grandTotal, personInCharge);
                     tempContainer.innerHTML = pageHtml;
 
                     // Capture the current page content
