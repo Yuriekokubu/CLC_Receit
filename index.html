@@ -243,7 +243,11 @@
         </div>
 
         <div class="mt-8 pt-6 border-t border-gray-200">
-            <h3 class="text-xl font-bold text-gray-800 mb-4">เซ็นลายเซ็นออนไลน์ (ไม่บังคับ)</h3>
+            <h3 class="text-xl font-bold text-gray-800 mb-4">เซ็นลายเซ็นออนไลน์ (ไม่บังคับ)
+                <svg class="w-5 h-5 inline-block ml-2 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path>
+                </svg>
+            </h3>
 
             <div class="bg-white p-4 rounded-lg border border-gray-300 mb-4">
                 <canvas id="signatureCanvas" width="400" height="200" class="border border-gray-400 bg-white cursor-crosshair"></canvas>
@@ -1109,9 +1113,25 @@
         // --- Signature Functions ---
         let isDrawing = false;
         let context;
+        let scaleX = 1;
+        let scaleY = 1;
 
         const initSignatureCanvas = () => {
             const canvas = document.getElementById('signatureCanvas');
+            const isMobile = window.innerWidth < 640;
+            if (isMobile) {
+                canvas.width = 300;
+                canvas.height = 150;
+                canvas.style.width = '100%';
+                canvas.style.height = 'auto';
+            } else {
+                canvas.width = 400;
+                canvas.height = 200;
+                canvas.style.width = '400px';
+                canvas.style.height = '200px';
+            }
+            scaleX = canvas.width / 400;
+            scaleY = canvas.height / 200;
             context = canvas.getContext('2d');
             context.lineWidth = 2;
             context.lineCap = 'round';
@@ -1133,12 +1153,12 @@
             isDrawing = true;
             hasDrawn = true;
             context.beginPath();
-            context.moveTo(e.offsetX, e.offsetY);
+            context.moveTo(e.offsetX / scaleX, e.offsetY / scaleY);
         };
 
         const draw = (e) => {
             if (!isDrawing) return;
-            context.lineTo(e.offsetX, e.offsetY);
+            context.lineTo(e.offsetX / scaleX, e.offsetY / scaleY);
             context.stroke();
         };
 
@@ -1150,8 +1170,8 @@
             e.preventDefault();
             hasDrawn = true;
             const rect = e.target.getBoundingClientRect();
-            const x = e.touches[0].clientX - rect.left;
-            const y = e.touches[0].clientY - rect.top;
+            const x = (e.touches[0].clientX - rect.left) / scaleX;
+            const y = (e.touches[0].clientY - rect.top) / scaleY;
             isDrawing = true;
             context.beginPath();
             context.moveTo(x, y);
@@ -1161,8 +1181,8 @@
             e.preventDefault();
             if (!isDrawing) return;
             const rect = e.target.getBoundingClientRect();
-            const x = e.touches[0].clientX - rect.left;
-            const y = e.touches[0].clientY - rect.top;
+            const x = (e.touches[0].clientX - rect.left) / scaleX;
+            const y = (e.touches[0].clientY - rect.top) / scaleY;
             context.lineTo(x, y);
             context.stroke();
         };
@@ -1171,17 +1191,33 @@
             context.clearRect(0, 0, 400, 200);
             signatureData = null;
             hasDrawn = false;
+            updateSaveButton(false);
         };
 
         const autoSaveSignature = () => {
             if (hasDrawn && !signatureData) {
                 const canvas = document.getElementById('signatureCanvas');
                 signatureData = canvas.toDataURL('image/png');
+                updateSaveButton(true);
+            }
+        };
+
+        const updateSaveButton = (saved) => {
+            const saveButton = document.querySelector('button[onclick="saveSignature()"]');
+            if (saved) {
+                saveButton.textContent = 'บันทึกแล้ว';
+                saveButton.className = 'bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded';
+                saveButton.disabled = true;
+            } else {
+                saveButton.textContent = 'บันทึกลายเซ็น';
+                saveButton.className = 'bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded';
+                saveButton.disabled = false;
             }
         };
 
         const saveSignature = () => {
             autoSaveSignature();
+            updateSaveButton(true);
             showMessage("บันทึกลายเซ็นเรียบร้อยแล้ว!", false);
         };
 
