@@ -11,6 +11,8 @@
     <script src="html2canvas.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;500;600;700;800&display=swap"
         rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
     <link rel="icon" href="favicon.png" type="image/png">
 
     <script>
@@ -133,19 +135,12 @@
             border-radius: 50%;
             box-shadow: 0 0 0 4px #bfdbfe, 0 0 0 6px #1e3a8a;
         }
-
-        .message-box-error {
-            background-color: #fef2f2;
-            color: #ef4444;
-            border: 2px solid #fca5a5;
-        }
     </style>
 </head>
 
 <body class="bg-[rgb(0,49,97)] min-h-screen font-sans flex flex-col items-center py-4 sm:py-8">
 
     <div class="max-w-7xl mx-auto w-full bg-white p-4 sm:p-6 md:p-8 lg:p-12 rounded-2xl shadow-3xl">
-        <div id="messageBox" class="m-6 p-4 rounded-lg hidden font-medium text-center"></div>
         <div id="billContent"
             class="bill-container p-3 sm:p-4 md:p-6 lg:p-8 border-4 border-gray-300 rounded-xl bg-white">
 
@@ -360,23 +355,18 @@
 
         // Utility Functions for Message Box
         const showMessage = (msg, isError = true) => {
-            const msgBox = document.getElementById('messageBox');
-            msgBox.textContent = msg;
-            msgBox.classList.remove('hidden');
-            msgBox.classList.remove('message-box-error', 'bg-blue-50', 'text-blue-500', 'border-blue-300');
-
-            if (isError) {
-                msgBox.classList.add('message-box-error');
-            } else {
-                msgBox.classList.add('bg-blue-50', 'text-blue-500', 'border-blue-300');
-            }
-
-            setTimeout(hideMessage, 5000);
+            Toastify({
+                text: msg,
+                duration: 5000,
+                close: true,
+                gravity: "bottom",
+                position: "center",
+                backgroundColor: isError ? "rgba(239, 68, 68, 0.9)" : "rgba(34, 197, 94, 0.9)",
+                stopOnFocus: true,
+            }).showToast();
         };
 
-        const hideMessage = () => {
-            document.getElementById('messageBox').classList.add('hidden');
-        };
+        // Removed hideMessage as Toastify handles it
 
 
         // --- START: CATEGORY HANDLER FUNCTIONS (from previous request) ---
@@ -712,7 +702,7 @@
         // **แก้ไข: validateInputs อ่าน q เป็น parseFloat**
         // **แก้ไข: validateInputs อ่าน q เป็น parseFloat**
         const validateInputs = () => {
-            hideMessage();
+            // hideMessage(); // Removed as using Toastify
 
             const category = getCurrentCategoryValue();
             const purpose = document.getElementById('billPurpose').value.trim();
