@@ -974,7 +974,7 @@
                     tempContainer.innerHTML = pageHtml;
 
                     const canvas = await html2canvas(tempContainer.children[0], {
-                        scale: 2,
+                        scale: 4, // **เปลี่ยนตรงนี้**
                         useCORS: true,
                         logging: false,
                         backgroundColor: '#ffffff',
@@ -982,7 +982,7 @@
                         height: 1123,
                     });
 
-                    const imgData = canvas.toDataURL('image/jpeg', 0.95);
+                    const imgData = canvas.toDataURL('image/jpeg', 1);
                     const imgWidth = pageWidth;
                     const imgHeight = (canvas.height * imgWidth) / canvas.width;
 
