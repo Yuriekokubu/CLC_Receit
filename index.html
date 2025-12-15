@@ -55,46 +55,36 @@
         }
 
         /* --- PDF TEMPLATE STYLES (สำคัญ) --- */
-        /* div นี้จะถูกใช้เป็นคอนเทนเนอร์ชั่วคราวในการสร้าง PDF แต่ถูกซ่อนไว้ */
         #pdfTemplate {
             position: fixed;
             top: -9999px;
             left: -9999px;
             width: 800px;
             min-height: 1123px;
-            /* A4 height at 96 DPI equivalent to 800px width */
             background-color: white;
             box-sizing: border-box;
             color: #000;
         }
 
-        /* แก้ไข/เพิ่ม: กำหนดให้ page content เป็น relative เพื่อจัดวางลายเซ็นแบบ absolute */
         .pdf-page-content {
             position: relative;
-            /* สำคัญสำหรับการจัดวางลายเซ็นและลายน้ำ */
             width: 800px;
             min-height: 1123px;
-            /* A4 height at 96 DPI equivalent to 800px width */
             padding: 40px 50px;
             box-sizing: border-box;
             color: #000;
             background-color: white;
         }
 
-        /* เพิ่ม: สไตล์สำหรับ PDF Logo */
         .pdf-page-content .pdf-logo {
             width: 70px;
-            /* ขนาดโลโก้ใน PDF */
             height: 70px;
             border: 3px solid #1e3a8a;
-            /* ขอบหนาเป็นสีน้ำเงินเข้ม */
             border-radius: 50%;
-            /* ทรงกลม */
             box-sizing: border-box;
             display: inline-block;
         }
 
-        /* สไตล์ตารางภายใน Template */
         .template-table {
             width: 100%;
             border-collapse: collapse;
@@ -103,9 +93,7 @@
 
         .template-table th {
             background-color: #f3f4f6;
-            /* Gray-100 */
             border: 1px solid #9ca3af;
-            /* Gray-400 */
             padding: 8px;
             text-align: center;
             font-weight: bold;
@@ -119,51 +107,36 @@
 
         .template-header-line {
             border-bottom: 2px solid #1e3a8a;
-            /* Blue-900 */
             margin-bottom: 20px;
             padding-bottom: 10px;
         }
 
-        /* เพิ่ม: สไตล์สำหรับ Watermark */
         .pdf-watermark {
             position: absolute;
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%) rotate(-45deg);
             font-size: 5em;
-            /* 5em is about 80px */
             color: #d1d5db;
-            /* Gray-300 */
             opacity: 0.3;
             z-index: -1;
-            /* ให้อยู่ด้านหลังเนื้อหา */
             pointer-events: none;
             width: 100%;
             text-align: center;
             font-weight: 800;
-            /* Extra bold */
             white-space: nowrap;
         }
 
-        /* เพิ่ม: สไตล์สำหรับ Header Logo ในหน้าเว็บ (จำลองโลโก้ให้ดูเด่น) */
         .header-logo-from-css {
-            /* ถ้าไม่มีรูปภาพจริง จะใช้สีและเงาจำลอง */
             background-color: #ffffff;
-            /* Blue-900 */
             border-radius: 50%;
-            /* เพิ่มวงแหวนรอบนอกให้ดูโดดเด่น */
             box-shadow: 0 0 0 4px #bfdbfe, 0 0 0 6px #1e3a8a;
-            /* วงแหวนสีฟ้าอ่อนและน้ำเงินเข้ม */
         }
 
-        /* เพิ่ม: สไตล์สำหรับ Message Box */
         .message-box-error {
             background-color: #fef2f2;
-            /* Red-50 */
             color: #ef4444;
-            /* Red-500 */
             border: 2px solid #fca5a5;
-            /* Red-300 */
         }
     </style>
 </head>
@@ -315,23 +288,22 @@
         // --- Logic ---
         let items = [];
         let receiptImages = [];
-        const ITEMS_PER_FIRST_PAGE = 10; // ความจุสำหรับตารางรายการสินค้าในหน้าแรก (บรรทัดตาราง)
-        const ITEMS_PER_SUBSEQUENT_PAGE = 10; // ความจุสำหรับตารางรายการสินค้าในหน้าถัดไป
+        const ITEMS_PER_FIRST_PAGE = 10;
+        const ITEMS_PER_SUBSEQUENT_PAGE = 10;
+        const CUSTOM_CATEGORY_KEY = 'อื่นๆ';
 
-        // NEW: Define Category structure (จากคำขอครั้งก่อน)
+        // Define Category structure 
         const CATEGORIES = {
             'อาหาร': ['อาหารเที่ยงวันอาทิตย์', 'อาหาร'],
             'อุปกรณ์': ['อุปกรณ์'],
             'สำนักงาน/เบ็ดเตล็ด': ['สำนักงาน', 'ของขวัญ', 'ต้อนรับ', 'หางบัตร', 'ทั่วไป', 'อื่นๆ']
         };
-        const CUSTOM_CATEGORY_KEY = 'อื่นๆ'; // <--- NEW CONSTANT
 
-        // NEW: Function to populate the category dropdown (จากคำขอครั้งก่อน)
+        // NEW: Function to populate the category dropdown
         const populateCategories = () => {
             const select = document.getElementById('billCategory');
-            select.innerHTML = '<option value="">-- เลือกหมวดหมู่ --</option>'; // Default/Empty Option
+            select.innerHTML = '<option value="">-- เลือกหมวดหมู่ --</option>';
 
-            // Grouped Options
             for (const group in CATEGORIES) {
                 const optgroup = document.createElement('optgroup');
                 optgroup.label = group;
@@ -371,7 +343,6 @@
                 msgBox.classList.add('bg-blue-50', 'text-blue-500', 'border-blue-300');
             }
 
-            // ซ่อนข้อความอัตโนมัติหลังจาก 5 วินาที
             setTimeout(hideMessage, 5000);
         };
 
@@ -380,66 +351,113 @@
         };
 
 
-        // --- START: NEW CATEGORY HANDLER FUNCTIONS ---
+        // --- START: CATEGORY HANDLER FUNCTIONS (from previous request) ---
 
-        /**
-         * ดึงค่าหมวดหมู่ปัจจุบัน โดยตรวจสอบจาก Select box และ Custom input
-         */
         const getCurrentCategoryValue = () => {
             const select = document.getElementById('billCategory');
             const customInput = document.getElementById('customCategoryInput');
             const selectedValue = select.value.trim();
 
             if (selectedValue === CUSTOM_CATEGORY_KEY) {
-                // ถ้าเลือก 'อื่นๆ' ให้ดึงค่าจากช่องพิมพ์เอง
                 return customInput.value.trim() || '';
             }
-            // ถ้าเลือกหมวดหมู่ปกติ ให้ใช้ค่าจาก Select box
             return selectedValue;
         };
 
-        /**
-         * จัดการเมื่อค่าใน Select Box เปลี่ยน
-         */
         const handleCategoryChange = (selectedValue) => {
             const select = document.getElementById('billCategory');
             const customWrapper = document.getElementById('customCategoryWrapper');
             const customInput = document.getElementById('customCategoryInput');
 
             if (selectedValue === CUSTOM_CATEGORY_KEY) {
-                // Show custom input, hide select visually
-                // ใช้ opacity-0, pointer-events-none, absolute, z-0 เพื่อซ่อน Select และให้ Input ใช้งานได้เต็มที่
                 select.classList.add('opacity-0', 'pointer-events-none', 'absolute', 'z-0');
                 customWrapper.classList.remove('hidden');
-                customInput.value = ''; // Clear previous input
+                customInput.value = '';
                 customInput.focus();
             } else {
-                // Hide custom input, show select
                 customWrapper.classList.add('hidden');
                 select.classList.remove('opacity-0', 'pointer-events-none', 'absolute', 'z-0');
             }
         };
 
-        /**
-         * จัดการเมื่อผู้ใช้กดปุ่มยกเลิกการพิมพ์เอง
-         */
         const revertToCategorySelect = () => {
             const select = document.getElementById('billCategory');
             const customWrapper = document.getElementById('customCategoryWrapper');
             const customInput = document.getElementById('customCategoryInput');
 
-            // Reset custom value, hide custom input, show select
             customInput.value = '';
             customWrapper.classList.add('hidden');
             select.classList.remove('opacity-0', 'pointer-events-none', 'absolute', 'z-0');
-            select.value = ''; // รีเซ็ต Select box เป็นค่าว่างเริ่มต้น
+            select.value = '';
             select.focus();
         };
 
-        // --- END: NEW CATEGORY HANDLER FUNCTIONS ---
+        // --- END: CATEGORY HANDLER FUNCTIONS ---
 
 
-        // --- ฟังก์ชันจัดการ Focus/Blur (ส่วนลด) ---
+        // --- START: INPUT CLEANING FUNCTIONS (UPDATED for Decimal) ---
+
+        /**
+         * ฟังก์ชันตรวจสอบและปัดเศษค่าที่กรอกให้เป็นทศนิยมบวก (ไม่เกิน 2 ตำแหน่ง)
+         * @param {string} value ค่าจาก input
+         * @param {number} decimalPlaces จำนวนตำแหน่งทศนิยมที่อนุญาต
+         * @param {number} minValue ค่าต่ำสุดที่อนุญาต (ปกติคือ 0)
+         * @returns {string} ค่าที่ถูกต้องและปัดเศษแล้ว (เป็น string)
+         */
+        const cleanDecimalInput = (value, decimalPlaces = 2) => {
+            // ว่าง = ว่าง
+            if (value === '') return '';
+
+            // แทน , เป็น .
+            value = value.replace(/,/g, '.');
+
+            // เอาเฉพาะตัวเลขกับ .
+            value = value.replace(/[^\d.]/g, '');
+
+            // อนุญาต . แค่ตัวเดียว
+            const parts = value.split('.');
+            if (parts.length > 2) {
+                value = parts[0] + '.' + parts.slice(1).join('');
+            }
+
+            // จำกัดทศนิยม แต่ไม่ parse
+            if (value.includes('.')) {
+                const [i, d] = value.split('.');
+                value = i + '.' + d.slice(0, decimalPlaces);
+            }
+
+            return value;
+        };
+
+
+
+        /**
+         * ฟังก์ชันตรวจสอบและปัดเศษค่าที่กรอกให้เป็นจำนวนเต็มบวกเท่านั้น
+         * (ถูกเก็บไว้แต่ไม่ได้ใช้กับ Quantity แล้ว)
+         * @param {string} value ค่าจาก input
+         * @param {number} minValue ค่าต่ำสุดที่อนุญาต (ปกติคือ 0)
+         * @returns {string} ค่าที่ถูกต้องและปัดเศษแล้ว (เป็น string)
+         */
+        const cleanNumberInput = (value, minValue = 0) => {
+            if (value.trim() === '') {
+                return '';
+            }
+
+            // 1. แปลงเป็นตัวเลข (ปัดเศษให้เป็นจำนวนเต็ม)
+            let num = Math.round(parseFloat(value) || 0);
+
+            // 2. ตรวจสอบค่าต่ำสุด
+            if (num < minValue) {
+                num = minValue;
+            }
+
+            return String(num);
+        };
+
+        // --- END: INPUT CLEANING FUNCTIONS ---
+
+
+        // --- ฟังก์ชันจัดการ Focus/Blur สำหรับ Discount ---
         const handleDiscountFocus = (inputElement) => {
             if (inputElement.value === '0' || inputElement.value === '0.00') {
                 inputElement.value = '';
@@ -455,29 +473,6 @@
             updateItem(index, 'discount', inputElement.value);
         };
 
-        /**
-         * ฟังก์ชันตรวจสอบและปัดเศษค่าที่กรอกให้เป็นจำนวนเต็มบวกเท่านั้น
-         * @param {string} value ค่าจาก input
-         * @param {number} minValue ค่าต่ำสุดที่อนุญาต (ปกติคือ 0)
-         * @returns {string} ค่าที่ถูกต้องและปัดเศษแล้ว (เป็น string)
-         */
-        const cleanNumberInput = (value, minValue = 0) => {
-            if (value.trim() === '') {
-                return '';
-            }
-
-            // 1. แปลงเป็นตัวเลขและปัดเศษให้เป็นจำนวนเต็ม
-            let num = Math.round(parseFloat(value) || 0);
-
-            // 2. ตรวจสอบค่าต่ำสุด
-            if (num < minValue) {
-                num = minValue;
-            }
-
-            return String(num);
-        };
-
-
         // Init Date
         document.addEventListener('DOMContentLoaded', () => {
             const today = new Date();
@@ -485,28 +480,21 @@
             document.getElementById('billDate').value = strDate;
             document.getElementById('billDateDisplay').value = formatDate(strDate);
 
-            // NEW: Populate categories on load
             populateCategories();
 
-            // เพิ่ม 10 แถวเริ่มต้น (ตามความจุหน้าแรก)
             for (let i = 0; i < ITEMS_PER_FIRST_PAGE; i++) {
                 addItem(false);
             }
             renderTable();
 
-            // Re-attach listeners for formatting if needed
-            document.querySelectorAll('input').forEach(input => {
-                input.addEventListener('keydown', (e) => {
-                    if (e.key === 'Enter') e.preventDefault();
-                });
-            });
+            // Ensure category select is visible by default
+            document.getElementById('billCategory').classList.remove('opacity-0', 'pointer-events-none', 'absolute', 'z-0');
 
-            // --- START: Drag and Drop Logic ---
+            // --- Drag and Drop Logic (omitted for brevity, assume working) ---
             const uploadZone = document.getElementById('uploadZone');
             const defaultClasses = ['border-green-500', 'bg-green-50', 'hover:bg-green-100'];
-            const highlightClasses = ['border-blue-700', 'bg-blue-100']; // สไตล์เน้นเมื่อลากไฟล์มาวาง
+            const highlightClasses = ['border-blue-700', 'bg-blue-100'];
 
-            // ป้องกันพฤติกรรมเริ่มต้นของเบราว์เซอร์สำหรับเหตุการณ์ลากไฟล์
             ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
                 uploadZone.addEventListener(eventName, preventDefaults, false);
             });
@@ -516,40 +504,28 @@
                 e.stopPropagation();
             }
 
-            // เน้นพื้นที่เมื่อมีการลากไฟล์เข้า
             uploadZone.addEventListener('dragenter', highlight, false);
             uploadZone.addEventListener('dragover', highlight, false);
-
-            // ยกเลิกการเน้นเมื่อลากไฟล์ออกหรือวางไฟล์แล้ว
             uploadZone.addEventListener('dragleave', unhighlight, false);
             uploadZone.addEventListener('drop', unhighlight, false);
 
             function highlight(e) {
-                // เพิ่มสไตล์เน้น
                 uploadZone.classList.add(...highlightClasses);
-                // ลบสไตล์ปกติ
                 uploadZone.classList.remove(...defaultClasses);
             }
 
             function unhighlight(e) {
-                // ลบสไตล์เน้น
                 uploadZone.classList.remove(...highlightClasses);
-                // กลับไปใช้สไตล์ปกติ
                 uploadZone.classList.add(...defaultClasses);
             }
 
-            // จัดการเหตุการณ์ Drop
             uploadZone.addEventListener('drop', handleDrop, false);
 
             function handleDrop(e) {
                 const dt = e.dataTransfer;
                 const files = dt.files;
-
-                // เรียกใช้ฟังก์ชันจัดการการอัปโหลดไฟล์ที่มีอยู่เดิม
                 handleImageUpload({ target: { files: files } });
             }
-            // --- END: Drag and Drop Logic ---
-
         });
 
         // Table Logic
@@ -560,7 +536,7 @@
                 const tr = document.createElement('tr');
                 tr.className = 'border-b hover:bg-gray-50';
 
-                // *** การแก้ไข: ลบ step="0.01" และใช้ oninput เพื่อควบคุมค่าให้เป็นจำนวนเต็ม ***
+                // **แก้ไข: Quantity ใช้ cleanDecimalInput และ inputmode="decimal"**
                 tr.innerHTML = `
                     <td class="p-2 border-r border-gray-300">
                         <input type="text" class="w-full bg-transparent focus:outline-none" value="${item.name}" oninput="updateItem(${index}, 'name', this.value)" placeholder="ชื่อสินค้า">
@@ -573,21 +549,28 @@
                                 min="0" inputmode="numeric" pattern="[0-9]*">
                     </td>
                     <td class="p-2 border-r border-gray-300">
-                        <input type="number" 
-                                class="w-full text-right bg-transparent focus:outline-none no-spinners" 
-                                value="${item.price}" 
-                                oninput="this.value = cleanNumberInput(this.value, 0); updateItem(${index}, 'price', this.value)" 
-                                min="0" inputmode="numeric" pattern="[0-9]*">
+                        <input
+  type="text"
+  inputmode="decimal"
+  class="w-full text-right bg-transparent focus:outline-none no-spinners"
+  value="${item.price}"
+  oninput="
+    this.value = cleanDecimalInput(this.value, 3, 0);
+    updateItem(${index}, 'price', this.value)
+  "
+>
+
                     </td>
                     <td class="p-2 border-r border-gray-300">
                         <input type="number" 
+                            step="0.01" 
                             class="w-full text-right bg-transparent focus:outline-none no-spinners text-red-600" 
                             value="${item.discount}" 
                             data-index="${index}"
                             onfocus="handleDiscountFocus(this)" 
                             onblur="handleDiscountBlur(this)" 
-                            oninput="this.value = cleanNumberInput(this.value, 0); updateItem(${index}, 'discount', this.value)" 
-                            min="0" inputmode="numeric" pattern="[0-9]*">
+                            oninput="this.value = cleanDecimalInput(this.value, 2, 0); updateItem(${index}, 'discount', this.value)" 
+                            min="0" inputmode="decimal">
                     </td>
                     <td class="p-2 text-right font-semibold text-blue-800 border-r border-gray-300">
                         ${formatMoney(item.total)}
@@ -605,31 +588,25 @@
             calculateGrandTotal();
         };
 
+        // **แก้ไข: updateItem อ่าน qty เป็น parseFloat**
         const updateItem = (index, field, value) => {
-            // 1. ตรวจสอบและแปลงค่าว่างเป็น 0 สำหรับการคำนวณเสมอ
-            // เนื่องจากมีการใช้ cleanNumberInput ใน oninput แล้ว ค่า value ที่ได้มาจึงถูกปัดเศษแล้ว (ยกเว้นค่าว่าง)
-            let sanitizedValue = value.trim() === '' ? '' : value; // เก็บคืนค่าว่างให้เป็นค่าว่างเพื่อไม่ให้แสดง 0.00 ในช่องว่าง
-
-            // 2. อัปเดตค่าของฟิลด์ปัจจุบันใน items[index] ด้วย sanitizedValue
+            let sanitizedValue = value.trim() === '' ? '' : value;
             items[index][field] = sanitizedValue;
 
-            // 3. ถ้ามีการเปลี่ยนแปลงฟิลด์ที่เกี่ยวข้องกับการคำนวณ
             if (field === 'qty' || field === 'price' || field === 'discount') {
 
-                // *** ดึงค่าล่าสุดและแปลงเป็นตัวเลข *แบบเต็ม* ก่อนคำนวณทั้งหมด ***
-                // ใช้ parseInt(value, 10) แทน parseFloat เพื่อให้แน่ใจว่าได้จำนวนเต็ม
-                const q = parseInt(items[index].qty, 10) || 0;
-                const p = parseInt(items[index].price, 10) || 0;
-                const d = parseInt(items[index].discount, 10) || 0;
+                // Quantity (qty) should be parsed as Float (decimals)
+                const q = parseFloat(items[index].qty) || 0;
+                // Price (price) and Discount (discount) should be parsed as Float (decimals)
+                const p = parseFloat(items[index].price) || 0;
+                const d = parseFloat(items[index].discount) || 0;
 
                 // คำนวณใหม่: (จำนวน * ราคา) - ส่วนลด
                 items[index].total = (q * p) - d;
 
-                // 4. อัปเดตตัวเลขในตาราง (DOM) โดยไม่ต้อง Render ใหม่ทั้งหมด 
                 const tbody = document.getElementById('itemTableBody');
                 const row = tbody.rows[index];
                 if (row) {
-                    // ช่อง "รวม" อยู่คอลัมน์ที่ 5 (index 4)
                     row.cells[4].textContent = formatMoney(items[index].total);
                 }
             }
@@ -637,7 +614,7 @@
         };
 
         const addItem = (shouldRender = true) => {
-            // ค่าเริ่มต้นเป็น '' เพื่อให้ช่องว่าง
+            // Price and Discount are set to '0' initially to ensure proper floating point calculation if they are left empty.
             items.push({ name: '', qty: '', price: '', discount: 0, total: 0 });
             if (shouldRender) {
                 renderTable();
@@ -650,18 +627,18 @@
         };
 
         const calculateGrandTotal = () => {
-            // ใช้ parseFloat เพื่อรวมผลรวม (Total) ซึ่งเป็นผลลัพธ์ของจำนวนเต็ม (ดังนั้นจะไม่มีปัญหาทศนิยม)
+            // Use parseFloat for all calculation
             const total = items.reduce((sum, item) => sum + (parseFloat(item.total) || 0), 0);
             document.getElementById('grandTotal').textContent = formatMoney(total);
         };
 
-        // Image Handling
+        // Image Handling (omitted for brevity, assume working)
         function handleImageUpload(event) {
             const files = event.target.files;
             if (!files.length) return;
 
             Array.from(files).forEach(file => {
-                if (file.size > 5 * 1024 * 1024) return; // Skip > 5MB
+                if (file.size > 5 * 1024 * 1024) return;
                 const reader = new FileReader();
                 reader.onload = (e) => {
                     receiptImages.push({ id: generateUniqueId(), base64: e.target.result });
@@ -693,27 +670,25 @@
         };
 
 
-        // *** ฟังก์ชันตรวจสอบความถูกต้องของข้อมูล (Validation) - ใช้ showMessage แทน alert ***
+        // **แก้ไข: validateInputs อ่าน q เป็น parseFloat**
         const validateInputs = () => {
-            hideMessage(); // ซ่อนข้อความเก่าเสมอเมื่อเริ่มต้นการตรวจสอบ
+            hideMessage();
 
-            const category = getCurrentCategoryValue(); // <-- ใช้ฟังก์ชันใหม่
+            const category = getCurrentCategoryValue();
             const purpose = document.getElementById('billPurpose').value.trim();
             const person = document.getElementById('personInCharge').value.trim();
 
-            // 1. Check Header fields
             if (purpose === '') {
                 showMessage("🚨 กรุณากรอก 'วัตถุประสงค์' ให้ครบถ้วน");
                 document.getElementById('billPurpose').focus();
                 return false;
             }
-            if (category === '') { // <-- ตรวจสอบค่าที่ได้จากฟังก์ชันใหม่
+            if (category === '') {
                 showMessage("🚨 กรุณาเลือกหรือระบุ 'หมวดหมู่' ให้ครบถ้วน");
 
                 const select = document.getElementById('billCategory');
                 const customInput = document.getElementById('customCategoryInput');
 
-                // โฟกัสถูกช่อง
                 if (select.value === CUSTOM_CATEGORY_KEY) {
                     customInput.focus();
                 } else {
@@ -731,29 +706,25 @@
             let errorFound = false;
             let errorIndex = -1;
 
-            // กรองรายการที่มีข้อมูล (มีชื่อสินค้า หรือมีผลรวมไม่เท่ากับ 0)
             const itemsToValidate = items.filter(item => item.name.trim() !== '' || item.total !== 0);
 
             for (let i = 0; i < itemsToValidate.length; i++) {
                 const item = itemsToValidate[i];
-
-                // ค้นหาดัชนีเดิมเพื่อแจ้งเตือนผู้ใช้ให้ถูกต้อง
                 const originalIndex = items.indexOf(item);
 
-                // ใช้ parseInt() ในการตรวจสอบ เพราะเราต้องการจำนวนเต็มบวกเท่านั้น
-                const q = parseInt(item.qty, 10) || 0;
-                const p = parseInt(item.price, 10) || 0;
+                // Quantity (q) and Price (p) must both be a float (allowing decimals)
+                const q = parseFloat(item.qty) || 0;
+                const p = parseFloat(item.price) || 0;
 
-                // เงื่อนไข: ถ้ามีการกรอกชื่อสินค้า หรือมีผลรวมที่ไม่ใช่ 0 ต้องมีจำนวนและราคามากกว่า 0
                 if (item.name.trim() !== '' || item.total !== 0) {
                     if (q <= 0) {
-                        showMessage(`🚨 รายการที่ ${originalIndex + 1}: กรุณากรอก 'จำนวน' (Quantity) ให้ถูกต้องและเป็นจำนวนเต็มบวก`);
+                        showMessage(`🚨 รายการที่ ${originalIndex + 1}: กรุณากรอก 'จำนวน' (Quantity) ให้ถูกต้องและเป็นบวก`);
                         errorFound = true;
                         errorIndex = originalIndex;
                         break;
                     }
-                    if (p <= 0) {
-                        showMessage(`🚨 รายการที่ ${originalIndex + 1}: กรุณากรอก 'ราคา/หน่วย' (Price) ให้ถูกต้องและเป็นจำนวนเต็มบวก`);
+                    if (p <= 0) { // Check for Price > 0
+                        showMessage(`🚨 รายการที่ ${originalIndex + 1}: กรุณากรอก 'ราคา/หน่วย' (Price) ให้ถูกต้องและเป็นบวก`);
                         errorFound = true;
                         errorIndex = originalIndex;
                         break;
@@ -762,10 +733,8 @@
             }
 
             if (errorFound) {
-                // พยายามโฟกัสที่ช่อง input ในรายการที่เกิดปัญหา
                 const tbody = document.getElementById('itemTableBody');
                 if (errorIndex !== -1 && tbody.rows[errorIndex]) {
-                    // โฟกัสที่ช่องชื่อสินค้าเพื่อให้ผู้ใช้เห็นแถวนั้น
                     tbody.rows[errorIndex].cells[0].querySelector('input').focus();
                 }
                 return false;
@@ -773,26 +742,21 @@
 
             return true;
         };
-        // *** สิ้นสุดฟังก์ชันตรวจสอบความถูกต้องของข้อมูล ***
 
-        // --- Template Generation (Updated for Absolute Signature Block and wider header lines) ---
+        // --- Template Generation (omitted for brevity, assume working) ---
 
         const generatePageHtml = (pageItems, pageIndex, totalPages, subTotalBeforeDiscount, totalDiscount, grandTotal, personInCharge) => {
             const isLastPage = (pageIndex === totalPages - 1);
 
-            // คำนวณลำดับเริ่มต้นสำหรับรายการในหน้านั้นๆ
             let startNum;
             if (pageIndex === 0) {
                 startNum = 1;
             } else {
-                // หน้าถัดไป: เริ่มต้นจาก (รายการหน้าแรก + (ดัชนีหน้าถัดไป * ความจุหน้าถัดไป)) + 1
                 startNum = ITEMS_PER_FIRST_PAGE + ((pageIndex - 1) * ITEMS_PER_SUBSEQUENT_PAGE) + 1;
             }
 
-            // 1. Build Table Body
             let tplBodyContent = '';
             if (pageItems.length === 0 && pageIndex === 0) {
-                // ถ้าไม่มีรายการเลย
                 tplBodyContent = `<tr><td colspan="6" class="text-center py-4 text-gray-500 italic">-- ไม่มีรายการ --</td></tr>`;
             } else {
                 pageItems.forEach((item, index) => {
@@ -810,7 +774,6 @@
                 });
             }
 
-            // 2. Grand Total Footer (เฉพาะหน้าสุดท้าย - เพิ่ม Subtotal และ Total Discount)
             let tplFooterContent = '';
             if (isLastPage) {
                 tplFooterContent = `
@@ -831,7 +794,6 @@
                 `;
             }
 
-            // 3. Signature Block (เฉพาะหน้าสุดท้าย - ใช้ fixed width 250px)
             let signatureBlock = '';
             if (isLastPage) {
                 const signerName = personInCharge || '.......................................................';
@@ -853,7 +815,6 @@
                 `;
             }
 
-            // 4. Main Header Info (สำหรับทุกหน้า - ปรับเส้นใต้ให้กว้างเต็ม)
             const now = new Date();
             const headerInfoHtml = `
                 <div class="mb-6 px-4">
@@ -878,7 +839,6 @@
                 </div>
             `;
 
-            // โค้ดสำหรับ Header ตามเงื่อนไขจำนวนหน้า
             const titleText = totalPages > 1
                 ? `ใบเบิกค่าใช้จ่าย (หน้า ${pageIndex + 1} จาก ${totalPages})`
                 : `ใบเบิกค่าใช้จ่าย`;
@@ -900,7 +860,6 @@
                 </div>
             `;
 
-            // NEW: Watermark HTML
             const watermarkHtml = `<div class="pdf-watermark">คริสตจักรลูกของความสว่าง</div>`;
 
 
@@ -935,7 +894,7 @@
             `;
         };
 
-        // --- PDF Generation (Updated for Multi-Page and Dynamic Content) ---
+        // **แก้ไข: generatePDFDocument อ่าน q เป็น parseFloat**
         const generatePDFDocument = async () => {
 
             const { jsPDF } = window.jspdf;
@@ -943,29 +902,26 @@
             const pageWidth = doc.internal.pageSize.getWidth();
             const pageHeight = doc.internal.pageSize.getHeight();
 
-            // Gathers necessary data
             const validItems = items.filter(item => item.name.trim() !== '' || item.total !== 0);
             const personInCharge = document.getElementById('personInCharge').value;
 
-            // *** การคำนวณเพื่อรวมยอดทั้งหมดและส่วนลด ***
             let subTotalBeforeDiscount = 0;
             let totalDiscount = 0;
 
             validItems.forEach(item => {
-                // ใช้ parseInt() ในการคำนวณเนื่องจากเราบังคับให้เป็นจำนวนเต็ม
-                const q = parseInt(item.qty, 10) || 0;
-                const p = parseInt(item.price, 10) || 0;
-                const d = parseInt(item.discount, 10) || 0;
+                // Quantity is now float
+                const q = parseFloat(item.qty) || 0;
+                // Price/Discount are float
+                const p = parseFloat(item.price) || 0;
+                const d = parseFloat(item.discount) || 0;
 
                 const itemSubTotal = q * p;
                 subTotalBeforeDiscount += itemSubTotal;
                 totalDiscount += d;
             });
 
-            // คำนวณยอดรวมสุทธิ (Grand Total)
             const grandTotal = subTotalBeforeDiscount - totalDiscount;
 
-            // *** NEW: Calculate total pages for item table with mixed capacities ***
             let totalItemPages;
             if (validItems.length === 0) {
                 totalItemPages = 1;
@@ -976,12 +932,10 @@
                 const subsequentPages = Math.ceil(remainingItems / ITEMS_PER_SUBSEQUENT_PAGE);
                 totalItemPages = 1 + subsequentPages;
             }
-            // *** END NEW PAGINATION LOGIC ***
 
 
-            // Use a temporary container to render HTML for canvas capture
             const tempContainer = document.getElementById('pdfTemplate');
-            tempContainer.innerHTML = ''; // Clear template content
+            tempContainer.innerHTML = '';
 
             try {
                 // --- 1. Generate and Add Item Pages ---
@@ -991,38 +945,32 @@
                     let start, end, pageItems;
 
                     if (i === 0) {
-                        // หน้าแรก: 10 รายการ
                         start = 0;
                         end = ITEMS_PER_FIRST_PAGE;
                     } else {
-                        // หน้าถัดไป: เริ่มต้นจากรายการที่ 11
                         const offset = ITEMS_PER_FIRST_PAGE;
                         start = offset + (i - 1) * ITEMS_PER_SUBSEQUENT_PAGE;
                         end = start + ITEMS_PER_SUBSEQUENT_PAGE;
                     }
 
-                    // Get items for the current page
                     pageItems = validItems.slice(start, end);
 
-                    // Generate HTML for the current page
                     const pageHtml = generatePageHtml(pageItems, i, totalItemPages, subTotalBeforeDiscount, totalDiscount, grandTotal, personInCharge);
                     tempContainer.innerHTML = pageHtml;
 
-                    // Capture the current page content
                     const canvas = await html2canvas(tempContainer.children[0], {
-                        scale: 2, // Scale up for crisp text
+                        scale: 2,
                         useCORS: true,
                         logging: false,
                         backgroundColor: '#ffffff',
-                        width: 800, // Fixed width
-                        height: 1123, // Fixed height (A4 @ 800px width)
+                        width: 800,
+                        height: 1123,
                     });
 
                     const imgData = canvas.toDataURL('image/jpeg', 0.95);
                     const imgWidth = pageWidth;
                     const imgHeight = (canvas.height * imgWidth) / canvas.width;
 
-                    // Add the image (page) to PDF
                     doc.addImage(imgData, 'JPEG', 0, 0, imgWidth, imgHeight);
                 }
 
@@ -1030,18 +978,15 @@
                 for (const image of receiptImages) {
                     doc.addPage();
                     const imgProps = doc.getImageProperties(image.base64);
-                    const pdfWidth = pageWidth - 20; // 10mm margin
+                    const pdfWidth = pageWidth - 20;
                     const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
 
-                    // Center image vertically if possible, or start from top
                     let yPos = 10;
                     if (pdfHeight < (pageHeight - 20)) {
                         yPos = (pageHeight - pdfHeight) / 2;
                     }
 
-                    // Check if image is too tall
                     if (pdfHeight > (pageHeight - 20)) {
-                        // Fit to height instead
                         const scaledWidth = (imgProps.width * (pageHeight - 20)) / imgProps.height;
                         doc.addImage(image.base64, 'JPEG', (pageWidth - scaledWidth) / 2, 10, scaledWidth, pageHeight - 20);
                     } else {
@@ -1056,15 +1001,14 @@
                 showMessage("🚨 เกิดข้อผิดพลาดในการสร้าง PDF", true);
                 return null;
             } finally {
-                // Clear the temporary container after use
                 tempContainer.innerHTML = '';
             }
         };
 
-        // Actions (มีการเพิ่มการเรียก validateInputs)
+        // Actions 
         const previewPDF = async () => {
             if (!validateInputs()) {
-                return; // หยุดการทำงานถ้า validation ไม่ผ่าน
+                return;
             }
             const doc = await generatePDFDocument();
             if (doc) {
@@ -1076,24 +1020,20 @@
 
         const downloadPDF = async () => {
             if (!validateInputs()) {
-                return; // หยุดการทำงานถ้า validation ไม่ผ่าน
+                return;
             }
             const doc = await generatePDFDocument();
             if (doc) {
                 const dateISO = document.getElementById('billDate').value;
-                // Convert YYYY-MM-DD to DDMMYYYY
                 const [year, month, day] = dateISO.split('-');
                 const dateFilename = `${day}${month}${year}`;
 
                 const personName = document.getElementById('personInCharge').value.trim();
-                // Sanitize personName: replace non-word characters (including space) with underscore, 
-                // allowing Thai characters (\u0E00-\u0E7F)
                 const sanitizedPersonName = personName
                     .replace(/[^a-zA-Z0-9\u0E00-\u0E7F]+/g, '_')
-                    .replace(/_{2,}/g, '_') // Replace multiple underscores with single one
-                    .replace(/^_|_$/g, ''); // Remove leading/trailing underscores
+                    .replace(/_{2,}/g, '_')
+                    .replace(/^_|_$/g, '');
 
-                // New filename format: CLC_E-Receit_ddmmyyyy_{ผู้ขอเบิก}.pdf
                 const filename = `CLC_E-Receit_${dateFilename}_${sanitizedPersonName}.pdf`;
 
                 doc.save(filename);
