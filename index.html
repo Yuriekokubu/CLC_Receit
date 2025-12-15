@@ -142,11 +142,11 @@
     </style>
 </head>
 
-<body class="bg-gray-50 min-h-screen font-sans flex flex-col items-center py-8">
+<body class="bg-[rgb(0,49,97)] min-h-screen font-sans flex flex-col items-center py-4 sm:py-8">
 
-    <div class="max-w-7xl mx-auto w-full bg-white p-6 sm:p-8 md:p-12 rounded-2xl shadow-3xl">
+    <div class="max-w-7xl mx-auto w-full bg-white p-4 sm:p-6 md:p-8 lg:p-12 rounded-2xl shadow-3xl">
         <div id="messageBox" class="m-6 p-4 rounded-lg hidden font-medium text-center"></div>
-        <div id="billContent" class="bill-container p-4 sm:p-6 md:p-8 border-4 border-gray-300 rounded-xl bg-white">
+        <div id="billContent" class="bill-container p-3 sm:p-4 md:p-6 lg:p-8 border-4 border-gray-300 rounded-xl bg-white">
 
             <header class="text-center mb-6 sm:mb-8 md:mb-10">
                 <div class="flex items-center justify-center mb-5 sm:mb-6">
@@ -166,18 +166,18 @@
                     <div class="flex items-center w-full sm:w-1/2">
                         <span class="font-semibold text-gray-800 mr-2 whitespace-nowrap">วัตถุประสงค์:</span>
                         <input id="billPurpose" type="text" placeholder="เช่น ของใช้สำหรับงานคริสต์มาส..."
-                            class="border-b-2 border-gray-400 p-1 text-lg text-gray-800 focus:outline-none focus:border-blue-600 w-full bg-transparent">
+                            class="border-b-2 border-gray-400 p-1 text-base sm:text-lg text-gray-800 focus:outline-none focus:border-blue-600 w-full bg-transparent">
                     </div>
                     <div class="flex items-center w-full sm:w-1/2">
                         <span class="font-semibold text-gray-800 mr-2 whitespace-nowrap">หมวดหมู่:</span>
                         <div class="relative w-full">
                             <select id="billCategory" onchange="handleCategoryChange(this.value)"
-                                class="border-b-2 border-gray-400 p-1 text-lg text-gray-800 focus:outline-none focus:border-blue-600 w-full bg-transparent text-center font-bold transition-opacity duration-300">
+                                class="border-b-2 border-gray-400 p-1 text-base sm:text-lg text-gray-800 focus:outline-none focus:border-blue-600 w-full bg-transparent text-center font-bold transition-opacity duration-300">
                             </select>
 
                             <div id="customCategoryWrapper" class="absolute inset-0 hidden flex items-center">
                                 <input id="customCategoryInput" type="text" placeholder="ระบุหมวดหมู่เอง..."
-                                    class="border-b-2 border-blue-600 p-1 text-lg text-gray-800 focus:outline-none w-full bg-transparent text-center font-bold pr-8">
+                                    class="border-b-2 border-blue-600 p-1 text-base sm:text-lg text-gray-800 focus:outline-none w-full bg-transparent text-center font-bold pr-8">
                                 <button onclick="revertToCategorySelect()" title="กลับไปเลือกรายการ"
                                     class="absolute right-0 top-1/2 -translate-y-1/2 text-gray-500 hover:text-red-500 p-1 text-xl font-bold leading-none">
                                     &times;
@@ -191,13 +191,13 @@
                     <div class="flex items-center w-full sm:w-1/2">
                         <span class="font-semibold text-gray-800 mr-2 whitespace-nowrap">วันเดือนปี:</span>
                         <input id="billDateDisplay" type="text" readonly
-                            class="text-lg text-gray-800 focus:outline-none w-full bg-transparent text-center border-b-2 border-gray-400 p-1 font-bold">
+                            class="text-base sm:text-lg text-gray-800 focus:outline-none w-full bg-transparent text-center border-b-2 border-gray-400 p-1 font-bold">
                         <input id="billDate" type="hidden" value="">
                     </div>
                     <div class="flex items-center w-full sm:w-1/2">
                         <span class="font-semibold text-gray-800 mr-2 whitespace-nowrap">ผู้รับผิดชอบ:</span>
                         <input id="personInCharge" type="text" placeholder="ชื่อผู้รับผิดชอบ"
-                            class="border-b-2 border-gray-400 p-1 text-lg text-gray-800 focus:outline-none focus:border-blue-600 w-full text-center bg-transparent">
+                            class="border-b-2 border-gray-400 p-1 text-base sm:text-lg text-gray-800 focus:outline-none focus:border-blue-600 w-full text-center bg-transparent">
                     </div>
                 </div>
             </header>
@@ -206,13 +206,13 @@
                 <table class="min-w-full bg-white border-collapse">
                     <thead class="bg-blue-800 text-white">
                         <tr>
-                            <th class="py-3 px-4 text-left font-bold w-4/12 border-r border-blue-600">ชื่อสินค้า</th>
-                            <th class="py-3 px-4 text-right font-bold w-1/12 border-r border-blue-600">จำนวน</th>
-                            <th class="py-3 px-4 text-right font-bold w-2/12 border-r border-blue-600">ราคา/หน่วย</th>
-                            <th class="py-3 px-4 text-right font-bold w-2/12 border-r border-blue-600">ส่วนลด (บาท)</th>
-                            <th class="py-3 px-4 text-right font-bold w-2/12 border-r border-blue-600">รวม
+                            <th class="py-3 px-2 sm:px-4 text-left font-bold w-3/12 border-r border-blue-600">ชื่อสินค้า</th>
+                            <th class="py-3 px-2 sm:px-4 text-right font-bold w-1/12 border-r border-blue-600">จำนวน</th>
+                            <th class="py-3 px-2 sm:px-4 text-right font-bold w-1/12 border-r border-blue-600">ราคา/หน่วย</th>
+                            <th class="py-3 px-2 sm:px-4 text-right font-bold w-1/12 border-r border-blue-600">ส่วนลด (บาท)</th>
+                            <th class="py-3 px-2 sm:px-4 text-right font-bold w-2/12 border-r border-blue-600">รวม
                                 (หลังหักส่วนลด)</th>
-                            <th class="py-3 px-4 text-center font-bold w-1/12">ลบ</th>
+                            <th class="py-3 px-2 sm:px-4 text-center font-bold w-1/12">ลบ</th>
                         </tr>
                     </thead>
                     <tbody id="itemTableBody" class="text-gray-700"></tbody>
@@ -226,7 +226,7 @@
                             </td>
                         </tr>
                         <tr class="bg-gray-100 border-t-4 border-blue-600">
-                            <td colspan="4" class="py-4 px-4 text-right font-extrabold text-blue-800">รวมทั้งสิ้นสุทธิ
+                            <td colspan="4" class="py-4 px-4 text-right font-extrabold text-blue-800 text-xl">รวมทั้งสิ้นสุทธิ
                             </td>
                             <td id="grandTotal" class="py-4 px-4 text-right text-xl font-black text-blue-800">0.00</td>
                             <td></td>
@@ -240,7 +240,7 @@
             <h3 class="text-xl font-bold text-gray-800 mb-4">แนบสลิป/ใบเสร็จ</h3>
 
             <div id="uploadZone" onclick="document.getElementById('receiptImageInput').click()"
-                class="p-8 border-4 border-dashed border-green-500 rounded-2xl bg-green-50 text-center flex flex-col items-center transition duration-200 hover:bg-green-100 cursor-pointer">
+                class="p-6 sm:p-8 border-4 border-dashed border-green-500 rounded-2xl bg-green-50 text-center flex flex-col items-center transition duration-200 hover:bg-green-100 cursor-pointer">
 
                 <svg class="w-12 h-12 text-green-600 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"
                     xmlns="http://www.w3.org/2000/svg">
@@ -258,11 +258,11 @@
 
             <div class="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-6 mt-8">
                 <button onclick="previewPDF()"
-                    class="flex-1 bg-blue-700 hover:bg-blue-800 text-white font-bold py-4 px-8 rounded-xl shadow-xl transition transform hover:scale-[1.02] text-lg">
+                    class="flex-1 bg-blue-700 hover:bg-blue-800 text-white font-bold py-3 px-6 sm:py-4 sm:px-8 rounded-xl shadow-xl transition transform hover:scale-[1.02] text-base sm:text-lg">
                     พรีวิว PDF
                 </button>
                 <button onclick="downloadPDF()"
-                    class="flex-1 bg-red-700 hover:bg-red-800 text-white font-bold py-4 px-8 rounded-xl shadow-xl transition transform hover:scale-[1.02] text-lg">
+                    class="flex-1 bg-red-700 hover:bg-red-800 text-white font-bold py-3 px-6 sm:py-4 sm:px-8 rounded-xl shadow-xl transition transform hover:scale-[1.02] text-base sm:text-lg">
                     ดาวน์โหลด PDF
                 </button>
             </div>
@@ -297,7 +297,8 @@
         const CATEGORIES = {
             'อาหาร': ['อาหารเที่ยงวันอาทิตย์', 'อาหาร'],
             'อุปกรณ์': ['อุปกรณ์'],
-            'สำนักงาน/เบ็ดเตล็ด': ['สำนักงาน', 'ของขวัญ', 'ต้อนรับ', 'หางบัตร', 'ทั่วไป', 'อื่นๆ']
+            'สำนักงาน/เบ็ดเตล็ด': ['สำนักงาน', 'ของขวัญ', 'ต้อนรับ', 'หางบัตร', 'ทั่วไป', 'อื่นๆ'],
+            'พันธกิจ': ['พันธกิจเด็ก']
         };
 
         // NEW: Function to populate the category dropdown
@@ -539,46 +540,49 @@
 
                 // **แก้ไข: Quantity ใช้ cleanDecimalInput และ inputmode="decimal"**
                 tr.innerHTML = `
-                    <td class="p-2 border-r border-gray-300">
-                        <input type="text" class="w-full bg-transparent focus:outline-none" value="${item.name}" oninput="updateItem(${index}, 'name', this.value)" placeholder="ชื่อสินค้า">
+                    <td class="p-1 sm:p-2 border-r border-gray-300">
+                        <input type="text" class="w-full bg-transparent focus:outline-none text-sm sm:text-base" value="${item.name}" oninput="updateItem(${index}, 'name', this.value)" placeholder="ชื่อสินค้า">
                     </td>
-                    <td class="p-2 border-r border-gray-300">
+                    <td class="p-1 sm:p-2 border-r border-gray-300">
                         <input type="number" 
-                                class="w-full text-right bg-transparent focus:outline-none no-spinners" 
+                                class="w-full text-right bg-transparent focus:outline-none no-spinners text-sm sm:text-base" 
                                 value="${item.qty}" 
                                 oninput="this.value = cleanNumberInput(this.value, 0); updateItem(${index}, 'qty', this.value)" 
                                 min="0" inputmode="numeric" pattern="[0-9]*">
                     </td>
-                    <td class="p-2 border-r border-gray-300">
+                    <td class="p-1 sm:p-2 border-r border-gray-300">
                         <input
   type="text"
   inputmode="decimal"
-  class="w-full text-right bg-transparent focus:outline-none no-spinners"
+  class="w-full text-right bg-transparent focus:outline-none no-spinners text-sm sm:text-base"
   value="${item.price}"
   oninput="
     this.value = cleanDecimalInput(this.value, 3, 0);
     updateItem(${index}, 'price', this.value)
   "
 >
-
                     </td>
-                    <td class="p-2 border-r border-gray-300">
-                        <input type="number" 
-                            step="0.01" 
-                            class="w-full text-right bg-transparent focus:outline-none no-spinners text-red-600" 
-                            value="${item.discount}" 
-                            data-index="${index}"
-                            onfocus="handleDiscountFocus(this)" 
-                            onblur="handleDiscountBlur(this)" 
-                            oninput="this.value = cleanDecimalInput(this.value, 2, 0); updateItem(${index}, 'discount', this.value)" 
-                            min="0" inputmode="decimal">
+                    <td class="p-1 sm:p-2 border-r border-gray-300">
+                        <input
+  type="text"
+  inputmode="decimal"
+  class="w-full text-right bg-transparent focus:outline-none no-spinners text-red-600 text-sm sm:text-base"
+  value="${item.discount}"
+  oninput="
+    this.value = cleanDecimalInput(this.value, 3, 0);
+    updateItem(${index}, 'discount', this.value)
+  "
+  onfocus="handleDiscountFocus(this)"
+  onblur="handleDiscountBlur(this)"
+  data-index="${index}"
+>
                     </td>
-                    <td class="p-2 text-right font-semibold text-blue-800 border-r border-gray-300">
+                    <td class="p-1 sm:p-2 text-right font-semibold text-blue-800 border-r border-gray-300 text-sm sm:text-base">
                         ${formatMoney(item.total)}
                     </td>
-                    <td class="p-2 text-center">
+                    <td class="p-1 sm:p-2 text-center">
                         <button onclick="deleteItem(${index})" class="text-red-600 hover:text-red-800 p-1 rounded-full hover:bg-red-100 transition duration-150" title="ลบรายการ">
-                            <svg class="w-5 h-5 inline-block" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <svg class="w-4 h-4 sm:w-5 sm:h-5 inline-block" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
                             </svg>
                         </button>
