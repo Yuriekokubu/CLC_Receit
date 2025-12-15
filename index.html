@@ -7,8 +7,8 @@
     <title>สรุปบิลรายจ่าย - คริสตจักรลูกของความสว่าง</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="style.css">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="jspdf.umd.min.js"></script>
+    <script src="html2canvas.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;500;600;700;800&display=swap"
         rel="stylesheet">
     <link rel="icon" href="favicon.png" type="image/png">
@@ -491,6 +491,11 @@
 
             // Ensure category select is visible by default
             document.getElementById('billCategory').classList.remove('opacity-0', 'pointer-events-none', 'absolute', 'z-0');
+
+            // Check if required libraries are loaded
+            if (typeof window.jspdf === 'undefined' || typeof window.html2canvas === 'undefined') {
+                showMessage("🚨 ไม่สามารถโหลดไลบรารีที่จำเป็นได้ กรุณาตรวจสอบการเชื่อมต่ออินเทอร์เน็ตหรือลองใหม่อีกครั้ง", true);
+            }
 
             // --- Drag and Drop Logic (omitted for brevity, assume working) ---
             const uploadZone = document.getElementById('uploadZone');
@@ -1030,6 +1035,10 @@
             if (!validateInputs()) {
                 return;
             }
+            if (typeof window.jspdf === 'undefined' || typeof window.html2canvas === 'undefined') {
+                showMessage("🚨 ไม่สามารถโหลดไลบรารีที่จำเป็นได้ กรุณาตรวจสอบการเชื่อมต่ออินเทอร์เน็ตหรือลองใหม่อีกครั้ง", true);
+                return;
+            }
             const doc = await generatePDFDocument();
             if (doc) {
                 const pdfDataUri = doc.output('datauristring');
@@ -1040,6 +1049,10 @@
 
         const downloadPDF = async () => {
             if (!validateInputs()) {
+                return;
+            }
+            if (typeof window.jspdf === 'undefined' || typeof window.html2canvas === 'undefined') {
+                showMessage("🚨 ไม่สามารถโหลดไลบรารีที่จำเป็นได้ กรุณาตรวจสอบการเชื่อมต่ออินเทอร์เน็ตหรือลองใหม่อีกครั้ง", true);
                 return;
             }
             const doc = await generatePDFDocument();
