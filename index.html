@@ -55,19 +55,33 @@
         }
 
         /* --- PDF TEMPLATE STYLES (สำคัญ) --- */
+        /* div นี้จะถูกใช้เป็นคอนเทนเนอร์ชั่วคราวในการสร้าง PDF แต่ถูกซ่อนไว้ */
         #pdfTemplate {
             position: fixed;
             top: -9999px;
             left: -9999px;
             width: 800px;
             min-height: 1123px;
+            /* A4 height at 96 DPI equivalent to 800px width */
             background-color: white;
-            padding: 40px 50px;
             box-sizing: border-box;
             color: #000;
         }
 
-        /* ตารางใน Template */
+        /* แก้ไข/เพิ่ม: กำหนดให้ page content เป็น relative เพื่อจัดวางลายเซ็นแบบ absolute */
+        .pdf-page-content {
+            position: relative;
+            /* สำคัญสำหรับการจัดวางลายเซ็น */
+            width: 800px;
+            min-height: 1123px;
+            /* A4 height at 96 DPI equivalent to 800px width */
+            padding: 40px 50px;
+            box-sizing: border-box;
+            color: #000;
+            background-color: white;
+        }
+
+        /* สไตล์ตารางภายใน Template */
         .template-table {
             width: 100%;
             border-collapse: collapse;
@@ -96,6 +110,16 @@
             margin-bottom: 20px;
             padding-bottom: 10px;
         }
+
+        /* เพิ่ม: สไตล์สำหรับ Message Box */
+        .message-box-error {
+            background-color: #fef2f2;
+            /* Red-50 */
+            color: #ef4444;
+            /* Red-500 */
+            border: 2px solid #fca5a5;
+            /* Red-300 */
+        }
     </style>
 </head>
 
@@ -116,7 +140,7 @@
                 </div>
                 <h2
                     class="text-xl sm:text-2xl font-bold text-gray-700 mb-4 inline-block border-b-2 border-blue-400 pb-2">
-                    บิลรายการซื้อของ (Input Form)</h2>
+                    บิลรายการซื้อของ</h2>
 
                 <div class="flex items-center w-full mt-4 mb-6">
                     <span class="font-semibold text-gray-800 mr-2 whitespace-nowrap">วัตถุประสงค์:</span>
@@ -142,17 +166,19 @@
                 <table class="min-w-full bg-white border-collapse">
                     <thead class="bg-blue-800 text-white">
                         <tr>
-                            <th class="py-3 px-4 text-left font-bold w-1/2 border-r border-blue-600">ชื่อสินค้า</th>
-                            <th class="py-3 px-4 text-right font-bold w-1/6 border-r border-blue-600">จำนวน</th>
-                            <th class="py-3 px-4 text-right font-bold w-1/6 border-r border-blue-600">ราคา/หน่วย</th>
-                            <th class="py-3 px-4 text-right font-bold w-1/6 border-r border-blue-600">รวม</th>
-                            <th class="py-3 px-4 text-center font-bold w-12">ลบ</th>
+                            <th class="py-3 px-4 text-left font-bold w-4/12 border-r border-blue-600">ชื่อสินค้า</th>
+                            <th class="py-3 px-4 text-right font-bold w-1/12 border-r border-blue-600">จำนวน</th>
+                            <th class="py-3 px-4 text-right font-bold w-2/12 border-r border-blue-600">ราคา/หน่วย</th>
+                            <th class="py-3 px-4 text-right font-bold w-2/12 border-r border-blue-600">ส่วนลด (บาท)</th>
+                            <th class="py-3 px-4 text-right font-bold w-2/12 border-r border-blue-600">รวม
+                                (หลังหักส่วนลด)</th>
+                            <th class="py-3 px-4 text-center font-bold w-1/12">ลบ</th>
                         </tr>
                     </thead>
                     <tbody id="itemTableBody" class="text-gray-700"></tbody>
                     <tfoot>
                         <tr>
-                            <td colspan="5" class="py-3 px-4 text-right">
+                            <td colspan="6" class="py-3 px-4 text-right">
                                 <button onclick="addItem()"
                                     class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded shadow">
                                     + เพิ่มรายการ
@@ -160,7 +186,8 @@
                             </td>
                         </tr>
                         <tr class="bg-gray-100 border-t-4 border-blue-600">
-                            <td colspan="3" class="py-4 px-4 text-right font-extrabold text-blue-800">รวมทั้งสิ้น</td>
+                            <td colspan="4" class="py-4 px-4 text-right font-extrabold text-blue-800">รวมทั้งสิ้นสุทธิ
+                            </td>
                             <td id="grandTotal" class="py-4 px-4 text-right text-xl font-black text-blue-800">0.00</td>
                             <td></td>
                         </tr>
@@ -205,74 +232,8 @@
         </div>
     </div>
 
-    <div id="pdfTemplate">
-        <div class="flex items-center justify-between template-header-line">
-            <div class="flex items-center">
-                <div class="pdf-logo mr-4">
-                </div>
-                <div>
-                    <h1 class="text-3xl font-extrabold text-blue-900 mb-2">คริสตจักรลูกของความสว่าง</h1>
-                    <p class="text-sm text-gray-500">Children of Light Church</p>
-                </div>
-            </div>
-            <div class="text-right">
-                <h2 class="text-2xl font-bold text-gray-700">ใบเบิกค่าใช้จ่าย</h2>
-                <p id="tpl-export-date" class="text-xs text-gray-400 mt-1"></p>
-            </div>
-        </div>
+    <div id="pdfTemplate"></div>
 
-        <div class="mb-6 px-4">
-            <table class="w-full text-lg">
-                <tr>
-                    <td class="font-bold w-32 py-2 border-0">วันที่:</td>
-                    <td id="tpl-date" class="border-b border-gray-400 py-2 border-t-0 border-l-0 border-r-0"></td>
-                </tr>
-                <tr>
-                    <td class="font-bold w-32 py-2 border-0">ผู้เบิก:</td>
-                    <td id="tpl-person" class="border-b border-gray-400 py-2 border-t-0 border-l-0 border-r-0"></td>
-                </tr>
-                <tr>
-                    <td class="font-bold w-32 py-2 border-0">วัตถุประสงค์:</td>
-                    <td id="tpl-purpose" class="border-b border-gray-400 py-2 border-t-0 border-l-0 border-r-0"></td>
-                </tr>
-            </table>
-        </div>
-
-        <div class="mb-8">
-            <table class="template-table">
-                <thead>
-                    <tr class="bg-gray-200 text-gray-700">
-                        <th class="w-12">ลำดับ</th>
-                        <th class="text-left">รายการ (Description)</th>
-                        <th class="w-24 text-right">จำนวน</th>
-                        <th class="w-32 text-right">ราคา/หน่วย</th>
-                        <th class="w-32 text-right">รวม (บาท)</th>
-                    </tr>
-                </thead>
-                <tbody id="tpl-table-body">
-                </tbody>
-                <tfoot>
-                    <tr class="font-bold bg-gray-100">
-                        <td colspan="4" class="text-right pr-4">รวมเป็นเงินทั้งสิ้น (Grand Total)</td>
-                        <td id="tpl-grand-total" class="text-right text-xl">0.00</td>
-                    </tr>
-                </tfoot>
-            </table>
-        </div>
-
-        <div class="flex justify-between mt-20 px-10">
-            <div class="text-center">
-                <div class="border-b border-gray-400 w-64 mb-2"></div>
-                <p class="font-bold" id="tpl-signer-name">(.......................................................)</p>
-                <p class="text-sm text-gray-500">ผู้ขอเบิกจ่าย</p>
-            </div>
-            <div class="text-center">
-                <div class="border-b border-gray-400 w-64 mb-2"></div>
-                <p class="font-bold">(.......................................................)</p>
-                <p class="text-sm text-gray-500">ผู้อนุมัติ (เหรัญญิก/ศิษยาภิบาล)</p>
-            </div>
-        </div>
-    </div>
 
     <div id="pdfPreviewModal"
         class="fixed inset-0 bg-gray-900 bg-opacity-75 flex items-center justify-center z-50 hidden p-4"
@@ -291,6 +252,7 @@
         // --- Logic ---
         let items = [];
         let receiptImages = [];
+        const ITEMS_PER_PAGE = 14;
 
         // Utilities
         const generateUniqueId = () => '_' + Math.random().toString(36).substr(2, 9);
@@ -304,13 +266,55 @@
         };
         const formatMoney = (amount) => parseFloat(amount || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
+        // Utility Functions for Message Box
+        const showMessage = (msg, isError = true) => {
+            const msgBox = document.getElementById('messageBox');
+            msgBox.textContent = msg;
+            msgBox.classList.remove('hidden');
+            msgBox.classList.remove('message-box-error', 'bg-blue-50', 'text-blue-500', 'border-blue-300');
+
+            if (isError) {
+                msgBox.classList.add('message-box-error');
+            } else {
+                msgBox.classList.add('bg-blue-50', 'text-blue-500', 'border-blue-300');
+            }
+
+            // ซ่อนข้อความอัตโนมัติหลังจาก 5 วินาที
+            setTimeout(hideMessage, 5000);
+        };
+
+        const hideMessage = () => {
+            document.getElementById('messageBox').classList.add('hidden');
+        };
+
+        // --- ฟังก์ชันจัดการ Focus/Blur ---
+        const handleDiscountFocus = (inputElement) => {
+            if (inputElement.value === '0' || inputElement.value === '0.00') {
+                inputElement.value = '';
+            }
+        };
+
+        const handleDiscountBlur = (inputElement) => {
+            if (inputElement.value.trim() === '') {
+                inputElement.value = '0';
+            }
+            const index = parseInt(inputElement.getAttribute('data-index'));
+            updateItem(index, 'discount', inputElement.value);
+        };
+
+
         // Init Date
         document.addEventListener('DOMContentLoaded', () => {
             const today = new Date();
             const strDate = today.toISOString().split('T')[0];
             document.getElementById('billDate').value = strDate;
             document.getElementById('billDateDisplay').value = formatDate(strDate);
-            addItem(); // Add first row
+
+            // เพิ่ม 7 แถวเริ่มต้น
+            for (let i = 0; i < 7; i++) {
+                addItem(false);
+            }
+            renderTable();
 
             // Re-attach listeners for formatting if needed
             document.querySelectorAll('input').forEach(input => {
@@ -328,18 +332,27 @@
                 const tr = document.createElement('tr');
                 tr.className = 'border-b hover:bg-gray-50';
 
-                // มี border-r ครบตามที่แก้ไข
                 tr.innerHTML = `
-                    <td class="p-2 w-1/2 border-r border-gray-300">
+                    <td class="p-2 border-r border-gray-300">
                         <input type="text" class="w-full bg-transparent focus:outline-none" value="${item.name}" oninput="updateItem(${index}, 'name', this.value)" placeholder="ชื่อสินค้า">
                     </td>
-                    <td class="p-2 w-1/6 border-r border-gray-300">
+                    <td class="p-2 border-r border-gray-300">
                         <input type="number" class="w-full text-right bg-transparent focus:outline-none no-spinners" value="${item.qty}" oninput="updateItem(${index}, 'qty', this.value)" min="0">
                     </td>
-                    <td class="p-2 w-1/6 border-r border-gray-300">
+                    <td class="p-2 border-r border-gray-300">
                         <input type="number" class="w-full text-right bg-transparent focus:outline-none no-spinners" value="${item.price}" oninput="updateItem(${index}, 'price', this.value)" min="0" step="0.01">
                     </td>
-                    <td class="p-2 w-1/6 text-right font-semibold text-blue-800 border-r border-gray-300">
+                    <td class="p-2 border-r border-gray-300">
+                        <input type="number" 
+                            class="w-full text-right bg-transparent focus:outline-none no-spinners text-red-600" 
+                            value="${item.discount}" 
+                            data-index="${index}"
+                            onfocus="handleDiscountFocus(this)" 
+                            onblur="handleDiscountBlur(this)" 
+                            oninput="updateItem(${index}, 'discount', this.value)" 
+                            min="0" step="0.01">
+                    </td>
+                    <td class="p-2 text-right font-semibold text-blue-800 border-r border-gray-300">
                         ${formatMoney(item.total)}
                     </td>
                     <td class="p-2 text-center">
@@ -352,27 +365,39 @@
         };
 
         const updateItem = (index, field, value) => {
-            items[index][field] = value;
+            // 1. ตรวจสอบและแปลงค่าว่างเป็น 0 สำหรับการคำนวณเสมอ
+            let sanitizedValue = value.trim() === '' ? '0' : value;
 
-            if (field === 'qty' || field === 'price') {
+            // 2. อัปเดตค่าของฟิลด์ปัจจุบันใน items[index] ด้วย sanitizedValue
+            items[index][field] = sanitizedValue;
+
+            // 3. ถ้ามีการเปลี่ยนแปลงฟิลด์ที่เกี่ยวข้องกับการคำนวณ
+            if (field === 'qty' || field === 'price' || field === 'discount') {
+
+                // *** ดึงค่าล่าสุดและแปลงเป็นตัวเลขก่อนคำนวณทั้งหมดเพื่อป้องกันการคำนวณผิดลำดับ ***
                 const q = parseFloat(items[index].qty) || 0;
                 const p = parseFloat(items[index].price) || 0;
-                items[index].total = q * p;
+                const d = parseFloat(items[index].discount) || 0;
 
-                // แก้ไข: อัปเดตตัวเลขในตาราง (DOM) โดยไม่ต้อง Render ใหม่ทั้งหมด (แก้ปัญหา Cursor หาย)
+                // คำนวณใหม่: (จำนวน * ราคา) - ส่วนลด
+                items[index].total = (q * p) - d;
+
+                // 4. อัปเดตตัวเลขในตาราง (DOM) โดยไม่ต้อง Render ใหม่ทั้งหมด 
                 const tbody = document.getElementById('itemTableBody');
                 const row = tbody.rows[index];
                 if (row) {
-                    // ช่อง "รวม" อยู่คอลัมน์ที่ 4 (index 3)
-                    row.cells[3].textContent = formatMoney(items[index].total);
+                    // ช่อง "รวม" อยู่คอลัมน์ที่ 5 (index 4)
+                    row.cells[4].textContent = formatMoney(items[index].total);
                 }
             }
             calculateGrandTotal();
         };
 
-        const addItem = () => {
-            items.push({ name: '', qty: '', price: '', total: 0 });
-            renderTable();
+        const addItem = (shouldRender = true) => {
+            items.push({ name: '', qty: '', price: '', discount: 0, total: 0 });
+            if (shouldRender) {
+                renderTable();
+            }
         };
 
         const deleteItem = (index) => {
@@ -419,76 +444,285 @@
             renderReceipts();
         };
 
-        // --- Template Populator ---
-        const populateTemplateData = () => {
-            // 1. Header Info
-            document.getElementById('tpl-date').textContent = document.getElementById('billDateDisplay').value;
-            const person = document.getElementById('personInCharge').value || '-';
-            document.getElementById('tpl-person').textContent = person;
-            document.getElementById('tpl-signer-name').textContent = `(${person})`; // ใส่ชื่อในวงเล็บตรงลายเซ็นด้วย
-            document.getElementById('tpl-purpose').textContent = document.getElementById('billPurpose').value || '-';
 
-            // Export timestamp
-            const now = new Date();
-            document.getElementById('tpl-export-date').textContent = `พิมพ์เมื่อ: ${now.toLocaleString('th-TH')}`;
+        // *** ฟังก์ชันตรวจสอบความถูกต้องของข้อมูล (Validation) - ใช้ showMessage แทน alert ***
+        const validateInputs = () => {
+            hideMessage(); // ซ่อนข้อความเก่าเสมอเมื่อเริ่มต้นการตรวจสอบ
 
-            // 2. Table Rows
-            const tplBody = document.getElementById('tpl-table-body');
-            tplBody.innerHTML = '';
+            const purpose = document.getElementById('billPurpose').value.trim();
+            const person = document.getElementById('personInCharge').value.trim();
 
-            // กรองแถวว่างทิ้ง
-            const validItems = items.filter(item => item.name.trim() !== '' || item.total > 0);
-
-            if (validItems.length === 0) {
-                tplBody.innerHTML = `<tr><td colspan="5" class="text-center py-4 text-gray-500 italic">-- ไม่มีรายการ --</td></tr>`;
+            // 1. Check Header fields
+            if (purpose === '') {
+                showMessage("🚨 กรุณากรอก 'วัตถุประสงค์' ให้ครบถ้วน");
+                document.getElementById('billPurpose').focus();
+                return false;
+            }
+            if (person === '') {
+                showMessage("🚨 กรุณากรอก 'ผู้รับผิดชอบ' ให้ครบถ้วน");
+                document.getElementById('personInCharge').focus();
+                return false;
             }
 
-            validItems.forEach((item, index) => {
-                const tr = document.createElement('tr');
-                tr.innerHTML = `
-                    <td class="text-center">${index + 1}</td>
-                    <td>${item.name}</td>
-                    <td class="text-right">${item.qty || '-'}</td>
-                    <td class="text-right">${item.price ? formatMoney(item.price) : '-'}</td>
-                    <td class="text-right font-medium">${formatMoney(item.total)}</td>
-                `;
-                tplBody.appendChild(tr);
-            });
+            // 2. Check Item details
+            let errorFound = false;
+            let errorIndex = -1;
 
-            // 3. Grand Total
-            const grandTotal = validItems.reduce((sum, item) => sum + (parseFloat(item.total) || 0), 0);
-            document.getElementById('tpl-grand-total').textContent = formatMoney(grandTotal);
+            // กรองรายการที่มีข้อมูล (มีชื่อสินค้า หรือมีผลรวมไม่เท่ากับ 0)
+            const itemsToValidate = items.filter(item => item.name.trim() !== '' || parseFloat(item.total) !== 0);
+
+            for (let i = 0; i < itemsToValidate.length; i++) {
+                const item = itemsToValidate[i];
+
+                // ค้นหาดัชนีเดิมเพื่อแจ้งเตือนผู้ใช้ให้ถูกต้อง
+                const originalIndex = items.indexOf(item);
+
+                const q = parseFloat(item.qty) || 0;
+                const p = parseFloat(item.price) || 0;
+
+                // เงื่อนไข: ถ้ามีการกรอกชื่อสินค้า หรือมีผลรวมที่ไม่ใช่ 0 ต้องมีจำนวนและราคามากกว่า 0
+                if (item.name.trim() !== '' || parseFloat(item.total) !== 0) {
+                    if (q <= 0) {
+                        showMessage(`🚨 รายการที่ ${originalIndex + 1}: กรุณากรอก 'จำนวน' (Quantity) ให้ถูกต้องและมากกว่า 0`);
+                        errorFound = true;
+                        errorIndex = originalIndex;
+                        break;
+                    }
+                    if (p <= 0) {
+                        showMessage(`🚨 รายการที่ ${originalIndex + 1}: กรุณากรอก 'ราคา/หน่วย' (Price) ให้ถูกต้องและมากกว่า 0`);
+                        errorFound = true;
+                        errorIndex = originalIndex;
+                        break;
+                    }
+                }
+            }
+
+            if (errorFound) {
+                // พยายามโฟกัสที่ช่อง input ในรายการที่เกิดปัญหา
+                const tbody = document.getElementById('itemTableBody');
+                if (errorIndex !== -1 && tbody.rows[errorIndex]) {
+                    // โฟกัสที่ช่องชื่อสินค้าเพื่อให้ผู้ใช้เห็นแถวนั้น
+                    tbody.rows[errorIndex].cells[0].querySelector('input').focus();
+                }
+                return false;
+            }
+
+            return true;
+        };
+        // *** สิ้นสุดฟังก์ชันตรวจสอบความถูกต้องของข้อมูล ***
+
+        // --- Template Generation (Updated for Absolute Signature Block and wider header lines) ---
+
+        const generatePageHtml = (pageItems, pageIndex, totalPages, subTotalBeforeDiscount, totalDiscount, grandTotal, personInCharge) => {
+            const isLastPage = (pageIndex === totalPages - 1);
+            const startNum = (pageIndex * ITEMS_PER_PAGE) + 1;
+
+            // 1. Build Table Body
+            let tplBodyContent = '';
+            if (pageItems.length === 0 && pageIndex === 0) {
+                // ถ้าไม่มีรายการเลย
+                tplBodyContent = `<tr><td colspan="6" class="text-center py-4 text-gray-500 italic">-- ไม่มีรายการ --</td></tr>`;
+            } else {
+                pageItems.forEach((item, index) => {
+                    const currentNum = startNum + index;
+                    tplBodyContent += `
+                        <tr>
+                            <td class="text-center">${currentNum}</td>
+                            <td>${item.name}</td>
+                            <td class="text-right">${item.qty || '-'}</td>
+                            <td class="text-right">${item.price ? formatMoney(item.price) : '-'}</td>
+                            <td class="text-right text-red-600">${item.discount && item.discount > 0 ? formatMoney(item.discount) : '-'}</td>
+                            <td class="text-right font-medium">${formatMoney(item.total)}</td>
+                        </tr>
+                    `;
+                });
+            }
+
+            // 2. Grand Total Footer (เฉพาะหน้าสุดท้าย - เพิ่ม Subtotal และ Total Discount)
+            let tplFooterContent = '';
+            if (isLastPage) {
+                tplFooterContent = `
+                    <tfoot>
+                        <tr class="font-normal bg-gray-50 border-t border-gray-400">
+                            <td colspan="5" class="text-right pr-4 pt-2">ยอดรวมก่อนหักส่วนลด</td>
+                            <td class="text-right pt-2">${formatMoney(subTotalBeforeDiscount)}</td>
+                        </tr>
+                        <tr class="font-normal bg-gray-50">
+                            <td colspan="5" class="text-right pr-4 pb-2 text-red-600">รวมส่วนลดทั้งสิ้น</td>
+                            <td class="text-right pb-2 text-red-600">(${formatMoney(totalDiscount)})</td>
+                        </tr>
+                        <tr class="font-bold bg-gray-100 border-t-2 border-blue-600">
+                            <td colspan="5" class="text-right pr-4 py-2">รวมเป็นเงินทั้งสิ้นสุทธิ</td>
+                            <td class="text-right text-xl py-2">${formatMoney(grandTotal)}</td>
+                        </tr>
+                    </tfoot>
+                `;
+            }
+
+            // 3. Signature Block (เฉพาะหน้าสุดท้าย - ใช้ fixed width 250px)
+            let signatureBlock = '';
+            if (isLastPage) {
+                const signerName = personInCharge || '.......................................................';
+                signatureBlock = `
+                    <div class="pdf-signature-block" style="position: absolute; bottom: 50px; width: 700px; left: 50px;">
+                        <div class="flex justify-between px-10">
+                            <div class="text-center" style="width: 250px;">
+                                <div class="border-b border-gray-400 w-full mb-2"></div> 
+                                <p class="font-bold">(${signerName})</p>
+                                <p class="text-sm text-gray-500">ผู้ขอเบิกจ่าย</p>
+                            </div>
+                            <div class="text-center" style="width: 250px;">
+                                <div class="border-b border-gray-400 w-full mb-2"></div>
+                                <p class="font-bold">(...............................................)</p>
+                                <p class="text-sm text-gray-500">ผู้อนุมัติ (เหรัญญิก/ศิษยาภิบาล)</p>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+
+            // 4. Main Header Info (สำหรับทุกหน้า - ปรับเส้นใต้ให้กว้างเต็ม)
+            const now = new Date();
+            const headerInfoHtml = `
+                <div class="mb-6 px-4">
+                    <table class="w-full text-lg">
+                        <tr>
+                            <td class="font-bold w-32 py-2 border-0">วันที่:</td>
+                            <td class="border-b border-gray-400 py-2 border-t-0 border-l-0 border-r-0 w-full">${document.getElementById('billDateDisplay').value}</td>
+                        </tr>
+                        <tr>
+                            <td class="font-bold w-32 py-2 border-0">ผู้เบิก:</td>
+                            <td class="border-b border-gray-400 py-2 border-t-0 border-l-0 border-r-0 w-full">${personInCharge || '-'}</td>
+                        </tr>
+                        <tr>
+                            <td class="font-bold w-32 py-2 border-0">วัตถุประสงค์:</td>
+                            <td class="border-b border-gray-400 py-2 border-t-0 border-l-0 border-r-0 w-full">${document.getElementById('billPurpose').value || '-'}</td>
+                        </tr>
+                    </table>
+                </div>
+            `;
+
+            // โค้ดสำหรับ Header ตามเงื่อนไขจำนวนหน้า
+            const titleText = totalPages > 1
+                ? `ใบเบิกค่าใช้จ่าย (หน้า ${pageIndex + 1} จาก ${totalPages})`
+                : `ใบเบิกค่าใช้จ่าย`;
+
+            const mainHeaderHtml = `
+                <div class="flex items-center justify-between template-header-line">
+                    <div class="flex items-center">
+                        <div class="pdf-logo mr-5">
+                        </div>
+                        <div>
+                            <h1 class="text-3xl font-extrabold text-blue-900 mb-3">คริสตจักรลูกของความสว่าง</h1>
+                            <p class="text-sm text-gray-500">Children of Light Church</p>
+                        </div>
+                    </div>
+                    <div class="text-right">
+                        <h2 class="text-lg font-bold text-gray-700">${titleText}</h2>
+                        <p class="text-xs text-gray-400 mt-1">พิมพ์เมื่อ: ${now.toLocaleString('th-TH')}</p>
+                    </div>
+                </div>
+            `;
+
+
+            return `
+                <div class="pdf-page-content">
+                    ${mainHeaderHtml}
+                    ${headerInfoHtml}
+
+                    <div class="mb-8">
+                        <table class="template-table">
+                            <thead>
+                                <tr class="bg-gray-200 text-gray-700">
+                                    <th class="w-12">ลำดับ</th>
+                                    <th class="text-left">รายการ (Description)</th>
+                                    <th class="w-20 text-right">จำนวน</th>
+                                    <th class="w-28 text-right">ราคา/หน่วย</th>
+                                    <th class="w-28 text-right">ส่วนลด (บาท)</th>
+                                    <th class="w-32 text-right">รวมสุทธิ (บาท)</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${tplBodyContent}
+                            </tbody>
+                            ${tplFooterContent}
+                        </table>
+                    </div>
+
+                    ${signatureBlock}
+                </div>
+            `;
         };
 
-        // --- PDF Generation (Updated to use Template) ---
+        // --- PDF Generation (Updated for Multi-Page and Dynamic Content) ---
         const generatePDFDocument = async () => {
-            // 1. Prepare Data
-            populateTemplateData();
 
             const { jsPDF } = window.jspdf;
-            // A4 size in mm
             const doc = new jsPDF('p', 'mm', 'a4');
             const pageWidth = doc.internal.pageSize.getWidth();
             const pageHeight = doc.internal.pageSize.getHeight();
 
-            // 2. Capture the Template Div (not the Form)
-            const templateElement = document.getElementById('pdfTemplate');
+            // Gathers necessary data
+            const validItems = items.filter(item => item.name.trim() !== '' || item.total !== 0);
+            const personInCharge = document.getElementById('personInCharge').value;
+
+            // *** การคำนวณเพื่อรวมยอดทั้งหมดและส่วนลด ***
+            let subTotalBeforeDiscount = 0;
+            let totalDiscount = 0;
+
+            validItems.forEach(item => {
+                const q = parseFloat(item.qty) || 0;
+                const p = parseFloat(item.price) || 0;
+                const d = parseFloat(item.discount) || 0;
+
+                const itemSubTotal = q * p;
+                subTotalBeforeDiscount += itemSubTotal;
+                totalDiscount += d;
+            });
+
+            // คำนวณยอดรวมสุทธิ (Grand Total)
+            const grandTotal = subTotalBeforeDiscount - totalDiscount;
+
+            // Calculate total pages for item table
+            const totalItemPages = Math.max(1, Math.ceil(validItems.length / ITEMS_PER_PAGE));
+
+            // Use a temporary container to render HTML for canvas capture
+            const tempContainer = document.getElementById('pdfTemplate');
+            tempContainer.innerHTML = ''; // Clear template content
 
             try {
-                const canvas = await html2canvas(templateElement, {
-                    scale: 2, // Scale up for crisp text
-                    useCORS: true,
-                    logging: false,
-                    backgroundColor: '#ffffff'
-                });
+                // --- 1. Generate and Add Item Pages ---
+                for (let i = 0; i < totalItemPages; i++) {
+                    if (i > 0) doc.addPage();
 
-                const imgData = canvas.toDataURL('image/jpeg', 0.95);
-                const imgWidth = pageWidth;
-                const imgHeight = (canvas.height * imgWidth) / canvas.width;
+                    // Get items for the current page
+                    const start = i * ITEMS_PER_PAGE;
+                    const end = start + ITEMS_PER_PAGE;
+                    const pageItems = validItems.slice(start, end);
 
-                doc.addImage(imgData, 'JPEG', 0, 0, imgWidth, imgHeight);
+                    // Generate HTML for the current page (ส่งค่าการคำนวณใหม่เข้าไปด้วย)
+                    const pageHtml = generatePageHtml(pageItems, i, totalItemPages, subTotalBeforeDiscount, totalDiscount, grandTotal, personInCharge);
+                    tempContainer.innerHTML = pageHtml;
 
-                // 3. Add Receipts on new pages
+                    // Capture the current page content
+                    const canvas = await html2canvas(tempContainer.children[0], {
+                        scale: 2, // Scale up for crisp text
+                        useCORS: true,
+                        logging: false,
+                        backgroundColor: '#ffffff',
+                        width: 800, // Fixed width
+                        height: 1123, // Fixed height (A4 @ 800px width)
+                    });
+
+                    const imgData = canvas.toDataURL('image/jpeg', 0.95);
+                    const imgWidth = pageWidth;
+                    const imgHeight = (canvas.height * imgWidth) / canvas.width;
+
+                    // Add the image (page) to PDF
+                    doc.addImage(imgData, 'JPEG', 0, 0, imgWidth, imgHeight);
+                }
+
+                // --- 2. Add Receipts on New Pages ---
                 for (const image of receiptImages) {
                     doc.addPage();
                     const imgProps = doc.getImageProperties(image.base64);
@@ -515,13 +749,19 @@
 
             } catch (error) {
                 console.error("PDF Gen Error", error);
-                alert("เกิดข้อผิดพลาดในการสร้าง PDF");
+                showMessage("🚨 เกิดข้อผิดพลาดในการสร้าง PDF", true);
                 return null;
+            } finally {
+                // Clear the temporary container after use
+                tempContainer.innerHTML = '';
             }
         };
 
-        // Actions
+        // Actions (มีการเพิ่มการเรียก validateInputs)
         const previewPDF = async () => {
+            if (!validateInputs()) {
+                return; // หยุดการทำงานถ้า validation ไม่ผ่าน
+            }
             const doc = await generatePDFDocument();
             if (doc) {
                 const pdfDataUri = doc.output('datauristring');
@@ -531,17 +771,34 @@
         };
 
         const downloadPDF = async () => {
+            if (!validateInputs()) {
+                return; // หยุดการทำงานถ้า validation ไม่ผ่าน
+            }
             const doc = await generatePDFDocument();
             if (doc) {
-                const dateStr = document.getElementById('billDate').value;
-                doc.save(`Bill_${dateStr}.pdf`);
+                const dateISO = document.getElementById('billDate').value;
+                // Convert YYYY-MM-DD to DDMMYYYY
+                const [year, month, day] = dateISO.split('-');
+                const dateFilename = `${day}${month}${year}`;
+
+                const personName = document.getElementById('personInCharge').value.trim();
+                // Sanitize personName: replace non-word characters (including space) with underscore, 
+                // allowing Thai characters (\u0E00-\u0E7F)
+                const sanitizedPersonName = personName
+                    .replace(/[^a-zA-Z0-9\u0E00-\u0E7F]+/g, '_')
+                    .replace(/_{2,}/g, '_') // Replace multiple underscores with single one
+                    .replace(/^_|_$/g, ''); // Remove leading/trailing underscores
+
+                // New filename format: CLC_E-Receit_ddmmyyyy_{ผู้ขอเบิก}.pdf
+                const filename = `CLC_E-Receit_${dateFilename}_${sanitizedPersonName}.pdf`;
+
+                doc.save(filename);
             }
         };
 
         // Modal Controls
-        const closeModal = (e) => { if (e.target.id === 'pdfPreviewModal') hideModal(); }
-        const hideModal = () => { document.getElementById('pdfPreviewModal').classList.add('hidden'); document.getElementById('pdfIframe').src = ''; }
-        const showMessage = (msg) => { /* Optional: simple alert for now */ alert(msg); }
+        const closeModal = (e) => { if (e.target.id === 'pdfPreviewModal') hideModal(); };
+        const hideModal = () => { document.getElementById('pdfPreviewModal').classList.add('hidden'); document.getElementById('pdfIframe').src = ''; };
 
     </script>
 </body>
