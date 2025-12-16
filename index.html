@@ -239,18 +239,24 @@
 
         <div class="mt-8 pt-6 border-t border-gray-200">
             <h3 class="text-xl font-bold text-gray-800 mb-4">เซ็นลายเซ็นออนไลน์ (ไม่บังคับ)
-                <svg class="w-5 h-5 inline-block ml-2 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path>
+                <svg class="w-5 h-5 inline-block ml-2 text-gray-600" fill="none" stroke="currentColor"
+                    viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z">
+                    </path>
                 </svg>
             </h3>
 
             <div class="bg-white p-4 rounded-lg border border-gray-300 mb-4">
-                <canvas id="signatureCanvas" width="400" height="200" class="border border-gray-400 bg-white cursor-crosshair"></canvas>
+                <canvas id="signatureCanvas" width="400" height="200"
+                    class="border border-gray-400 bg-white cursor-crosshair"></canvas>
                 <div class="mt-2 flex space-x-4">
-                    <button onclick="clearSignature()" class="bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded">
+                    <button onclick="clearSignature()"
+                        class="bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded">
                         ล้างลายเซ็น
                     </button>
-                    <button onclick="saveSignature()" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded">
+                    <button onclick="saveSignature()"
+                        class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded">
                         บันทึกลายเซ็น
                     </button>
                 </div>
@@ -313,6 +319,10 @@
         const ITEMS_PER_FIRST_PAGE = 10;
         const ITEMS_PER_SUBSEQUENT_PAGE = 10;
         const CUSTOM_CATEGORY_KEY = 'อื่นๆ';
+
+        // NEW FIX: Global variable to hold the currently generated Blob URL for cleanup
+        let currentBlobUrl = null;
+        // END NEW FIX
 
         // Define Category structure 
         const CATEGORIES = {
@@ -678,22 +688,27 @@
             event.target.value = null;
         }
 
+        // บรรทัดประมาณ 593:
         const renderReceipts = () => {
             const container = document.getElementById('receiptsPreviewContainer');
             container.innerHTML = '';
             receiptImages.forEach(img => {
                 container.innerHTML += `
-                    <div class="relative w-40 h-40 bg-white rounded-lg overflow-hidden shadow-2xl transition duration-300 hover:scale-[1.03] ring-2 ring-blue-600 ring-opacity-50 cursor-pointer group">
-                        <img src="${img.base64}" class="w-full h-full object-cover transition duration-300 group-hover:opacity-80">
-                        <button onclick="deleteReceipt('${img.id}')" 
-                            class="absolute top-0 right-0 bg-red-600 hover:bg-red-700 text-white font-bold w-7 h-7 flex items-center justify-center rounded-bl shadow-md transition duration-150 transform hover:scale-105" 
-                            title="ลบสลิป">&times;
-                        </button>
-                    </div>
-                `;
+            <div class="relative w-40 h-40 bg-white rounded-lg overflow-hidden shadow-2xl transition duration-300 hover:scale-[1.03] ring-2 ring-blue-600 ring-opacity-50 cursor-pointer group">
+                <img src="${img.base64}" class="w-full h-full object-cover transition duration-300 group-hover:opacity-80">
+                <button 
+                    onclick="event.stopPropagation(); deleteReceipt(event, '${img.id}')"  // <--- แก้ไขตรงนี้
+                    class="absolute top-0 right-0 bg-red-600 hover:bg-red-700 text-white font-bold w-7 h-7 flex items-center justify-center rounded-bl shadow-md transition duration-150 transform hover:scale-105" 
+                    title="ลบสลิป">&times;
+                </button>
+            </div>
+        `;
             });
         };
-        const deleteReceipt = (id) => {
+
+
+        const deleteReceipt = (event, id) => {
+            event.preventDefault(); // <-- เพิ่มบรรทัดนี้เพื่อหยุดการกระทำเริ่มต้นของปุ่ม
             receiptImages = receiptImages.filter(img => img.id !== id);
             renderReceipts();
         };
@@ -940,13 +955,13 @@
             `;
         };
 
-        // **แก้ไข: generatePDFDocument อ่าน q เป็น parseFloat**
+        // **แก้ไข: generatePDFDocument**
         const generatePDFDocument = async () => {
 
             const { jsPDF } = window.jspdf;
             const doc = new jsPDF('p', 'mm', 'a4');
-            const pageWidth = doc.internal.pageSize.getWidth();
-            const pageHeight = doc.internal.pageSize.getHeight();
+            const pageWidth = doc.internal.pageSize.getWidth();   // ~210 mm
+            const pageHeight = doc.internal.pageSize.getHeight(); // ~297 mm
 
             const validItems = items.filter(item => item.name.trim() !== '' || item.total !== 0);
             const personInCharge = document.getElementById('personInCharge').value;
@@ -955,9 +970,7 @@
             let totalDiscount = 0;
 
             validItems.forEach(item => {
-                // Quantity is now float
                 const q = parseFloat(item.qty) || 0;
-                // Price/Discount are float
                 const p = parseFloat(item.price) || 0;
                 const d = parseFloat(item.discount) || 0;
 
@@ -979,12 +992,11 @@
                 totalItemPages = 1 + subsequentPages;
             }
 
-
             const tempContainer = document.getElementById('pdfTemplate');
             tempContainer.innerHTML = '';
 
             try {
-                // --- 1. Generate and Add Item Pages ---
+                // --- 1. Generate and Add Item Pages (ส่วนรายการสินค้า เหมือนเดิม) ---
                 for (let i = 0; i < totalItemPages; i++) {
                     if (i > 0) doc.addPage();
 
@@ -1005,7 +1017,7 @@
                     tempContainer.innerHTML = pageHtml;
 
                     const canvas = await html2canvas(tempContainer.children[0], {
-                        scale: 4, // **เปลี่ยนตรงนี้**
+                        scale: 3,
                         useCORS: true,
                         logging: false,
                         backgroundColor: '#ffffff',
@@ -1020,23 +1032,71 @@
                     doc.addImage(imgData, 'JPEG', 0, 0, imgWidth, imgHeight);
                 }
 
-                // --- 2. Add Receipts on New Pages ---
-                for (const image of receiptImages) {
-                    doc.addPage();
-                    const imgProps = doc.getImageProperties(image.base64);
-                    const pdfWidth = pageWidth - 20;
-                    const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
+                // --- 2. Add Receipts (ส่วนที่แก้ไข: 4 รูปต่อหน้า แบบไม่มีข้อความ) ---
+                if (receiptImages.length > 0) {
+                    const margin = 10; // ขอบกระดาษ 10mm
 
-                    let yPos = 10;
-                    if (pdfHeight < (pageHeight - 20)) {
-                        yPos = (pageHeight - pdfHeight) / 2;
-                    }
+                    // พื้นที่ที่เหลือสำหรับการวางรูป
+                    const contentWidth = pageWidth - (margin * 2);
+                    const contentHeight = pageHeight - (margin * 2);
 
-                    if (pdfHeight > (pageHeight - 20)) {
-                        const scaledWidth = (imgProps.width * (pageHeight - 20)) / imgProps.height;
-                        doc.addImage(image.base64, 'JPEG', (pageWidth - scaledWidth) / 2, 10, scaledWidth, pageHeight - 20);
-                    } else {
-                        doc.addImage(image.base64, 'JPEG', 10, yPos, pdfWidth, pdfHeight);
+                    // ขนาดของแต่ละช่อง (แบ่งครึ่งซ้ายขวา และ บนล่าง)
+                    const cellWidth = contentWidth / 2;
+                    const cellHeight = contentHeight / 2;
+
+                    for (let i = 0; i < receiptImages.length; i++) {
+                        // ถ้าเป็นรูปที่ 1, 5, 9... (เริ่มชุดใหม่ของ 4 รูป) ให้ขึ้นหน้าใหม่
+                        if (i % 4 === 0) {
+                            doc.addPage();
+                        }
+
+                        const img = receiptImages[i];
+
+                        // คำนวณตำแหน่ง Grid (0, 1, 2, 3) ในหน้านั้นๆ
+                        // indexInPage: 0=บนซ้าย, 1=บนขวา, 2=ล่างซ้าย, 3=ล่างขวา
+                        const indexInPage = i % 4;
+                        const col = indexInPage % 2;
+                        const row = Math.floor(indexInPage / 2);
+
+                        // จุดเริ่มต้น X, Y ของช่องนั้นๆ
+                        const xBase = margin + (col * cellWidth);
+                        const yBase = margin + (row * cellHeight);
+
+                        // เว้นช่องไฟข้างในช่องอีกนิดหน่อย (Padding) เพื่อไม่ให้รูปชนกัน
+                        const padding = 5;
+                        const boxWidth = cellWidth - (padding * 2);
+                        const boxHeight = cellHeight - (padding * 2);
+
+                        // คำนวณขนาดรูปให้พอดีช่อง (Object Fit: Contain)
+                        const imgProps = doc.getImageProperties(img.base64);
+                        const imgRatio = imgProps.width / imgProps.height;
+                        const boxRatio = boxWidth / boxHeight;
+
+                        let finalW, finalH;
+
+                        if (imgRatio > boxRatio) {
+                            // รูปกว้างกว่าช่อง -> ยึดความกว้าง
+                            finalW = boxWidth;
+                            finalH = finalW / imgRatio;
+                        } else {
+                            // รูปสูงกว่าช่อง -> ยึดความสูง
+                            finalH = boxHeight;
+                            finalW = finalH * imgRatio;
+                        }
+
+                        // คำนวณจุดกึ่งกลางของช่อง (Center Align)
+                        const xOffset = (cellWidth - finalW) / 2;
+                        const yOffset = (cellHeight - finalH) / 2;
+
+                        // วาดรูปลงไป (ไม่มีข้อความใดๆ)
+                        doc.addImage(
+                            img.base64,
+                            'JPEG',
+                            xBase + (cellWidth - finalW) / 2, // จัดกึ่งกลางแกน X ใน Cell
+                            yBase + (cellHeight - finalH) / 2, // จัดกึ่งกลางแกน Y ใน Cell
+                            finalW,
+                            finalH
+                        );
                     }
                 }
 
@@ -1051,7 +1111,34 @@
             }
         };
 
+        // NEW: Utility function to handle button loading state
+        const setButtonLoading = (buttonId, isLoading) => {
+            // Find button by its onclick attribute value
+            const button = document.querySelector(`button[onclick="${buttonId}()"]`);
+            if (!button) return;
+
+            if (isLoading) {
+                // เก็บข้อความเดิมไว้ใน data-text
+                button.setAttribute('data-text', button.textContent.trim());
+                button.innerHTML = `
+                    <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-white inline-block" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    กำลังสร้าง...
+                `;
+                button.disabled = true;
+                button.classList.add('opacity-70', 'cursor-not-allowed');
+            } else {
+                button.textContent = button.getAttribute('data-text') || 'ดำเนินการต่อ';
+                button.disabled = false;
+                button.classList.remove('opacity-70', 'cursor-not-allowed');
+                button.removeAttribute('data-text');
+            }
+        };
+
         // Actions 
+        // **NEW FIX: previewPDF function**
         const previewPDF = async () => {
             if (!validateInputs()) {
                 return;
@@ -1061,24 +1148,63 @@
                 showMessage("🚨 ไม่สามารถโหลดไลบรารีที่จำเป็นได้ กรุณาตรวจสอบการเชื่อมต่ออินเทอร์เน็ตหรือลองใหม่อีกครั้ง", true);
                 return;
             }
+
+            setButtonLoading('previewPDF', true); // <<< START LOADING
+
+            // Clean up previous URL if any
+            if (currentBlobUrl) {
+                URL.revokeObjectURL(currentBlobUrl);
+                currentBlobUrl = null;
+            }
+
             const doc = await generatePDFDocument();
+
+            setButtonLoading('previewPDF', false); // <<< STOP LOADING
+
             if (doc) {
-                const pdfDataUri = doc.output('datauristring');
-                document.getElementById('pdfIframe').src = pdfDataUri;
+                // ใช้ Blob object ในการสร้าง URL แทน Data URI String
+                const pdfBlob = doc.output('blob');
+                const pdfUrl = URL.createObjectURL(pdfBlob);
+                currentBlobUrl = pdfUrl; // เก็บ URL ไว้เพื่อทำความสะอาด
+
+                document.getElementById('pdfIframe').src = pdfUrl;
                 document.getElementById('pdfPreviewModal').classList.remove('hidden');
             }
         };
+        // END NEW FIX
 
         const downloadPDF = async () => {
             if (!validateInputs()) {
                 return;
             }
+
+            // --- ส่วนที่เพิ่มใหม่: ตรวจสอบว่าแนบสลิปหรือยัง ---
+            if (receiptImages.length === 0) {
+                showMessage("🚨 กรุณาแนบสลิป/ใบเสร็จ อย่างน้อย 1 รูป ก่อนดาวน์โหลด PDF");
+                // เลื่อนหน้าจอลงไปที่ส่วนอัปโหลดเพื่อให้ผู้ใช้เห็น
+                document.getElementById('uploadZone').scrollIntoView({ behavior: 'smooth' });
+                return;
+            }
+            // ---------------------------------------------
+
+            // ตรวจสอบว่ามีลายเซ็นหรือไม่
+            if (!signatureData) {
+                showMessage("🚨 กรุณาเซ็นลายเซ็นก่อนดาวน์โหลด PDF");
+                return;
+            }
+
             autoSaveSignature();
             if (typeof window.jspdf === 'undefined' || typeof window.html2canvas === 'undefined') {
                 showMessage("🚨 ไม่สามารถโหลดไลบรารีที่จำเป็นได้ กรุณาตรวจสอบการเชื่อมต่ออินเทอร์เน็ตหรือลองใหม่อีกครั้ง", true);
                 return;
             }
+
+            setButtonLoading('downloadPDF', true); // <<< START LOADING
+
             const doc = await generatePDFDocument();
+
+            setButtonLoading('downloadPDF', false); // <<< STOP LOADING
+
             if (doc) {
                 const dateISO = document.getElementById('billDate').value;
                 const [year, month, day] = dateISO.split('-');
@@ -1098,7 +1224,19 @@
 
         // Modal Controls
         const closeModal = (e) => { if (e.target.id === 'pdfPreviewModal') hideModal(); };
-        const hideModal = () => { document.getElementById('pdfPreviewModal').classList.add('hidden'); document.getElementById('pdfIframe').src = ''; };
+
+        // **NEW FIX: hideModal function**
+        const hideModal = () => {
+            document.getElementById('pdfPreviewModal').classList.add('hidden');
+            document.getElementById('pdfIframe').src = '';
+
+            // Clean up Blob URL to release memory
+            if (currentBlobUrl) {
+                URL.revokeObjectURL(currentBlobUrl);
+                currentBlobUrl = null;
+            }
+        };
+        // END NEW FIX
 
         // --- Signature Functions ---
         let isDrawing = false;
