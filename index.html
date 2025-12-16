@@ -15,6 +15,8 @@
     <script src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
     <link rel="icon" href="favicon.png" type="image/png">
 
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
     <script>
         tailwind.config = {
             theme: {
@@ -356,6 +358,24 @@
     </div>
 
     <script>
+        // START: FIREBASE CONFIGURATION AND INITIALIZATION
+        // For Firebase JS SDK v7.20.0 and later, measurementId is optional
+        const firebaseConfig = {
+            apiKey: "AIzaSyCkiq5_IM-1-REojhiAOjDgF-aQI9LMhHk",
+            authDomain: "clc-e-receit.firebaseapp.com",
+            projectId: "clc-e-receit",
+            storageBucket: "clc-e-receit.firebasestorage.app",
+            messagingSenderId: "578514019900",
+            appId: "1:578514019900:web:998f3e9fa3b599a2344539",
+            measurementId: "G-S65X8N123G"
+        };
+
+        // Initialize Firebase and Firestore DB
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+        // END: FIREBASE CONFIGURATION AND INITIALIZATION
+
+
         let items = [];
         let receiptImages = [];
         let signatureData = null; // สำหรับเก็บลายเซ็น
@@ -622,11 +642,15 @@
                         <input type="text" class="w-full bg-transparent focus:outline-none text-sm sm:text-base" value="${item.name}" oninput="updateItem(${index}, 'name', this.value)" placeholder="ชื่อสินค้า">
                     </td>
                     <td class="p-1 sm:p-2 border-r border-gray-300">
-                        <input type="number"
+                        <input type="text"
+                                inputmode="decimal"
                                 class="w-full text-right bg-transparent focus:outline-none no-spinners text-sm sm:text-base"
                                 value="${item.qty}"
-                                oninput="this.value = cleanNumberInput(this.value, 0); updateItem(${index}, 'qty', this.value)"
-                                min="0" inputmode="numeric" pattern="[0-9]*">
+                                oninput="
+                                    this.value = cleanDecimalInput(this.value, 3, 0); 
+                                    updateItem(${index}, 'qty', this.value)
+                                "
+                                min="0" >
                     </td>
                     <td class="p-1 sm:p-2 border-r border-gray-300">
                         <input
@@ -720,17 +744,84 @@
             const files = event.target.files;
             if (!files.length) return;
 
+            // Show a temporary message to inform the user about processing
+            showMessage("กำลังประมวลผลรูปภาพและลดขนาด... โปรดรอสักครู่", false);
+
             Array.from(files).forEach(file => {
-                if (file.size > 5 * 1024 * 1024) return;
+                // ตรวจสอบขนาดไฟล์ก่อนทำการ Resize (5MB limit)
+                if (file.size > 5 * 1024 * 1024) {
+                    showMessage(`🚨 ไฟล์ '${file.name}' มีขนาดเกิน 5MB โปรดเลือกไฟล์ที่เล็กลง`, true);
+                    return;
+                }
+
                 const reader = new FileReader();
-                reader.onload = (e) => {
-                    receiptImages.push({ id: generateUniqueId(), base64: e.target.result });
-                    renderReceipts();
+                reader.onload = async (e) => {
+                    try {
+                        // *** ขั้นตอนสำคัญ: เรียกใช้ resizeImage ก่อนบันทึก ***
+                        const originalBase64 = e.target.result;
+                        const resizedBase64 = await resizeImage(
+                            originalBase64,
+                            1024,   // กำหนดความกว้างสูงสุด 1024px
+                            1024,   // กำหนดความสูงสูงสุด 1024px
+                            0.8     // กำหนดคุณภาพการบีบอัด JPEG 80%
+                        );
+
+                        receiptImages.push({ id: generateUniqueId(), base64: resizedBase64 });
+                        renderReceipts();
+                        showMessage(`รูปภาพถูกประมวลผลและแนบเรียบร้อยแล้ว (${file.name})`, false);
+
+                    } catch (error) {
+                        console.error("Image processing error:", error);
+                        showMessage("🚨 เกิดข้อผิดพลาดในการประมวลผลรูปภาพ", true);
+                    }
                 };
                 reader.readAsDataURL(file);
             });
             event.target.value = null;
         }
+
+        /**
+ * ลดขนาดรูปภาพ Base64 โดยใช้ Canvas และส่งคืน Base64 ใหม่
+ * @param {string} base64 - Base64 string ของรูปภาพต้นฉบับ
+ * @param {number} maxWidth - ความกว้างสูงสุดที่ต้องการ (เช่น 1024)
+ * @param {number} maxHeight - ความสูงสูงสุดที่ต้องการ (เช่น 1024)
+ * @param {number} quality - คุณภาพ JPEG ที่ต้องการ (0.0 ถึง 1.0)
+ * @returns {Promise<string>} Base64 string ของรูปภาพที่ปรับขนาดแล้ว
+ */
+        const resizeImage = (base64, maxWidth = 1024, maxHeight = 1024, quality = 0.8) => {
+            return new Promise((resolve) => {
+                const img = new Image();
+                img.onload = () => {
+                    let width = img.width;
+                    let height = img.height;
+
+                    // 1. คำนวณอัตราส่วนเพื่อปรับขนาด
+                    if (width > height) {
+                        if (width > maxWidth) {
+                            height = height * (maxWidth / width);
+                            width = maxWidth;
+                        }
+                    } else {
+                        if (height > maxHeight) {
+                            width = width * (maxHeight / height);
+                            height = maxHeight;
+                        }
+                    }
+
+                    // 2. สร้าง Canvas ใหม่และวาดรูปที่ปรับขนาด
+                    const canvas = document.createElement('canvas');
+                    canvas.width = width;
+                    canvas.height = height;
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0, width, height);
+
+                    // 3. แปลงกลับเป็น Base64 (ใช้ 'image/jpeg' เพื่อบีบอัด)
+                    const resizedBase64 = canvas.toDataURL('image/jpeg', quality);
+                    resolve(resizedBase64);
+                };
+                img.src = base64;
+            });
+        };
 
         // บรรทัดประมาณ 593:
         const renderReceipts = () => {
@@ -1169,7 +1260,7 @@
                         <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                         <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                     </svg>
-                    กำลังสร้าง...
+                    กำลังสร้าง/บันทึก...
                 `;
                 button.disabled = true;
                 button.classList.add('opacity-70', 'cursor-not-allowed');
@@ -1180,6 +1271,24 @@
                 button.removeAttribute('data-text');
             }
         };
+
+        // --- START: FIRESTORE SAVING FUNCTION ---
+        const saveReceiptToFirestore = async (data) => {
+            try {
+                const docRef = await db.collection('expenseReceipts').add(data);
+
+                // ถ้าบันทึกสำเร็จ
+                showMessage(`บันทึกข้อมูลใบเบิกเรียบร้อยแล้ว! (ID: ${docRef.id})`, false);
+                return true;
+
+            } catch (error) {
+                console.error("Error writing document: ", error);
+                showMessage("🚨 เกิดข้อผิดพลาดในการบันทึกข้อมูลลง Firebase", true);
+                return false;
+            }
+        };
+        // --- END: FIRESTORE SAVING FUNCTION ---
+
 
         // Actions 
         // **NEW FIX: previewPDF function**
@@ -1224,7 +1333,7 @@
 
             // --- ส่วนที่เพิ่มใหม่: ตรวจสอบว่าแนบสลิปหรือยัง ---
             if (receiptImages.length === 0) {
-                showMessage("🚨 กรุณาแนบสลิป/ใบเสร็จ อย่างน้อย 1 รูป ก่อนดาวน์โหลด PDF");
+                showMessage("🚨 กรุณาแนบสลิป/ใบเสร็จ อย่างน้อย 1 รูป ก่อนดำเนินการต่อ", true);
                 // เลื่อนหน้าจอลงไปที่ส่วนอัปโหลดเพื่อให้ผู้ใช้เห็น
                 document.getElementById('uploadZone').scrollIntoView({ behavior: 'smooth' });
                 return;
@@ -1233,7 +1342,7 @@
 
             // ตรวจสอบว่ามีลายเซ็นหรือไม่
             if (!signatureData) {
-                showMessage("🚨 กรุณาเซ็นลายเซ็นก่อนดาวน์โหลด PDF");
+                showMessage("🚨 กรุณาเซ็นลายเซ็นก่อนดำเนินการต่อ", true);
                 return;
             }
 
@@ -1245,6 +1354,41 @@
 
             setButtonLoading('downloadPDF', true); // <<< START LOADING
 
+            // ----------------------------------------------------
+            // START: 1. รวบรวมข้อมูลเพื่อบันทึก
+            // ----------------------------------------------------
+            const validItems = items.filter(item => item.name.trim() !== '' || item.total !== 0);
+
+            const receiptData = {
+                purpose: document.getElementById('billPurpose').value.trim(),
+                category: getCurrentCategoryValue(),
+                date: document.getElementById('billDate').value,
+                personInCharge: document.getElementById('personInCharge').value.trim(),
+                items: validItems.map(item => ({
+                    name: item.name,
+                    qty: parseFloat(item.qty) || 0,
+                    price: parseFloat(item.price) || 0,
+                    discount: parseFloat(item.discount) || 0,
+                    total: item.total
+                })),
+                grandTotal: parseFloat(document.getElementById('grandTotal').textContent.replace(/,/g, '')) || 0,
+                signatureData: signatureData,
+                // เก็บ Base64 ของรูปสลิปใน Firestore (ถ้าไฟล์ใหญ่มาก ควรใช้ Firebase Storage)
+                receiptImages: receiptImages.map(img => img.base64),
+                createdAt: firebase.firestore.FieldValue.serverTimestamp()
+            };
+            // ----------------------------------------------------
+            // END: 1. รวบรวมข้อมูลเพื่อบันทึก
+            // ----------------------------------------------------
+
+            // 2. บันทึกข้อมูลลง Firestore
+            const isSaved = await saveReceiptToFirestore(receiptData);
+            if (!isSaved) {
+                setButtonLoading('downloadPDF', false);
+                return; // หยุดถ้าบันทึกไม่สำเร็จ
+            }
+
+            // 3. สร้างและดาวน์โหลด PDF
             const doc = await generatePDFDocument();
 
             setButtonLoading('downloadPDF', false); // <<< STOP LOADING
