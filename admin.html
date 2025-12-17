@@ -102,14 +102,27 @@
 <body
     class="bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 h-screen flex flex-col overflow-hidden transition-colors duration-300">
 
-    <div id="loginOverlay" class="fixed inset-0 bg-slate-900 z-[100] flex items-center justify-center p-6">
+    <div id="loginOverlay" class="fixed inset-0 bg-slate-900 z-[100] hidden flex items-center justify-center p-6">
         <div class="w-full max-w-md bg-white p-10 rounded-2xl shadow-2xl">
-            <h2 class="text-3xl font-bold text-center mb-6">ADMIN LOGIN</h2>
+            <h2 class="text-3xl font-bold text-center mb-6 text-slate-900">ADMIN LOGIN</h2>
             <div class="space-y-4">
                 <input type="email" id="loginEmail" placeholder="Email"
-                    class="w-full p-4 border rounded-xl outline-none focus:ring-2 focus:ring-indigo-600">
-                <input type="password" id="loginPassword" placeholder="Password"
-                    class="w-full p-4 border rounded-xl outline-none focus:ring-2 focus:ring-indigo-600">
+                    class="w-full p-4 border rounded-xl outline-none focus:ring-2 focus:ring-indigo-600 text-slate-900">
+
+                <div class="relative">
+                    <input type="password" id="loginPassword" placeholder="Password"
+                        class="w-full p-4 border rounded-xl outline-none focus:ring-2 focus:ring-indigo-600 text-slate-900">
+                    <button type="button" onclick="togglePasswordVisibility()"
+                        class="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-indigo-600 transition">
+                        <svg id="eyeIcon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                            stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
+                            <path stroke-linecap="round" stroke-linejoin="round"
+                                d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z" />
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                        </svg>
+                    </button>
+                </div>
+
                 <button onclick="handleLogin()"
                     class="w-full bg-slate-900 text-white font-bold py-4 rounded-xl hover:bg-black transition shadow-lg uppercase">Sign
                     In</button>
@@ -131,35 +144,72 @@
 
     <div id="mainContent" class="hidden flex flex-col h-full">
         <header
-            class="bg-white dark:bg-slate-900 border-b dark:border-slate-800 px-6 py-4 flex justify-between items-center z-50 shadow-sm">
-            <div class="flex items-center gap-4">
+            class="bg-white dark:bg-slate-900 border-b dark:border-slate-800 px-4 md:px-6 py-4 flex justify-between items-center z-50 shadow-sm">
+            <div class="flex items-center gap-3">
                 <button id="backBtn" onclick="toggleMobileList()"
                     class="md:hidden p-2 bg-slate-100 dark:bg-slate-800 rounded-lg hidden">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
                     </svg>
                 </button>
-                <h1 class="font-bold text-lg md:text-xl tracking-tight uppercase">CLC เบิกเงิน</h1>
+                <h1
+                    class="font-bold text-base md:text-xl tracking-tight uppercase truncate max-w-[120px] md:max-w-none">
+                    CLC ADMIN</h1>
             </div>
-            <div class="flex items-center gap-2">
+            <div class="flex items-center gap-1.5 md:gap-2">
                 <button onclick="switchView('dashboard')" id="dashToggle"
-                    class="text-[10px] md:text-xs font-bold px-3 py-2 bg-slate-100 dark:bg-slate-800 rounded-lg">DASHBOARD</button>
+                    class="p-2 md:p-2.5 bg-slate-100 dark:bg-slate-800 rounded-xl transition-all hover:scale-105"
+                    title="Dashboard">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2"
+                        stroke="currentColor" class="w-5 h-5">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                            d="M3.75 6A2.25 2.25 0 0 1 6 3.75h2.25A2.25 2.25 0 0 1 10.5 6v2.25a2.25 2.25 0 0 1-2.25 2.25H6a2.25 2.25 0 0 1-2.25-2.25V6ZM3.75 15.75A2.25 2.25 0 0 1 6 13.5h2.25a2.25 2.25 0 0 1 2.25 2.25V18a2.25 2.25 0 0 1-2.25 2.25H6A2.25 2.25 0 0 1 3.75 18v-2.25ZM13.5 6a2.25 2.25 0 0 1 2.25-2.25H18A2.25 2.25 0 0 1 20.25 6v2.25A2.25 2.25 0 0 1 18 10.5h-2.25a2.25 2.25 0 0 1-2.25-2.25V6ZM13.5 15.75a2.25 2.25 0 0 1 2.25-2.25H18a2.25 2.25 0 0 1 2.25 2.25V18a2.25 2.25 0 0 1-2.25 2.25H18a2.25 2.25 0 0 1-2.25-2.25v-2.25Z" />
+                    </svg>
+                </button>
+
                 <button onclick="switchView('list')" id="listToggle"
-                    class="text-[10px] md:text-xs font-bold px-3 py-2 bg-indigo-600 text-white rounded-lg">LIST</button>
+                    class="p-2 md:p-2.5 bg-indigo-600 text-white rounded-xl transition-all hover:scale-105"
+                    title="List View">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2"
+                        stroke="currentColor" class="w-5 h-5">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                            d="M8.25 6.75h12M8.25 12h12m-12 5.25h12M3.75 6.75h.007v.008H3.75V6.75Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0ZM3.75 12h.007v.008H3.75V12Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm-.375 5.25h.007v.008H3.75v-.008Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Z" />
+                    </svg>
+                </button>
+
                 <button onclick="switchView('calendar')" id="calToggle"
-                    class="text-[10px] md:text-xs font-bold px-3 py-2 bg-slate-100 dark:bg-slate-800 rounded-lg">CALENDAR</button>
-                <button onclick="toggleDarkMode()" class="p-2">🌙</button>
-                <button onclick="handleLogout()" class="text-[10px] md:text-xs font-bold text-red-500">LOGOUT</button>
+                    class="p-2 md:p-2.5 bg-slate-100 dark:bg-slate-800 rounded-xl transition-all hover:scale-105"
+                    title="Calendar View">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2"
+                        stroke="currentColor" class="w-5 h-5">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                            d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5" />
+                    </svg>
+                </button>
+
+                <div class="w-px h-6 bg-slate-200 dark:bg-slate-800 mx-1"></div>
+
+                <button id="themeIcon" onclick="toggleDarkMode()"
+                    class="p-2 text-xl hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition-colors">🌙</button>
+
+                <button onclick="handleLogout()"
+                    class="p-2 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-xl transition-colors">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2"
+                        stroke="currentColor" class="w-5 h-5">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                            d="M15.75 9V5.25A2.25 2.25 0 0 0 13.5 3h-6a2.25 2.25 0 0 0-2.25 2.25v13.5A2.25 2.25 0 0 0 7.5 21h6a2.25 2.25 0 0 0 2.25-2.25V15m3 0 3-3m0 0-3-3m3 3H9" />
+                    </svg>
+                </button>
             </div>
         </header>
 
-        <div class="flex flex-1 overflow-hidden" id="appBody">
-            <aside
-                class="mobile-sidebar w-full md:w-[380px] bg-white dark:bg-slate-900 border-r dark:border-slate-800 flex flex-col">
+        <div class="flex flex-1 overflow-hidden relative" id="appBody">
+            <aside id="sidebarArea"
+                class="absolute inset-y-0 left-0 z-20 w-full md:relative md:translate-x-0 md:w-[380px] bg-white dark:bg-slate-900 border-r dark:border-slate-800 flex flex-col transition-transform duration-300">
                 <div id="listView" class="flex flex-col h-full">
                     <div class="p-4 border-b dark:border-slate-800">
                         <input type="text" id="searchInput" oninput="handleSearch()"
-                            placeholder="ค้นหาชื่อ, หมวดหมู่, วันที่..."
+                            placeholder="ค้นหาชื่อ, หมวดหมู่, วัตถุประสงค์..."
                             class="w-full p-3 bg-slate-50 dark:bg-slate-800 border-none rounded-xl outline-none focus:ring-2 focus:ring-indigo-600 text-sm font-medium">
                     </div>
                     <div class="flex-1 overflow-y-auto custom-scroll" id="receiptsList"></div>
@@ -171,7 +221,7 @@
                 </div>
             </aside>
 
-            <main class="mobile-detail flex-1 bg-slate-50 dark:bg-slate-950 overflow-y-auto custom-scroll p-4 md:p-8">
+            <main class="flex-1 bg-slate-50 dark:bg-slate-950 overflow-y-auto custom-scroll p-4 md:p-8 w-full">
                 <div id="dashboardPage" class="hidden max-w-5xl mx-auto space-y-6">
                     <h2 class="text-2xl font-bold">Financial Dashboard</h2>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -184,7 +234,7 @@
                             class="bg-white dark:bg-slate-900 p-6 rounded-3xl border dark:border-slate-800 shadow-sm flex flex-col justify-center items-center">
                             <p class="text-xs font-black text-slate-400 uppercase tracking-widest mb-2">ยอดรวมทั้งหมด
                             </p>
-                            <p id="totalSpentDisplay" class="text-5xl font-black text-indigo-600">0.00 ฿</p>
+                            <p id="totalSpentDisplay" class="text-4xl md:text-5xl font-black text-indigo-600">0.00 ฿</p>
                         </div>
                     </div>
                 </div>
@@ -192,7 +242,8 @@
                 <div id="detailContainer" class="max-w-5xl mx-auto h-full">
                     <div
                         class="h-full flex flex-col items-center justify-center text-slate-400 border-2 border-dashed rounded-3xl border-slate-200 dark:border-slate-800 opacity-40">
-                        <p class="text-sm font-bold tracking-widest">SELECT A RECORD TO VIEW DETAILS</p>
+                        <p class="text-xs font-bold tracking-widest text-center px-4">SELECT A RECORD TO VIEW DETAILS
+                        </p>
                     </div>
                 </div>
             </main>
@@ -207,7 +258,14 @@
 
     <script src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
     <script>
-        const firebaseConfig = { apiKey: "AIzaSyCkiq5_IM-1-REojhiAOjDgF-aQI9LMhHk", authDomain: "clc-e-receit.firebaseapp.com", projectId: "clc-e-receit", storageBucket: "clc-e-receit.firebasestorage.app", messagingSenderId: "578514019900", appId: "1:578514019900:web:998f3e9fa3b599a2344539" };
+        const firebaseConfig = {
+            apiKey: "AIzaSyCkiq5_IM-1-REojhiAOjDgF-aQI9LMhHk",
+            authDomain: "clc-e-receit.firebaseapp.com",
+            projectId: "clc-e-receit",
+            storageBucket: "clc-e-receit.firebasestorage.app",
+            messagingSenderId: "578514019900",
+            appId: "1:578514019900:web:998f3e9fa3b599a2344539"
+        };
         firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
         const auth = firebase.auth();
@@ -215,58 +273,53 @@
         let selectedId = null;
         let calendar = null;
         let spendingChart = null;
-        let isFirstLoad = true;
 
-        function toggleDarkMode() { document.documentElement.classList.toggle('dark'); }
-
-        function switchView(view) {
-            const listEl = document.getElementById('listView');
-            const calEl = document.getElementById('calendarView');
-            const dashEl = document.getElementById('dashboardPage');
-            const detailEl = document.getElementById('detailContainer');
-
-            [listEl, calEl, dashEl, detailEl].forEach(el => el.classList.add('hidden'));
-            document.querySelectorAll('header button[id*="Toggle"]').forEach(btn => {
-                btn.className = "text-[10px] md:text-xs font-bold px-3 py-2 bg-slate-100 dark:bg-slate-800 rounded-lg";
-            });
-
-            if (view === 'dashboard') {
-                dashEl.classList.remove('hidden');
-                document.getElementById('dashToggle').className = "text-[10px] md:text-xs font-bold px-3 py-2 bg-indigo-600 text-white rounded-lg";
-                updateChart();
-            } else if (view === 'calendar') {
-                calEl.classList.remove('hidden');
-                detailEl.classList.remove('hidden');
-                document.getElementById('calToggle').className = "text-[10px] md:text-xs font-bold px-3 py-2 bg-indigo-600 text-white rounded-lg";
-                if (calendar) calendar.render();
-            } else {
-                listEl.classList.remove('hidden');
-                detailEl.classList.remove('hidden');
-                document.getElementById('listToggle').className = "text-[10px] md:text-xs font-bold px-3 py-2 bg-indigo-600 text-white rounded-lg";
-            }
-        }
-
+        // --- แก้ไขการตรวจสอบสถานะ Login เมื่อ Refresh ---
         auth.onAuthStateChanged(user => {
-            document.getElementById('loginOverlay').classList.toggle('hidden', !!user);
-            document.getElementById('mainContent').classList.toggle('hidden', !user);
-            if (user) { setupListener(); initCalendar(); }
+            const loginOverlay = document.getElementById('loginOverlay');
+            const mainContent = document.getElementById('mainContent');
+            const loadingOverlay = document.getElementById('loadingOverlay');
+
+            if (user) {
+                // ถ้า Login แล้ว: ซ่อนหน้า Login และแสดงหน้าหลัก
+                loginOverlay.classList.add('hidden');
+                mainContent.classList.remove('hidden');
+
+                // เริ่มโหลดข้อมูล
+                setupListener();
+                initCalendar();
+            } else {
+                // ถ้ายังไม่ Login: แสดงหน้า Login และซ่อนหน้าหลัก
+                loginOverlay.classList.remove('hidden');
+                mainContent.classList.add('hidden');
+
+                // ปิดหน้า Loading เพื่อให้กรอกรหัสได้
+                loadingOverlay.classList.add('hidden');
+            }
         });
 
         async function handleLogin() {
             const e = document.getElementById('loginEmail').value, p = document.getElementById('loginPassword').value;
-            try { await auth.signInWithEmailAndPassword(e, p); } catch (err) { alert("Login Failed"); }
+            try {
+                await auth.signInWithEmailAndPassword(e, p);
+            } catch (err) {
+                alert("Login Failed: " + err.message);
+            }
         }
-        function handleLogout() { auth.signOut(); }
+
+        function handleLogout() {
+            auth.signOut();
+        }
 
         function setupListener() {
             db.collection('expenseReceipts').orderBy('createdAt', 'desc').onSnapshot(snap => {
                 allData = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
                 handleSearch();
                 updateCalendarEvents();
-                if (isFirstLoad) {
-                    document.getElementById('loadingOverlay').classList.add('hidden');
-                    isFirstLoad = false;
-                }
+
+                // ข้อมูลโหลดมาแล้ว: ปิดหน้า Loading
+                document.getElementById('loadingOverlay').classList.add('hidden');
+
                 if (selectedId) {
                     const item = allData.find(r => r.id === selectedId);
                     if (item) renderDetail(item);
@@ -279,40 +332,81 @@
             const filtered = allData.filter(i =>
                 (i.personInCharge?.toLowerCase().includes(term)) ||
                 (i.category?.toLowerCase().includes(term)) ||
-                (i.date?.includes(term))
+                (i.date?.includes(term)) ||
+                (i.purpose?.toLowerCase().includes(term))
             );
             renderList(filtered);
         }
 
         function renderList(items) {
             const container = document.getElementById('receiptsList');
-
             const approved = items.filter(r => r.isApproved === true);
             const rejected = items.filter(r => r.status === 'rejected');
             const pending = items.filter(r => r.isApproved !== true && r.status !== 'rejected');
 
             const createSection = (title, list, textColor) => {
                 if (list.length === 0) return '';
-                return `
-                    <div class="p-2 bg-slate-100 dark:bg-slate-800 text-[10px] font-black uppercase tracking-widest text-slate-500">${title} (${list.length})</div>
-                    ${list.map(r => {
-                    const sClass = r.isApproved ? 'status-approved' : (r.status === 'rejected' ? 'status-rejected' : 'status-pending');
-                    return `
-                            <div onclick="selectItem('${r.id}')" class="p-4 border-b dark:border-slate-800 cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800 ${selectedId === r.id ? 'sidebar-active' : ''} ${sClass}">
-                                <div class="flex justify-between items-center mb-1">
-                                    <span class="font-bold text-sm truncate w-2/3">${r.category || 'ทั่วไป'}</span>
-                                    <span class="font-black text-indigo-600 text-sm">${formatMoney(r.grandTotal)}</span>
-                                </div>
-                                <div class="flex justify-between text-[10px] font-bold uppercase text-slate-500">
-                                    <span>${r.personInCharge} | ${r.date}</span>
-                                    <span class="${textColor}">${title}</span>
-                                </div>
-                            </div>`;
-                }).join('')}`;
-            };
 
-            container.innerHTML =
-                createSection('รอดำเนินการ', pending, 'text-amber-500') +
+                // กำหนดสีไฮไลท์ตามสถานะ (ชัดเจนและสบายตา)
+                let headerBg, badgeColor;
+                if (title.includes('รอดำเนินการ')) {
+                    headerBg = 'bg-amber-500';
+                    badgeColor = 'text-amber-600';
+                } else if (title.includes('อนุมัติแล้ว')) {
+                    headerBg = 'bg-emerald-500';
+                    badgeColor = 'text-emerald-600';
+                } else {
+                    headerBg = 'bg-red-500';
+                    badgeColor = 'text-red-600';
+                }
+
+                return `
+        <div class="sticky top-0 z-10 px-4 py-2 ${headerBg} shadow-md">
+            <div class="flex items-center justify-between">
+                <span class="text-white text-lg font-black tracking-wider">${title}</span>
+                <span class="bg-white/90 px-3 py-0.5 rounded-full text-sm font-black ${badgeColor}">
+                    ${list.length}
+                </span>
+            </div>
+        </div>
+
+        ${list.map(r => {
+                    const sClass = r.isApproved ? 'status-approved' : (r.status === 'rejected' ? 'status-rejected' : 'status-pending');
+                    const isActive = selectedId === r.id ? 'bg-indigo-50 dark:bg-indigo-900/40 ring-2 ring-indigo-500 z-[5]' : 'bg-white dark:bg-slate-900';
+
+                    return `
+                <div onclick="selectItem('${r.id}')" 
+                     class="relative p-3 border-b dark:border-slate-800 cursor-pointer transition-all 
+                            hover:bg-slate-50 dark:hover:bg-slate-800 ${isActive} ${sClass}">
+                    
+                    <div class="flex justify-between items-center">
+                        <div class="flex-1 truncate pr-2">
+                            <h3 class="text-lg font-extrabold text-slate-900 dark:text-white truncate leading-tight">
+                                ${r.category || 'ทั่วไป'}
+                            </h3>
+                            <p class="text-xs text-slate-500 dark:text-slate-400 font-bold truncate">
+                                ${r.purpose || '-'}
+                            </p>
+                        </div>
+                        
+                        <div class="text-right">
+                            <span class="text-lg font-black text-indigo-600 dark:text-indigo-400">
+                                ${formatMoney(r.grandTotal)}
+                            </span>
+                            <div class="text-[10px] font-bold text-slate-400 uppercase leading-none">
+                                ${r.personInCharge}
+                            </div>
+                        </div>
+                    </div>
+
+                    ${selectedId === r.id ? `
+                        <div class="absolute inset-y-0 left-0 w-1.5 bg-indigo-600"></div>
+                    ` : ''}
+                </div>`;
+                }).join('')}
+    `;
+            };
+            container.innerHTML = createSection('รอดำเนินการ', pending, 'text-amber-500') +
                 createSection('อนุมัติแล้ว', approved, 'text-emerald-500') +
                 createSection('ไม่อนุมัติ', rejected, 'text-red-500');
         }
@@ -327,7 +421,6 @@
                 total += (r.grandTotal || 0);
             });
             document.getElementById('totalSpentDisplay').innerText = total.toLocaleString('th-TH', { minimumFractionDigits: 2 }) + " ฿";
-
             if (spendingChart) spendingChart.destroy();
             spendingChart = new Chart(ctx, {
                 type: 'doughnut',
@@ -344,9 +437,15 @@
         }
 
         function initCalendar() {
-            calendar = new FullCalendar.Calendar(document.getElementById('calendar'), {
+            const calEl = document.getElementById('calendar');
+            if (!calEl) return;
+            calendar = new FullCalendar.Calendar(calEl, {
                 initialView: 'dayGridMonth', locale: 'th', height: 'auto',
-                dateClick: (info) => { document.getElementById('searchInput').value = info.dateStr; handleSearch(); switchView('list'); },
+                dateClick: (info) => {
+                    document.getElementById('searchInput').value = info.dateStr;
+                    handleSearch();
+                    switchView('list');
+                },
                 eventContent: (arg) => {
                     let h = `<div class="flex gap-1">`;
                     if (arg.event.extendedProps.p > 0) h += `<span class="px-1 bg-amber-500 text-white text-[9px] rounded">${arg.event.extendedProps.p}</span>`;
@@ -358,68 +457,142 @@
         }
 
         function updateCalendarEvents() {
+            if (!calendar) return;
             const groups = {};
             allData.forEach(r => {
                 if (!groups[r.date]) groups[r.date] = { p: 0, a: 0, r: 0 };
                 if (r.isApproved) groups[r.date].a++; else if (r.status === 'rejected') groups[r.date].r++; else groups[r.date].p++;
             });
             calendar.removeAllEvents();
-            calendar.addEventSource(Object.keys(groups).map(d => ({ start: d, allDay: true, extendedProps: groups[d], backgroundColor: 'transparent', borderColor: 'transparent' })));
+            calendar.addEventSource(Object.keys(groups).map(d => ({
+                start: d, allDay: true, extendedProps: groups[d], backgroundColor: 'transparent', borderColor: 'transparent'
+            })));
         }
 
         function selectItem(id) {
             selectedId = id;
-            handleSearch(); // Update selected style in list
+            handleSearch();
             const item = allData.find(r => r.id === id);
             if (item) renderDetail(item);
+
             if (window.innerWidth < 768) {
-                document.getElementById('appBody').classList.add('mobile-view-detail');
+                document.getElementById('sidebarArea').classList.add('-translate-x-full');
                 document.getElementById('backBtn').classList.remove('hidden');
             }
         }
 
         function toggleMobileList() {
-            document.getElementById('appBody').classList.remove('mobile-view-detail');
+            document.getElementById('sidebarArea').classList.remove('-translate-x-full');
             document.getElementById('backBtn').classList.add('hidden');
+        }
+
+        function switchView(view) {
+            const listEl = document.getElementById('listView');
+            const calEl = document.getElementById('calendarView');
+            const dashEl = document.getElementById('dashboardPage');
+            const detailEl = document.getElementById('detailContainer');
+
+            // ซ่อนทุกอย่าง
+            [listEl, calEl, dashEl, detailEl].forEach(el => el.classList.add('hidden'));
+
+            // รีเซ็ตสีปุ่มทั้งหมด (เปลี่ยนจาก class เก่าเป็นระบบไอคอน)
+            document.querySelectorAll('header button[id*="Toggle"]').forEach(btn => {
+                btn.className = "p-2 md:p-2.5 bg-slate-100 dark:bg-slate-800 rounded-xl transition-all hover:scale-105";
+            });
+
+            if (window.innerWidth < 768) toggleMobileList();
+
+            if (view === 'dashboard') {
+                dashEl.classList.remove('hidden');
+                document.getElementById('dashToggle').className = "p-2 md:p-2.5 bg-indigo-600 text-white rounded-xl transition-all hover:scale-105";
+                updateChart();
+            } else if (view === 'calendar') {
+                calEl.classList.remove('hidden');
+                detailEl.classList.remove('hidden');
+                document.getElementById('calToggle').className = "p-2 md:p-2.5 bg-indigo-600 text-white rounded-xl transition-all hover:scale-105";
+                if (calendar) calendar.render();
+            } else {
+                listEl.classList.remove('hidden');
+                detailEl.classList.remove('hidden');
+                document.getElementById('listToggle').className = "p-2 md:p-2.5 bg-indigo-600 text-white rounded-xl transition-all hover:scale-105";
+            }
         }
 
         function renderDetail(data) {
             const isApp = data.isApproved;
             const isRej = data.status === 'rejected';
+            let displayDateTime = `${data.date || ''}`;
+            if (data.createdAt) {
+                const dateObj = data.createdAt.toDate ? data.createdAt.toDate() : new Date(data.createdAt);
+                const day = dateObj.toLocaleDateString('th-TH');
+                const time = dateObj.toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' });
+                displayDateTime = `${day} | ${time} น.`;
+            }
+
             document.getElementById('detailContainer').innerHTML = `
                 <div class="space-y-6 pb-20">
                     <div class="bg-white dark:bg-slate-900 p-6 rounded-3xl border dark:border-slate-800 shadow-sm">
                         <div class="flex flex-col md:flex-row justify-between gap-4">
-                            <div>
-                                <h2 class="text-3xl font-extrabold tracking-tighter">${data.category || 'ทั่วไป'}</h2>
-                                <p class="text-slate-500 text-sm font-bold">โดย: ${data.personInCharge} | ${data.date}</p>
+                            <div class="flex-1">
+                                <h2 class="text-2xl md:text-3xl font-extrabold tracking-tighter">${data.category || 'ทั่วไป'}</h2>
+                                <p class="text-indigo-600 text-sm font-bold mt-1">วัตถุประสงค์: ${data.purpose || '-'}</p>
+                                <p class="text-slate-500 text-xs md:text-sm pt-2">โดย: ${data.personInCharge} | ${displayDateTime}</p>
                             </div>
                             <div class="md:text-right">
-                                <p class="text-4xl font-black text-indigo-600">${formatMoney(data.grandTotal)} ฿</p>
+                                <p class="text-3xl md:text-4xl font-black text-indigo-600">${formatMoney(data.grandTotal)} ฿</p>
                                 <div class="flex gap-2 mt-3 md:justify-end">
                                     ${(!isApp && !isRej) ? `
-                                        <button onclick="updateStatus('${data.id}','approve')" class="px-4 py-2 bg-emerald-600 text-white text-xs font-bold rounded-xl shadow-lg hover:bg-emerald-700 transition">อนุมัติ</button>
-                                        <button onclick="updateStatus('${data.id}','reject')" class="px-4 py-2 bg-red-600 text-white text-xs font-bold rounded-xl shadow-lg hover:bg-red-700 transition">ไม่อนุมัติ</button>
-                                    ` : `<button onclick="resetStatus('${data.id}')" class="text-[10px] font-bold text-slate-400 border px-3 py-1 rounded-lg">คืนสถานะ (Reset)</button>`}
+                                        <button onclick="updateStatus('${data.id}','approve')" class="flex-1 md:flex-none px-4 py-2 bg-emerald-600 text-white text-xs font-bold rounded-xl">อนุมัติ</button>
+                                        <button onclick="updateStatus('${data.id}','reject')" class="flex-1 md:flex-none px-4 py-2 bg-red-600 text-white text-xs font-bold rounded-xl">ไม่อนุมัติ</button>
+                                    ` : `<button onclick="resetStatus('${data.id}')" class="text-[10px] font-bold text-slate-400 border px-3 py-1 rounded-lg">Reset Status</button>`}
                                 </div>
                             </div>
                         </div>
                     </div>
                     
-                    <div class="bg-white dark:bg-slate-900 rounded-3xl border dark:border-slate-800 overflow-x-auto">
-                        <table class="w-full text-left min-w-[500px]">
-                            <thead class="bg-slate-50 dark:bg-slate-800 text-[10px] font-black uppercase text-slate-400 border-b dark:border-slate-800">
-                                <tr><th class="p-4">รายการ</th><th class="p-4 text-right">ราคา</th><th class="p-4 text-center">จำนวน</th><th class="p-4 text-right">รวม</th></tr>
-                            </thead>
-                            <tbody>
-                                ${data.items.map(i => `<tr class="text-xs border-b dark:border-slate-800"><td class="p-4 font-bold">${i.name}</td><td class="p-4 text-right">${formatMoney(i.price || (i.total / i.qty))}</td><td class="p-4 text-center">${i.qty}</td><td class="p-4 text-right font-black text-indigo-600">${formatMoney(i.total)}</td></tr>`).join('')}
-                            </tbody>
-                        </table>
-                    </div>
+                    <div class="bg-white dark:bg-slate-900 rounded-3xl border dark:border-slate-800 overflow-hidden shadow-sm">
+    <div class="overflow-x-auto">
+        <table class="w-full text-left border-collapse table-auto">
+            <thead class="bg-slate-50 dark:bg-slate-800 text-sm md:text-xl font-bold text-slate-600 dark:text-slate-300 border-b dark:border-slate-800">
+                <tr>
+                    <th class="p-3 md:p-4 whitespace-nowrap">รายการ</th>
+                    <th class="p-3 md:p-4 text-center whitespace-nowrap w-16">จำนวน</th>
+                    <th class="p-3 md:p-4 text-center whitespace-nowrap">ราคา/หน่วย</th>
+                    <th class="p-3 md:p-4 text-center whitespace-nowrap">ส่วนลด</th>
+                    <th class="p-3 md:p-4 text-right whitespace-nowrap">สุทธิ</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-100 dark:divide-slate-800">
+                ${data.items.map(i => `
+                    <tr class="text-base md:text-lg hover:bg-slate-50/50 dark:hover:bg-slate-800/50 transition-colors">
+                        <td class="p-3 md:p-4 font-semibold text-slate-700 dark:text-slate-200 min-w-[140px]">
+                            <div class="break-words line-clamp-2">${i.name}</div>
+                        </td>
+                        <td class="p-3 md:p-4 text-center font-medium">${i.qty}</td>
+                        <td class="p-3 md:p-4 text-center whitespace-nowrap">${formatMoney(i.price)}</td>
+                        <td class="p-3 md:p-4 text-center text-red-500 whitespace-nowrap">
+                            ${i.discount > 0 ? `-${formatMoney(i.discount)}` : '-'}
+                        </td>
+                        <td class="p-3 md:p-4 text-right font-black text-indigo-600 dark:text-indigo-400 whitespace-nowrap">
+                            ${formatMoney((i.price * i.qty) - (i.discount || 0))}
+                        </td>
+                    </tr>`).join('')}
+            </tbody>
+        </table>
+    </div>
+</div>
 
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div class="bg-white dark:bg-slate-900 p-6 rounded-3xl border dark:border-slate-800"><p class="text-[10px] font-black text-slate-400 uppercase mb-4">Signature</p><img src="${data.signatureData}" class="max-h-24 mx-auto dark:invert"></div>
-                        <div class="bg-white dark:bg-slate-900 p-6 rounded-3xl border dark:border-slate-800"><p class="text-[10px] font-black text-slate-400 uppercase mb-4">Attachments</p><div class="flex gap-2 overflow-x-auto">${data.receiptImages ? data.receiptImages.map(img => `<img src="${img}" onclick="openImage(this.src)" class="h-32 w-32 object-cover rounded-xl border cursor-zoom-in">`).join('') : 'ไม่มีแนบไฟล์'}</div></div>
+                        <div class="bg-white dark:bg-slate-900 p-6 rounded-3xl border dark:border-slate-800 text-center">
+                            <p class="text-xs font-black text-slate-400 uppercase mb-4 tracking-widest">ลายเซ็น</p>
+                            <img src="${data.signatureData}" class="max-h-24 mx-auto dark:invert">
+                        </div>
+                        <div class="bg-white dark:bg-slate-900 p-6 rounded-3xl border dark:border-slate-800">
+                            <p class="text-xs font-black text-slate-400 uppercase mb-4 tracking-widest text-center">หลักฐาน</p>
+                            <div class="flex gap-2 overflow-x-auto pb-2 justify-center">
+                                ${data.receiptImages ? data.receiptImages.map(img => `<img src="${img}" onclick="openImage(this.src)" class="h-sm w-sm object-cover rounded-xl border cursor-zoom-in">`).join('') : '<p class="text-xs text-slate-400">ไม่มีรูปภาพประกอบ</p>'}
+                            </div>
+                        </div>
                     </div>
                 </div>`;
         }
@@ -427,17 +600,39 @@
         async function updateStatus(id, a) {
             const isApp = a === 'approve';
             await db.collection('expenseReceipts').doc(id).update({ isApproved: isApp, status: isApp ? 'approved' : 'rejected' });
-            Toastify({ text: "อัปเดตสถานะสำเร็จ", background: isApp ? "#10b981" : "#ef4444", gravity: "bottom" }).showToast();
+            Toastify({ text: "Success", background: isApp ? "#10b981" : "#ef4444", gravity: "bottom" }).showToast();
         }
 
         async function resetStatus(id) {
             await db.collection('expenseReceipts').doc(id).update({ isApproved: false, status: 'pending' });
-            Toastify({ text: "รีเซ็ตสถานะแล้ว", background: "#6366f1", gravity: "bottom" }).showToast();
+            Toastify({ text: "Reset", background: "#6366f1", gravity: "bottom" }).showToast();
         }
 
         function openImage(s) { document.getElementById('modalImg').src = s; document.getElementById('imageModal').classList.remove('hidden'); }
         function closeImage() { document.getElementById('imageModal').classList.add('hidden'); }
         const formatMoney = (n) => parseFloat(n || 0).toLocaleString('th-TH', { minimumFractionDigits: 2 });
+
+        function toggleDarkMode() {
+            const isDark = document.documentElement.classList.toggle('dark');
+            const iconBtn = document.getElementById('themeIcon');
+            iconBtn.innerText = isDark ? '☀️' : '🌙';
+        }
+
+        function togglePasswordVisibility() {
+            const pwdInput = document.getElementById('loginPassword');
+            const eyeIcon = document.getElementById('eyeIcon');
+            if (pwdInput.type === 'password') {
+                pwdInput.type = 'text';
+                eyeIcon.innerHTML = `<path stroke-linecap="round" stroke-linejoin="round" d="M3.98 8.223A10.477 10.477 0 001.934 12C3.226 16.338 7.244 19.5 12 19.5c.993 0 1.953-.138 2.863-.395M6.228 6.228A10.45 10.45 0 0112 4.5c4.756 0 8.773 3.162 10.065 7.498a10.523 10.523 0 01-4.293 5.774M6.228 6.228L3 3m3.228 3.228l3.65 3.65m7.894 7.894L21 21m-3.228-3.228l-3.65-3.65m0 0a3 3 0 10-4.243-4.243m4.242 4.242L9.88 9.88" />`;
+            } else {
+                pwdInput.type = 'password';
+                eyeIcon.innerHTML = `<path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z" /><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />`;
+            }
+        }
+
+        document.addEventListener('keydown', e => {
+            if (e.key === 'Enter' && !document.getElementById('loginOverlay').classList.contains('hidden')) handleLogin();
+        });
     </script>
 </body>
 

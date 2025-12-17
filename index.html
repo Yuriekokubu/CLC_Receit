@@ -157,7 +157,7 @@
                 </div>
                 <h2
                     class="text-xl sm:text-2xl font-bold text-gray-700 mb-4 inline-block border-b-2 border-blue-400 pb-2">
-                    บิลรายการซื้อของ</h2>
+                    บิลเบิกรายการซื้อของ</h2>
 
                 <div
                     class="flex flex-col sm:flex-row justify-between items-start w-full mt-4 mb-6 space-y-4 sm:space-y-0 sm:space-x-8">
@@ -335,7 +335,7 @@
                 </button>
                 <button onclick="downloadPDF()"
                     class="flex-1 bg-red-700 hover:bg-red-800 text-white font-bold py-3 px-6 sm:py-4 sm:px-8 rounded-xl shadow-xl transition transform hover:scale-[1.02] text-base sm:text-lg">
-                    ดาวน์โหลด PDF
+                    ดาวน์โหลด PDF / ขออนุมัติเบิก
                 </button>
             </div>
         </div>
@@ -431,7 +431,7 @@
         const showMessage = (msg, isError = true) => {
             Toastify({
                 text: msg,
-                duration: 5000,
+                duration: 2000,
                 close: true,
                 gravity: "bottom",
                 position: "center",
