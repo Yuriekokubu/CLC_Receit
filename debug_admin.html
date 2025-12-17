@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="th" class="light">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CLC Finance - Admin Portal</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&family=Sarabun:wght@400;700&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.js"></script>
+
+    <!-- Mock Firebase -->
+    <script>
+        const firebase = {
+            initializeApp: () => { },
+            firestore: () => ({
+                collection: () => ({
+                    orderBy: () => ({
+                        onSnapshot: (cb) => {
+                            // Mock data
+                            const mockData = [
+                                { id: '1', category: 'Food', purpose: 'Team Lunch', grandTotal: 1500, personInCharge: 'John', date: '2023-12-01', status: 'pending' },
+                                { id: '2', category: 'Travel', purpose: 'Client Visit', grandTotal: 500, personInCharge: 'Jane', date: '2023-12-02', isApproved: true }
+                            ];
+                            cb({ docs: mockData.map(d => ({ id: d.id, data: () => d })) });
+                        }
+                    })
+                })
+            }),
+            auth: () => ({
+                onAuthStateChanged: (cb) => cb({ uid: 'test' }), // Auto login
+                signInWithEmailAndPassword: () => Promise.resolve(),
+                signOut: () => { }
+            })
+        };
+    </script>
+
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: { extend: { fontFamily: { sans: ['Poppins', 'Sarabun', 'sans-serif'] } } }
+        }
+    </script>
+    <style>
+        body {
+            font-family: 'Poppins', 'Sarabun', sans-serif;
+        }
+
+        /* Modern Loading Animation */
+        .loader-container {
+            position: relative;
+            width: 80px;
+            height: 80px;
+        }
+
+        .loader-ring {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border: 4px solid transparent;
+            border-top-color: #6366f1;
+            border-radius: 50%;
+            animation: loader-rotate 1.2s cubic-bezier(0.5, 0, 0.5, 1) infinite;
+        }
+
+        .loader-ring:nth-child(2) {
+            border-top-color: #a855f7;
+            animation-delay: -0.3s;
+        }
+
+        .loader-ring:nth-child(3) {
+            border-top-color: #ec4899;
+            animation-delay: -0.6s;
+        }
+
+        @keyframes loader-rotate {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        .sidebar-active {
+            background-color: #f1f5f9;
+            border-right: 4px solid #4f46e5;
+        }
+
+        .dark .sidebar-active {
+            background-color: #1e293b;
+            border-right-color: #818cf8;
+        }
+
+        .status-pending {
+            border-left: 5px solid #f59e0b;
+        }
+
+        .status-approved {
+            border-left: 5px solid #10b981;
+        }
+
+        .status-rejected {
+            border-left: 5px solid #ef4444;
+        }
+
+        .custom-scroll::-webkit-scrollbar {
+            width: 5px;
+        }
+
+        .custom-scroll::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 10px;
+        }
+    </style>
+</head>
+
+<body
+    class="bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 h-screen flex flex-col overflow-hidden transition-colors duration-300">
+
+    <!-- Hide Login Overlay by default for debug -->
+    <div id="loginOverlay" class="hidden fixed inset-0 bg-slate-900 z-[100] flex items-center justify-center p-6">
+        <!-- ... content ... -->
+    </div>
+
+    <!-- Hide Loading Overlay -->
+    <div id="loadingOverlay"
+        class="hidden fixed inset-0 bg-white/95 dark:bg-slate-950/95 z-[60] flex items-center justify-center backdrop-blur-md">
+        <!-- ... -->
+    </div>
+
+    <!-- Show Main Content -->
+    <div id="mainContent" class="flex flex-col h-full">
+        <header
+            class="bg-white dark:bg-slate-900 border-b dark:border-slate-800 px-4 md:px-6 py-4 flex justify-between items-center z-50 shadow-sm">
+            <div class="flex items-center gap-3">
+                <button id="backBtn" onclick="toggleMobileList()"
+                    class="md:hidden p-2 bg-slate-100 dark:bg-slate-800 rounded-lg hidden">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+                    </svg>
+                </button>
+                <h1
+                    class="font-bold text-base md:text-xl tracking-tight uppercase truncate max-w-[120px] md:max-w-none">
+                    CLC ADMIN - DEBUG</h1>
+            </div>
+            <div class="flex items-center gap-1.5 md:gap-2">
+                <button onclick="switchView('dashboard')" id="dashToggle"
+                    class="p-2 md:p-2.5 bg-slate-100 dark:bg-slate-800 rounded-xl transition-all hover:scale-105"
+                    title="Dashboard">
+                    <!-- Icon -->
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2"
+                        stroke="currentColor" class="w-5 h-5">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                            d="M3.75 6A2.25 2.25 0 0 1 6 3.75h2.25A2.25 2.25 0 0 1 10.5 6v2.25a2.25 2.25 0 0 1-2.25 2.25H6a2.25 2.25 0 0 1-2.25-2.25V6ZM3.75 15.75A2.25 2.25 0 0 1 6 13.5h2.25a2.25 2.25 0 0 1 2.25 2.25V18a2.25 2.25 0 0 1-2.25 2.25H6A2.25 2.25 0 0 1 3.75 18v-2.25ZM13.5 6a2.25 2.25 0 0 1 2.25-2.25H18A2.25 2.25 0 0 1 20.25 6v2.25A2.25 2.25 0 0 1 18 10.5h-2.25a2.25 2.25 0 0 1-2.25-2.25V6ZM13.5 15.75a2.25 2.25 0 0 1 2.25-2.25H18a2.25 2.25 0 0 1 2.25 2.25V18a2.25 2.25 0 0 1-2.25 2.25H18a2.25 2.25 0 0 1-2.25-2.25v-2.25Z" />
+                    </svg>
+                </button>
+                <!-- Other buttons omitted for brevity if not needed, but keeping them is safer -->
+            </div>
+        </header>
+
+        <div class="flex flex-1 overflow-hidden relative" id="appBody">
+            <aside id="sidebarArea"
+                class="absolute inset-y-0 left-0 z-20 w-full md:relative md:translate-x-0 md:w-[380px] bg-white dark:bg-slate-900 border-r dark:border-slate-800 flex flex-col transition-transform duration-300">
+                <div id="listView" class="flex flex-col h-full bg-blue-100"> <!-- added bg for visual debug -->
+                    <div class="p-4 border-b">Search...</div>
+                    <div id="receiptsList" class="p-4">List Content</div>
+                </div>
+            </aside>
+
+            <main class="flex-1 bg-red-100 overflow-y-auto custom-scroll p-4 md:p-8 w-full"> <!-- added bg -->
+                <div id="detailContainer">Detail Content</div>
+                <div id="dashboardPage" class="hidden">Dashboard Content</div>
+            </main>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
+    <script>
+        // Modified script to handle UI logic without real firebase
+        const db = firebase.firestore();
+        const auth = firebase.auth();
+        let allData = [];
+        let selectedId = null;
+
+        auth.onAuthStateChanged(user => {
+            // Already visible
+            setupListener();
+        });
+
+        function setupListener() {
+            db.collection('expenseReceipts').orderBy().onSnapshot(snap => {
+                allData = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                renderList(allData);
+            });
+        }
+
+        function renderList(items) {
+            document.getElementById('receiptsList').innerHTML = items.map(i => `<div onclick="selectItem('${i.id}')" class="p-4 border-b cursor-pointer">${i.category}</div>`).join('');
+        }
+
+        function selectItem(id) {
+            selectedId = id;
+            if (window.innerWidth < 768) {
+                document.getElementById('sidebarArea').classList.add('-translate-x-full');
+                document.getElementById('backBtn').classList.remove('hidden');
+            }
+        }
+
+        function toggleMobileList() {
+            document.getElementById('sidebarArea').classList.remove('-translate-x-full');
+            document.getElementById('backBtn').classList.add('hidden');
+        }
+
+        function switchView(view) {
+            // Minimal implementation
+            if (window.innerWidth < 768) toggleMobileList();
+            // ...
+        }
+    </script>
+</body>
+
+</html>
