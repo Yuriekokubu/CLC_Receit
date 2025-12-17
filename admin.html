@@ -1,485 +1,443 @@
 <!DOCTYPE html>
-<html lang="th">
+<html lang="th" class="light">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Viewer - ใบเบิกค่าใช้จ่าย Real-Time</title>
+    <title>CLC Finance - Admin Portal</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;500;600;700;800&display=swap"
+    <link
+        href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&family=Sarabun:wght@400;700&display=swap"
         rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
-    <script src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
-    <link rel="icon" href="favicon.png" type="image/png">
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.js"></script>
 
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+
     <script>
         tailwind.config = {
-            theme: {
-                extend: {
-                    fontFamily: {
-                        sans: ['Sarabun', 'system-ui', '-apple-system', 'sans-serif'],
-                    },
-                    boxShadow: {
-                        '3xl': '0 25px 50px -12px rgba(0, 0, 0, 0.15), 0 0 10px rgba(0, 0, 0, 0.05)',
-                    }
-                }
-            }
+            darkMode: 'class',
+            theme: { extend: { fontFamily: { sans: ['Poppins', 'Sarabun', 'sans-serif'] } } }
         }
     </script>
     <style>
         body {
-            font-family: 'Sarabun', sans-serif;
-            background-color: #f3f4f6;
+            font-family: 'Poppins', 'Sarabun', sans-serif;
+        }
+
+        /* Modern Loading Animation */
+        .loader-container {
+            position: relative;
+            width: 80px;
+            height: 80px;
+        }
+
+        .loader-ring {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border: 4px solid transparent;
+            border-top-color: #6366f1;
+            border-radius: 50%;
+            animation: loader-rotate 1.2s cubic-bezier(0.5, 0, 0.5, 1) infinite;
+        }
+
+        .loader-ring:nth-child(2) {
+            border-top-color: #a855f7;
+            animation-delay: -0.3s;
+        }
+
+        .loader-ring:nth-child(3) {
+            border-top-color: #ec4899;
+            animation-delay: -0.6s;
+        }
+
+        @keyframes loader-rotate {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        .sidebar-active {
+            background-color: #f1f5f9;
+            border-right: 4px solid #4f46e5;
+        }
+
+        .dark .sidebar-active {
+            background-color: #1e293b;
+            border-right-color: #818cf8;
+        }
+
+        .status-pending {
+            border-left: 5px solid #f59e0b;
+        }
+
+        .status-approved {
+            border-left: 5px solid #10b981;
+        }
+
+        .status-rejected {
+            border-left: 5px solid #ef4444;
+        }
+
+        .custom-scroll::-webkit-scrollbar {
+            width: 5px;
+        }
+
+        .custom-scroll::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 10px;
         }
     </style>
 </head>
 
-<body class="min-h-screen font-sans flex flex-col items-center py-4 sm:py-8">
+<body
+    class="bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 h-screen flex flex-col overflow-hidden transition-colors duration-300">
 
-    <div class="max-w-7xl mx-auto w-full bg-white p-4 sm:p-6 md:p-8 lg:p-10 rounded-2xl shadow-3xl">
-        <header class="text-center mb-6">
-            <h1 class="text-3xl font-extrabold text-purple-800 tracking-wide">
-                Viewer ข้อมูลใบเบิกค่าใช้จ่าย (Real-Time)</h1>
-            <p class="text-lg text-gray-600 mt-2">คริสตจักรลูกของความสว่าง (Children of Light Church)</p>
-        </header>
-
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <div class="lg:col-span-1 bg-gray-50 p-4 rounded-xl border border-gray-200 shadow-md h-full">
-                <h2 class="text-xl font-bold text-gray-800 mb-4 border-b pb-2 flex items-center">
-                    <svg class="w-5 h-5 mr-2 text-purple-600" fill="currentColor" viewBox="0 0 20 20"
-                        xmlns="http://www.w3.org/2000/svg">
-                        <path fill-rule="evenodd"
-                            d="M3 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-1 1H4a1 1 0 01-1-1V4zm0 6a1 1 0 011-1h12a1 1 0 011 1v6a1 1 0 01-1 1H4a1 1 0 01-1-1v-6z"
-                            clip-rule="evenodd"></path>
-                    </svg>
-                    รายการล่าสุด 10 รายการ
-                </h2>
-                <div id="receiptsList" class="space-y-6">
-                    <p class="text-gray-500 italic text-center" id="fetchStatus">
-                        กำลังเชื่อมต่อ Real-Time...
-                    </p>
-                </div>
-            </div>
-
-            <div class="lg:col-span-2 bg-white p-4 rounded-xl border border-gray-300 shadow-xl min-h-[500px]">
-                <h2 class="text-2xl font-bold text-gray-800 mb-4 border-b pb-2">
-                    รายละเอียดใบเบิก <span id="receiptIdDisplay" class="text-sm font-normal text-gray-500 ml-2"></span>
-                </h2>
-                <div id="receiptDetailsContainer">
-                    <p class="text-gray-500 italic text-center py-20">
-                        เลือกรายการจากด้านซ้ายเพื่อดูรายละเอียด
-                    </p>
-                </div>
+    <div id="loginOverlay" class="fixed inset-0 bg-slate-900 z-[100] flex items-center justify-center p-6">
+        <div class="w-full max-w-md bg-white p-10 rounded-2xl shadow-2xl">
+            <h2 class="text-3xl font-bold text-center mb-6">ADMIN LOGIN</h2>
+            <div class="space-y-4">
+                <input type="email" id="loginEmail" placeholder="Email"
+                    class="w-full p-4 border rounded-xl outline-none focus:ring-2 focus:ring-indigo-600">
+                <input type="password" id="loginPassword" placeholder="Password"
+                    class="w-full p-4 border rounded-xl outline-none focus:ring-2 focus:ring-indigo-600">
+                <button onclick="handleLogin()"
+                    class="w-full bg-slate-900 text-white font-bold py-4 rounded-xl hover:bg-black transition shadow-lg uppercase">Sign
+                    In</button>
             </div>
         </div>
     </div>
 
+    <div id="loadingOverlay"
+        class="fixed inset-0 bg-white/95 dark:bg-slate-950/95 z-[60] flex items-center justify-center backdrop-blur-md">
+        <div class="flex flex-col items-center">
+            <div class="loader-container mb-4">
+                <div class="loader-ring"></div>
+                <div class="loader-ring"></div>
+                <div class="loader-ring"></div>
+            </div>
+            <p class="font-bold text-indigo-600 animate-pulse text-sm tracking-widest uppercase">Initializing App...</p>
+        </div>
+    </div>
 
+    <div id="mainContent" class="hidden flex flex-col h-full">
+        <header
+            class="bg-white dark:bg-slate-900 border-b dark:border-slate-800 px-6 py-4 flex justify-between items-center z-50 shadow-sm">
+            <div class="flex items-center gap-4">
+                <button id="backBtn" onclick="toggleMobileList()"
+                    class="md:hidden p-2 bg-slate-100 dark:bg-slate-800 rounded-lg hidden">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+                    </svg>
+                </button>
+                <h1 class="font-bold text-lg md:text-xl tracking-tight uppercase">CLC เบิกเงิน</h1>
+            </div>
+            <div class="flex items-center gap-2">
+                <button onclick="switchView('dashboard')" id="dashToggle"
+                    class="text-[10px] md:text-xs font-bold px-3 py-2 bg-slate-100 dark:bg-slate-800 rounded-lg">DASHBOARD</button>
+                <button onclick="switchView('list')" id="listToggle"
+                    class="text-[10px] md:text-xs font-bold px-3 py-2 bg-indigo-600 text-white rounded-lg">LIST</button>
+                <button onclick="switchView('calendar')" id="calToggle"
+                    class="text-[10px] md:text-xs font-bold px-3 py-2 bg-slate-100 dark:bg-slate-800 rounded-lg">CALENDAR</button>
+                <button onclick="toggleDarkMode()" class="p-2">🌙</button>
+                <button onclick="handleLogout()" class="text-[10px] md:text-xs font-bold text-red-500">LOGOUT</button>
+            </div>
+        </header>
+
+        <div class="flex flex-1 overflow-hidden" id="appBody">
+            <aside
+                class="mobile-sidebar w-full md:w-[380px] bg-white dark:bg-slate-900 border-r dark:border-slate-800 flex flex-col">
+                <div id="listView" class="flex flex-col h-full">
+                    <div class="p-4 border-b dark:border-slate-800">
+                        <input type="text" id="searchInput" oninput="handleSearch()"
+                            placeholder="ค้นหาชื่อ, หมวดหมู่, วันที่..."
+                            class="w-full p-3 bg-slate-50 dark:bg-slate-800 border-none rounded-xl outline-none focus:ring-2 focus:ring-indigo-600 text-sm font-medium">
+                    </div>
+                    <div class="flex-1 overflow-y-auto custom-scroll" id="receiptsList"></div>
+                </div>
+
+                <div id="calendarView"
+                    class="hidden flex flex-col h-full p-3 overflow-y-auto bg-white dark:bg-slate-900">
+                    <div id='calendar' class="text-xs"></div>
+                </div>
+            </aside>
+
+            <main class="mobile-detail flex-1 bg-slate-50 dark:bg-slate-950 overflow-y-auto custom-scroll p-4 md:p-8">
+                <div id="dashboardPage" class="hidden max-w-5xl mx-auto space-y-6">
+                    <h2 class="text-2xl font-bold">Financial Dashboard</h2>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="bg-white dark:bg-slate-900 p-6 rounded-3xl border dark:border-slate-800 shadow-sm">
+                            <p class="text-xs font-black text-slate-400 uppercase tracking-widest mb-4 text-center">
+                                ยอดใช้จ่ายแยกตามหมวดหมู่</p>
+                            <div class="h-64"><canvas id="categoryChart"></canvas></div>
+                        </div>
+                        <div
+                            class="bg-white dark:bg-slate-900 p-6 rounded-3xl border dark:border-slate-800 shadow-sm flex flex-col justify-center items-center">
+                            <p class="text-xs font-black text-slate-400 uppercase tracking-widest mb-2">ยอดรวมทั้งหมด
+                            </p>
+                            <p id="totalSpentDisplay" class="text-5xl font-black text-indigo-600">0.00 ฿</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="detailContainer" class="max-w-5xl mx-auto h-full">
+                    <div
+                        class="h-full flex flex-col items-center justify-center text-slate-400 border-2 border-dashed rounded-3xl border-slate-200 dark:border-slate-800 opacity-40">
+                        <p class="text-sm font-bold tracking-widest">SELECT A RECORD TO VIEW DETAILS</p>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <div id="imageModal"
+        class="fixed inset-0 bg-slate-950/90 z-[200] hidden flex items-center justify-center p-8 backdrop-blur-md"
+        onclick="closeImage()">
+        <img id="modalImg" class="max-w-full max-h-full rounded-xl shadow-2xl" src="">
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
     <script>
-        // START: FIREBASE CONFIGURATION AND INITIALIZATION
-        const firebaseConfig = {
-            apiKey: "AIzaSyCkiq5_IM-1-REojhiAOjDgF-aQI9LMhHk",
-            authDomain: "clc-e-receit.firebaseapp.com",
-            projectId: "clc-e-receit",
-            storageBucket: "clc-e-receit.firebasestorage.app",
-            messagingSenderId: "578514019900",
-            appId: "1:578514019900:web:998f3e9fa3b599a2344539",
-            measurementId: "G-S65X8N123G"
-        };
-
+        const firebaseConfig = { apiKey: "AIzaSyCkiq5_IM-1-REojhiAOjDgF-aQI9LMhHk", authDomain: "clc-e-receit.firebaseapp.com", projectId: "clc-e-receit", storageBucket: "clc-e-receit.firebasestorage.app", messagingSenderId: "578514019900", appId: "1:578514019900:web:998f3e9fa3b599a2344539" };
         firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
-        // END: FIREBASE CONFIGURATION AND INITIALIZATION
+        const auth = firebase.auth();
+        let allData = [];
+        let selectedId = null;
+        let calendar = null;
+        let spendingChart = null;
+        let isFirstLoad = true;
 
+        function toggleDarkMode() { document.documentElement.classList.toggle('dark'); }
 
-        // Utility Functions
-        const formatMoney = (amount) => parseFloat(amount || 0).toLocaleString('en-US', {
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2
-        });
-        const formatTimestamp = (timestamp) => {
-            if (!timestamp) return 'ไม่ระบุเวลา';
-            const dateObj = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
-            return dateObj.toLocaleDateString('th-TH', {
-                day: '2-digit',
-                month: 'long',
-                year: 'numeric',
-                hour: '2-digit',
-                minute: '2-digit',
-                second: '2-digit'
-            });
-        };
+        function switchView(view) {
+            const listEl = document.getElementById('listView');
+            const calEl = document.getElementById('calendarView');
+            const dashEl = document.getElementById('dashboardPage');
+            const detailEl = document.getElementById('detailContainer');
 
-        const showMessage = (msg, isError = false) => {
-            Toastify({
-                text: msg,
-                duration: 5000,
-                close: true,
-                gravity: "bottom",
-                position: "center",
-                backgroundColor: isError ? "rgba(239, 68, 68, 0.9)" : "rgba(34, 197, 94, 0.9)",
-                stopOnFocus: true,
-            }).showToast();
-        };
-
-        let selectedReceiptId = null;
-
-        document.addEventListener('DOMContentLoaded', () => {
-            setupRealtimeListener(); // Start listening on load
-        });
-
-
-        // --- FIRESTORE REAL-TIME LISTENER ---
-
-        const setupRealtimeListener = () => {
-            const statusElement = document.getElementById('fetchStatus');
-            const listContainer = document.getElementById('receiptsList');
-
-            statusElement.innerHTML = '<p class="text-center"><svg class="animate-spin h-5 w-5 text-purple-600 inline-block" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> กำลังเชื่อมต่อ...</p>';
-
-            db.collection('expenseReceipts')
-                .orderBy('createdAt', 'desc')
-                .limit(10) // ดึง 10 รายการล่าสุด
-                .onSnapshot((querySnapshot) => {
-                    const approvedReceipts = [];
-                    const pendingReceipts = [];
-
-                    querySnapshot.forEach((doc) => {
-                        const receipt = {
-                            id: doc.id,
-                            ...doc.data()
-                        };
-
-                        // Grouping
-                        if (receipt.isApproved) {
-                            approvedReceipts.push(receipt);
-                        } else {
-                            pendingReceipts.push(receipt);
-                        }
-                    });
-
-                    renderGroupedReceiptsList(pendingReceipts, approvedReceipts, listContainer);
-
-                    statusElement.innerHTML = `<p class="text-sm text-gray-500 italic text-center">อัปเดตล่าสุด: ${formatTimestamp(new Date())}</p>`;
-
-                    // หากไม่มีรายการถูกเลือก ให้แสดงรายละเอียดของรายการแรก (ถ้ามี)
-                    if (!selectedReceiptId && (pendingReceipts.length > 0 || approvedReceipts.length > 0)) {
-                        const firstReceipt = pendingReceipts.length > 0 ? pendingReceipts[0] : approvedReceipts[0];
-                        viewReceiptDetails(firstReceipt.id, firstReceipt);
-                    } else if (selectedReceiptId) {
-                        // Re-render details of the currently selected one to reflect real-time changes
-                        const currentData = [...pendingReceipts, ...approvedReceipts].find(r => r.id === selectedReceiptId);
-                        if (currentData) {
-                            renderReceiptDetails(currentData);
-                        } else {
-                            // If selected receipt disappeared from the list (e.g., limit(10) pushed it out)
-                            // We should still try to fetch its details directly.
-                            viewReceiptDetails(selectedReceiptId, null, false);
-                        }
-                    }
-
-                }, (error) => {
-                    console.error("Error setting up real-time listener: ", error);
-                    statusElement.textContent = "🚨 เกิดข้อผิดพลาดในการเชื่อมต่อ Real-Time";
-                    showMessage("🚨 เกิดข้อผิดพลาดในการเชื่อมต่อ Real-Time", true);
-                });
-        };
-
-
-        const renderGroupedReceiptsList = (pending, approved, container) => {
-            container.innerHTML = ''; // Clear existing content
-
-            // --- 1. Pending Section ---
-            container.innerHTML += `
-                <div class="border-b-4 border-red-400 pb-3">
-                    <h3 class="font-extrabold text-red-700 text-lg mb-2 flex items-center">
-                        <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"></path></svg>
-                        รอยืนยัน (${pending.length} รายการ)
-                    </h3>
-                    <div class="space-y-3" id="pendingList">
-                        ${pending.length > 0 ? pending.map(receipt => renderReceiptCard(receipt)).join('') : '<p class="text-sm text-gray-500 italic pl-6">ไม่มีรายการที่รอยืนยัน</p>'}
-                    </div>
-                </div>
-            `;
-
-            // --- 2. Approved Section ---
-            container.innerHTML += `
-                <div class="border-b-4 border-green-400 pt-3">
-                    <h3 class="font-extrabold text-green-700 text-lg mb-2 flex items-center">
-                        <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path></svg>
-                        อนุมัติแล้ว (${approved.length} รายการ)
-                    </h3>
-                    <div class="space-y-3 opacity-80" id="approvedList">
-                        ${approved.length > 0 ? approved.map(receipt => renderReceiptCard(receipt)).join('') : '<p class="text-sm text-gray-500 italic pl-6">ไม่มีรายการที่อนุมัติแล้ว</p>'}
-                    </div>
-                </div>
-            `;
-        }
-
-        const renderReceiptCard = (receipt) => {
-            const dateStr = formatTimestamp(receipt.createdAt);
-            const totalAmount = formatMoney(receipt.grandTotal || 0);
-            const isActive = selectedReceiptId === receipt.id;
-            const cardClass = isActive ? 'bg-purple-200 border-purple-600 border-2' : 'bg-white border border-gray-200 hover:bg-gray-100';
-
-            return `
-                <div onclick="viewReceiptDetails('${receipt.id}')"
-                    class="p-3 rounded-lg shadow cursor-pointer transition duration-150 ${cardClass}">
-                    <div class="flex justify-between items-center">
-                        <p class="font-bold text-base ${isActive ? 'text-purple-900' : 'text-blue-800'} overflow-hidden whitespace-nowrap text-ellipsis" title="${receipt.category || 'ไม่ระบุหมวดหมู่'}">
-                            ${receipt.category || 'ไม่ระบุหมวดหมู่'}
-                        </p>
-                        <p class="text-sm font-semibold ${isActive ? 'text-purple-900' : 'text-red-600'}">
-                            ${totalAmount}
-                        </p>
-                    </div>
-                    <p class="text-xs text-gray-700 mt-1">
-                        <span class="font-medium">${receipt.personInCharge || '-'}</span> | <span class="text-xs">${dateStr}</span>
-                    </p>
-                </div>
-            `;
-        }
-
-
-        // --- DETAIL VIEW FUNCTIONS ---
-
-        const viewReceiptDetails = async (receiptId, initialData = null, reRenderList = true) => {
-            const detailsContainer = document.getElementById('receiptDetailsContainer');
-            const idDisplay = document.getElementById('receiptIdDisplay');
-            selectedReceiptId = receiptId;
-
-            if (reRenderList) {
-                // Setting selectedReceiptId and letting the real-time listener re-render the list for highlight
-            }
-
-            idDisplay.textContent = `(ID: ${receiptId})`;
-            detailsContainer.innerHTML = '<p class="text-center py-20 text-purple-600"><svg class="animate-spin h-6 w-6 inline-block mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> กำลังดึงรายละเอียด...</p>';
-
-            try {
-                let dataToRender;
-                if (initialData) {
-                    dataToRender = initialData;
-                } else {
-                    // Fetch details directly if not passed (e.g., item pushed out of limit)
-                    const doc = await db.collection('expenseReceipts').doc(receiptId).get();
-                    if (doc.exists) {
-                        dataToRender = { id: doc.id, ...doc.data() };
-                    } else {
-                        detailsContainer.innerHTML = '<p class="text-red-500 italic text-center py-20">ไม่พบเอกสาร ID นี้</p>';
-                        return;
-                    }
-                }
-
-                renderReceiptDetails(dataToRender);
-
-            } catch (error) {
-                console.error("Error fetching document details: ", error);
-                detailsContainer.innerHTML = '<p class="text-red-500 italic text-center py-20">🚨 เกิดข้อผิดพลาดในการดึงรายละเอียด</p>';
-                showMessage("🚨 เกิดข้อผิดพลาดในการดึงรายละเอียด", true);
-            }
-        };
-
-        const approveReceipt = async (receiptId) => {
-            if (!confirm("คุณต้องการอนุมัติใบเบิกนี้ใช่หรือไม่? การกระทำนี้ไม่สามารถยกเลิกได้")) return;
-
-            const button = document.getElementById('approveBtn');
-            button.disabled = true;
-            button.textContent = 'กำลังดำเนินการ...';
-            button.classList.remove('bg-red-600', 'hover:bg-red-700');
-            button.classList.add('bg-gray-500', 'cursor-not-allowed');
-
-            try {
-                await db.collection('expenseReceipts').doc(receiptId).update({
-                    isApproved: true,
-                    approvedAt: firebase.firestore.FieldValue.serverTimestamp()
-                    // เพิ่ม approvedBy: 'ชื่อผู้ใช้งานปัจจุบัน' หากมีการ Login
-                });
-
-                showMessage("อนุมัติใบเบิกเรียบร้อยแล้ว! รายการจะถูกย้ายไปยังกลุ่ม 'อนุมัติแล้ว' โดยอัตโนมัติ", false);
-                // Real-time listener จะจัดการเรียก renderReceiptDetails ให้อัตโนมัติ
-
-            } catch (error) {
-                console.error("Error approving document: ", error);
-                showMessage("🚨 เกิดข้อผิดพลาดในการอนุมัติ: " + error.message, true);
-
-                // Reset button state on error
-                if (button) {
-                    button.disabled = false;
-                    button.textContent = 'กดเพื่ออนุมัติการเบิก';
-                    button.classList.remove('bg-gray-500', 'cursor-not-allowed');
-                    button.classList.add('bg-red-600', 'hover:bg-red-700');
-                }
-            }
-        };
-
-
-        const renderReceiptDetails = (data) => {
-            const detailsContainer = document.getElementById('receiptDetailsContainer');
-
-            // 1. วันที่ใช้จ่าย (from input field: YYYY-MM-DD)
-            const dateObj = data.date ? new Date(data.date) : new Date();
-            const expenseDateStr = dateObj.toLocaleDateString('th-TH', {
-                day: '2-digit',
-                month: 'long',
-                year: 'numeric'
+            [listEl, calEl, dashEl, detailEl].forEach(el => el.classList.add('hidden'));
+            document.querySelectorAll('header button[id*="Toggle"]').forEach(btn => {
+                btn.className = "text-[10px] md:text-xs font-bold px-3 py-2 bg-slate-100 dark:bg-slate-800 rounded-lg";
             });
 
-            // 2. วันที่บันทึก (from Firestore Timestamp)
-            const createdDateStr = formatTimestamp(data.createdAt);
-
-            // 3. สถานะการอนุมัติ (ต้องสร้างก่อนเพื่อใช้ใน HTML ด้านล่าง)
-            const isApproved = data.isApproved || false;
-            let approvalStatusHtml;
-            let approvalInfoHtml;
-
-            if (isApproved) {
-                const approvedDateStr = formatTimestamp(data.approvedAt);
-
-                approvalStatusHtml = `
-            <span class="bg-green-100 text-green-800 text-lg font-extrabold px-3 py-1 rounded-full flex items-center shadow-lg">
-                <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path></svg>
-                อนุมัติแล้ว
-            </span>
-        `;
-                approvalInfoHtml = `<p class="mt-2 text-sm text-gray-600">อนุมัติเมื่อ: ${approvedDateStr}</p>`;
+            if (view === 'dashboard') {
+                dashEl.classList.remove('hidden');
+                document.getElementById('dashToggle').className = "text-[10px] md:text-xs font-bold px-3 py-2 bg-indigo-600 text-white rounded-lg";
+                updateChart();
+            } else if (view === 'calendar') {
+                calEl.classList.remove('hidden');
+                detailEl.classList.remove('hidden');
+                document.getElementById('calToggle').className = "text-[10px] md:text-xs font-bold px-3 py-2 bg-indigo-600 text-white rounded-lg";
+                if (calendar) calendar.render();
             } else {
-                approvalStatusHtml = `
-            <button onclick="approveReceipt('${data.id}')" id="approveBtn" class="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-6 rounded-lg shadow-lg transition duration-150 transform hover:scale-105">
-                <svg class="w-5 h-5 inline-block mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.103a2.007 2.007 0 00-2.835-2.835L6 17.169V19.99h2.828l12.835-12.835z"></path></svg>
-                กดเพื่ออนุมัติการเบิก
-            </button>
-        `;
-                approvalInfoHtml = `<p class="mt-2 text-sm text-gray-500">สถานะ: รอการอนุมัติ</p>`;
+                listEl.classList.remove('hidden');
+                detailEl.classList.remove('hidden');
+                document.getElementById('listToggle').className = "text-[10px] md:text-xs font-bold px-3 py-2 bg-indigo-600 text-white rounded-lg";
             }
+        }
 
+        auth.onAuthStateChanged(user => {
+            document.getElementById('loginOverlay').classList.toggle('hidden', !!user);
+            document.getElementById('mainContent').classList.toggle('hidden', !user);
+            if (user) { setupListener(); initCalendar(); }
+        });
 
-            // Itemized Table
-            let itemTableHtml = data.items && data.items.length > 0 ? data.items.map((item, index) => {
-                const qty = item.qty || '';
-                const price = item.price || '';
-                const discount = item.discount || 0;
+        async function handleLogin() {
+            const e = document.getElementById('loginEmail').value, p = document.getElementById('loginPassword').value;
+            try { await auth.signInWithEmailAndPassword(e, p); } catch (err) { alert("Login Failed"); }
+        }
+        function handleLogout() { auth.signOut(); }
 
-                if (item.name.trim() === '' && item.total === 0) return '';
+        function setupListener() {
+            db.collection('expenseReceipts').orderBy('createdAt', 'desc').onSnapshot(snap => {
+                allData = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                handleSearch();
+                updateCalendarEvents();
+                if (isFirstLoad) {
+                    document.getElementById('loadingOverlay').classList.add('hidden');
+                    isFirstLoad = false;
+                }
+                if (selectedId) {
+                    const item = allData.find(r => r.id === selectedId);
+                    if (item) renderDetail(item);
+                }
+            });
+        }
+
+        function handleSearch() {
+            const term = document.getElementById('searchInput').value.toLowerCase();
+            const filtered = allData.filter(i =>
+                (i.personInCharge?.toLowerCase().includes(term)) ||
+                (i.category?.toLowerCase().includes(term)) ||
+                (i.date?.includes(term))
+            );
+            renderList(filtered);
+        }
+
+        function renderList(items) {
+            const container = document.getElementById('receiptsList');
+
+            const approved = items.filter(r => r.isApproved === true);
+            const rejected = items.filter(r => r.status === 'rejected');
+            const pending = items.filter(r => r.isApproved !== true && r.status !== 'rejected');
+
+            const createSection = (title, list, textColor) => {
+                if (list.length === 0) return '';
                 return `
-            <tr class="border-b">
-                <td class="px-2 py-1 text-center">${index + 1}</td>
-                <td class="px-2 py-1">${item.name || '-'}</td>
-                <td class="px-2 py-1 text-right">${qty}</td>
-                <td class="px-2 py-1 text-right">${price ? formatMoney(price) : '-'}</td>
-                <td class="px-2 py-1 text-right text-red-600">${discount > 0 ? formatMoney(discount) : '-'}</td>
-                <td class="px-2 py-1 text-right font-semibold">${formatMoney(item.total)}</td>
-            </tr>
-        `;
-            }).join('') : '<tr><td colspan="6" class="text-center py-4 text-gray-500 italic">-- ไม่มีรายการ --</td></tr>';
+                    <div class="p-2 bg-slate-100 dark:bg-slate-800 text-[10px] font-black uppercase tracking-widest text-slate-500">${title} (${list.length})</div>
+                    ${list.map(r => {
+                    const sClass = r.isApproved ? 'status-approved' : (r.status === 'rejected' ? 'status-rejected' : 'status-pending');
+                    return `
+                            <div onclick="selectItem('${r.id}')" class="p-4 border-b dark:border-slate-800 cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800 ${selectedId === r.id ? 'sidebar-active' : ''} ${sClass}">
+                                <div class="flex justify-between items-center mb-1">
+                                    <span class="font-bold text-sm truncate w-2/3">${r.category || 'ทั่วไป'}</span>
+                                    <span class="font-black text-indigo-600 text-sm">${formatMoney(r.grandTotal)}</span>
+                                </div>
+                                <div class="flex justify-between text-[10px] font-bold uppercase text-slate-500">
+                                    <span>${r.personInCharge} | ${r.date}</span>
+                                    <span class="${textColor}">${title}</span>
+                                </div>
+                            </div>`;
+                }).join('')}`;
+            };
 
-            // Receipt Images
-            let imageHtml = '';
-            if (data.receiptImages && data.receiptImages.length > 0) {
-                imageHtml = data.receiptImages.map((imgBase64, index) => `
-            <div class="p-2 border border-gray-300 rounded-lg shadow-md bg-white">
-                <p class="text-sm font-medium text-gray-600 mb-1">รูปสลิป/ใบเสร็จที่ ${index + 1}</p>
-                <img src="${imgBase64}" alt="Receipt Image ${index + 1}" class="w-full h-auto object-contain max-h-96 rounded" loading="lazy">
-            </div>
-        `).join('');
-            } else {
-                imageHtml = '<p class="text-gray-500 italic">ไม่พบรูปภาพสลิป/ใบเสร็จ</p>';
-            }
-
-            // Signature
-            const signatureHtml = data.signatureData ? `
-        <div class="p-4 border border-gray-300 rounded-lg shadow-inner bg-white max-w-sm mx-auto">
-            <p class="text-sm font-medium text-gray-600 mb-1 text-center">ลายเซ็นผู้ขอเบิก</p>
-            <img src="${data.signatureData}" alt="Signature" class="w-full h-auto object-contain" style="max-height: 120px;">
-            <p class="font-bold text-center mt-2">${data.personInCharge || 'ไม่ระบุ'}</p>
-        </div>
-    ` : '<p class="text-gray-500 italic text-center">ไม่พบลายเซ็น</p>';
-
-
-            detailsContainer.innerHTML = `
-        <div class="space-y-6">
-            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center p-4 bg-purple-100 rounded-lg border border-purple-300 shadow-md">
-                <div class="text-left mb-3 sm:mb-0">
-                    <p class="text-sm font-semibold text-gray-700">สถานะการเบิกจ่าย:</p>
-                    ${approvalStatusHtml}
-                    ${approvalInfoHtml}
-                </div>
-                <div class="text-right">
-                    <span class="text-gray-700 block font-semibold text-base">รวมสุทธิทั้งสิ้น:</span>
-                    <span class="text-red-700 text-3xl font-extrabold">${formatMoney(data.grandTotal)} บาท</span>
-                </div>
-            </div>
-
-            <div class="p-4 bg-blue-50 rounded-lg border border-blue-200">
-                <h3 class="text-lg font-bold text-blue-800 mb-4 border-b pb-2">ข้อมูลการเบิก</h3>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-3">
-                    <div>
-                        <p>
-                            <span class="font-semibold text-gray-700 block">วันที่จ่าย:</span>
-                            <span class="font-bold text-gray-800">${expenseDateStr}</span>
-                        </p>
-                        <p class="mt-2">
-                            <span class="font-semibold text-gray-700 block">หมวดหมู่:</span>
-                            <span class="font-bold text-gray-800">${data.category || '-'}</span>
-                        </p>
-                        <p class="mt-2">
-                            <span class="font-semibold text-gray-700 block">ผู้รับผิดชอบ/ผู้เบิก:</span>
-                            <span class="font-bold text-gray-800">${data.personInCharge || '-'}</span>
-                        </p>
-                    </div>
-                    <div>
-                        <p>
-                            <span class="font-semibold text-gray-700 block">บันทึกเข้าระบบเมื่อ:</span>
-                            <span class="font-bold text-gray-800 text-sm">${createdDateStr}</span>
-                        </p>
-                        <p class="mt-2">
-                            <span class="font-semibold text-gray-700 block">วัตถุประสงค์:</span>
-                            <span class="font-bold text-gray-800">${data.purpose || '-'}</span>
-                        </p>
-                        <p class="mt-2 text-sm text-gray-500 italic">
-                            ID: ${data.id}
-                        </p>
-                    </div>
-                </div>
-            </div>
-
-            <h3 class="text-xl font-bold text-gray-800 mt-6 border-b pb-1">รายการซื้อของ</h3>
-            <div class="overflow-x-auto rounded-lg border border-gray-300 shadow-md">
-                <table class="min-w-full bg-white text-sm">
-                    <thead class="bg-gray-100 text-gray-700">
-                        <tr>
-                            <th class="px-2 py-2 text-center w-12">#</th>
-                            <th class="px-2 py-2 text-left">ชื่อสินค้า</th>
-                            <th class="px-2 py-2 text-right w-20">จำนวน</th>
-                            <th class="px-2 py-2 text-right w-24">ราคา/หน่วย</th>
-                            <th class="px-2 py-2 text-right w-24">ส่วนลด</th>
-                            <th class="px-2 py-2 text-right w-28">รวมสุทธิ</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        ${itemTableHtml}
-                    </tbody>
-                    <tfoot>
-                        <tr class="bg-gray-200 font-bold border-t-2 border-red-500">
-                            <td colspan="5" class="px-4 py-2 text-right text-lg">รวมเป็นเงินทั้งสิ้น</td>
-                            <td class="px-4 py-2 text-right text-xl text-red-700">${formatMoney(data.grandTotal)}</td>
-                        </tr>
-                    </tfoot>
-                </table>
-            </div>
-
-            <h3 class="text-xl font-bold text-gray-800 mt-6 pt-4 border-t border-gray-200">ลายเซ็น</h3>
-            ${signatureHtml}
-
-            <h3 class="text-xl font-bold text-gray-800 mt-6 pt-4 border-t border-gray-200">รูปสลิป/ใบเสร็จ</h3>
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                ${imageHtml}
-            </div>
-        </div>
-    `;
+            container.innerHTML =
+                createSection('รอดำเนินการ', pending, 'text-amber-500') +
+                createSection('อนุมัติแล้ว', approved, 'text-emerald-500') +
+                createSection('ไม่อนุมัติ', rejected, 'text-red-500');
         }
 
+        function updateChart() {
+            const ctx = document.getElementById('categoryChart').getContext('2d');
+            const summary = {};
+            let total = 0;
+            allData.forEach(r => {
+                const cat = r.category || 'ทั่วไป';
+                summary[cat] = (summary[cat] || 0) + (r.grandTotal || 0);
+                total += (r.grandTotal || 0);
+            });
+            document.getElementById('totalSpentDisplay').innerText = total.toLocaleString('th-TH', { minimumFractionDigits: 2 }) + " ฿";
+
+            if (spendingChart) spendingChart.destroy();
+            spendingChart = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: Object.keys(summary),
+                    datasets: [{
+                        data: Object.values(summary),
+                        backgroundColor: ['#6366f1', '#a855f7', '#ec4899', '#f59e0b', '#10b981', '#ef4444'],
+                        borderWidth: 0
+                    }]
+                },
+                options: { maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { boxWidth: 10, font: { size: 10 } } } } }
+            });
+        }
+
+        function initCalendar() {
+            calendar = new FullCalendar.Calendar(document.getElementById('calendar'), {
+                initialView: 'dayGridMonth', locale: 'th', height: 'auto',
+                dateClick: (info) => { document.getElementById('searchInput').value = info.dateStr; handleSearch(); switchView('list'); },
+                eventContent: (arg) => {
+                    let h = `<div class="flex gap-1">`;
+                    if (arg.event.extendedProps.p > 0) h += `<span class="px-1 bg-amber-500 text-white text-[9px] rounded">${arg.event.extendedProps.p}</span>`;
+                    if (arg.event.extendedProps.a > 0) h += `<span class="px-1 bg-emerald-500 text-white text-[9px] rounded">${arg.event.extendedProps.a}</span>`;
+                    if (arg.event.extendedProps.r > 0) h += `<span class="px-1 bg-red-500 text-white text-[9px] rounded">${arg.event.extendedProps.r}</span>`;
+                    return { html: h + `</div>` };
+                }
+            });
+        }
+
+        function updateCalendarEvents() {
+            const groups = {};
+            allData.forEach(r => {
+                if (!groups[r.date]) groups[r.date] = { p: 0, a: 0, r: 0 };
+                if (r.isApproved) groups[r.date].a++; else if (r.status === 'rejected') groups[r.date].r++; else groups[r.date].p++;
+            });
+            calendar.removeAllEvents();
+            calendar.addEventSource(Object.keys(groups).map(d => ({ start: d, allDay: true, extendedProps: groups[d], backgroundColor: 'transparent', borderColor: 'transparent' })));
+        }
+
+        function selectItem(id) {
+            selectedId = id;
+            handleSearch(); // Update selected style in list
+            const item = allData.find(r => r.id === id);
+            if (item) renderDetail(item);
+            if (window.innerWidth < 768) {
+                document.getElementById('appBody').classList.add('mobile-view-detail');
+                document.getElementById('backBtn').classList.remove('hidden');
+            }
+        }
+
+        function toggleMobileList() {
+            document.getElementById('appBody').classList.remove('mobile-view-detail');
+            document.getElementById('backBtn').classList.add('hidden');
+        }
+
+        function renderDetail(data) {
+            const isApp = data.isApproved;
+            const isRej = data.status === 'rejected';
+            document.getElementById('detailContainer').innerHTML = `
+                <div class="space-y-6 pb-20">
+                    <div class="bg-white dark:bg-slate-900 p-6 rounded-3xl border dark:border-slate-800 shadow-sm">
+                        <div class="flex flex-col md:flex-row justify-between gap-4">
+                            <div>
+                                <h2 class="text-3xl font-extrabold tracking-tighter">${data.category || 'ทั่วไป'}</h2>
+                                <p class="text-slate-500 text-sm font-bold">โดย: ${data.personInCharge} | ${data.date}</p>
+                            </div>
+                            <div class="md:text-right">
+                                <p class="text-4xl font-black text-indigo-600">${formatMoney(data.grandTotal)} ฿</p>
+                                <div class="flex gap-2 mt-3 md:justify-end">
+                                    ${(!isApp && !isRej) ? `
+                                        <button onclick="updateStatus('${data.id}','approve')" class="px-4 py-2 bg-emerald-600 text-white text-xs font-bold rounded-xl shadow-lg hover:bg-emerald-700 transition">อนุมัติ</button>
+                                        <button onclick="updateStatus('${data.id}','reject')" class="px-4 py-2 bg-red-600 text-white text-xs font-bold rounded-xl shadow-lg hover:bg-red-700 transition">ไม่อนุมัติ</button>
+                                    ` : `<button onclick="resetStatus('${data.id}')" class="text-[10px] font-bold text-slate-400 border px-3 py-1 rounded-lg">คืนสถานะ (Reset)</button>`}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-white dark:bg-slate-900 rounded-3xl border dark:border-slate-800 overflow-x-auto">
+                        <table class="w-full text-left min-w-[500px]">
+                            <thead class="bg-slate-50 dark:bg-slate-800 text-[10px] font-black uppercase text-slate-400 border-b dark:border-slate-800">
+                                <tr><th class="p-4">รายการ</th><th class="p-4 text-right">ราคา</th><th class="p-4 text-center">จำนวน</th><th class="p-4 text-right">รวม</th></tr>
+                            </thead>
+                            <tbody>
+                                ${data.items.map(i => `<tr class="text-xs border-b dark:border-slate-800"><td class="p-4 font-bold">${i.name}</td><td class="p-4 text-right">${formatMoney(i.price || (i.total / i.qty))}</td><td class="p-4 text-center">${i.qty}</td><td class="p-4 text-right font-black text-indigo-600">${formatMoney(i.total)}</td></tr>`).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="bg-white dark:bg-slate-900 p-6 rounded-3xl border dark:border-slate-800"><p class="text-[10px] font-black text-slate-400 uppercase mb-4">Signature</p><img src="${data.signatureData}" class="max-h-24 mx-auto dark:invert"></div>
+                        <div class="bg-white dark:bg-slate-900 p-6 rounded-3xl border dark:border-slate-800"><p class="text-[10px] font-black text-slate-400 uppercase mb-4">Attachments</p><div class="flex gap-2 overflow-x-auto">${data.receiptImages ? data.receiptImages.map(img => `<img src="${img}" onclick="openImage(this.src)" class="h-32 w-32 object-cover rounded-xl border cursor-zoom-in">`).join('') : 'ไม่มีแนบไฟล์'}</div></div>
+                    </div>
+                </div>`;
+        }
+
+        async function updateStatus(id, a) {
+            const isApp = a === 'approve';
+            await db.collection('expenseReceipts').doc(id).update({ isApproved: isApp, status: isApp ? 'approved' : 'rejected' });
+            Toastify({ text: "อัปเดตสถานะสำเร็จ", background: isApp ? "#10b981" : "#ef4444", gravity: "bottom" }).showToast();
+        }
+
+        async function resetStatus(id) {
+            await db.collection('expenseReceipts').doc(id).update({ isApproved: false, status: 'pending' });
+            Toastify({ text: "รีเซ็ตสถานะแล้ว", background: "#6366f1", gravity: "bottom" }).showToast();
+        }
+
+        function openImage(s) { document.getElementById('modalImg').src = s; document.getElementById('imageModal').classList.remove('hidden'); }
+        function closeImage() { document.getElementById('imageModal').classList.add('hidden'); }
+        const formatMoney = (n) => parseFloat(n || 0).toLocaleString('th-TH', { minimumFractionDigits: 2 });
     </script>
 </body>
 
