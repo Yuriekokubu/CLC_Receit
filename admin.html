@@ -641,15 +641,15 @@
                 const s = summary[date];
                 // สำคัญ: ต้องใส่ extendedProps ทุกอัน
                 if (s.p > 0) events.push({
-                    title: `🟡 รอ: ${s.p}`, start: date, backgroundColor: '#f59e0b', borderColor: 'transparent',
+                    title: `🟡 ${s.p}`, start: date, backgroundColor: '#f59e0b', borderColor: 'transparent',
                     extendedProps: { status: 'pending', date: date }
                 });
                 if (s.a > 0) events.push({
-                    title: `🟢 ผ่าน: ${s.a}`, start: date, backgroundColor: '#10b981', borderColor: 'transparent',
+                    title: `🟢 ${s.a}`, start: date, backgroundColor: '#10b981', borderColor: 'transparent',
                     extendedProps: { status: 'approved', date: date }
                 });
                 if (s.r > 0) events.push({
-                    title: `🔴 ไม่ผ่าน: ${s.r}`, start: date, backgroundColor: '#ef4444', borderColor: 'transparent',
+                    title: `🔴 ${s.r}`, start: date, backgroundColor: '#ef4444', borderColor: 'transparent',
                     extendedProps: { status: 'rejected', date: date }
                 });
             });
