@@ -420,49 +420,64 @@
         }
 
 
+        // --- เพิ่มตัวแปรนี้ไว้ด้านบนสุดของ script (นอกฟังก์ชัน) เพื่อจับเวลาที่เริ่มโหลดหน้าเว็บ ---
+        const appStartTime = new Date();
+
         function setupListener() {
-            // ใช้ orderBy('createdAt', 'desc') เพื่อให้ของใหม่ล่าสุดอยู่บนสุดเสมอ
+            // ดึงข้อมูลโดยเรียงจากเวลาที่สร้างล่าสุด
             db.collection('expenseReceipts').orderBy('createdAt', 'desc').onSnapshot(snap => {
                 const changes = snap.docChanges();
 
-                // 1. ตรวจจับข้อมูลใหม่ (Real-time Notification)
+                // 1. จัดการเรื่อง Notification
                 if (!isFirstLoad) {
                     changes.forEach(change => {
+                        // จะแจ้งเตือนเฉพาะรายการที่สถานะเป็น 'added' เท่านั้น
                         if (change.type === "added") {
-                            const newDoc = { id: change.doc.id, ...change.doc.data() };
-                            addNotification(newDoc);
+                            const data = change.doc.data();
+                            const docId = change.doc.id;
+
+                            // ตรวจสอบเงื่อนไขเวลา:
+                            // ต้องมีฟิลด์ createdAt และเวลาที่สร้างต้อง "หลังจาก" เวลาที่เราเปิดแอป/Login เข้ามา
+                            if (data.createdAt) {
+                                const createdTime = data.createdAt.toDate();
+
+                                if (createdTime > appStartTime) {
+                                    const newDoc = { id: docId, ...data };
+                                    addNotification(newDoc);
+                                }
+                            }
                         }
                     });
                 }
 
-                // 2. อัปเดตข้อมูลหลักในตัวแปร allData
+                // 2. อัปเดตข้อมูลทั้งหมดในตัวแปร allData เพื่อใช้แสดงผลในตาราง/กราฟ
                 allData = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 
-                // 3. จัดการสถานะตัวกรอง (สำคัญ: แก้ไขส่วนที่ sidebar ไม่ยอมขึ้น)
+                // 3. รักษาการ Filter ปัจจุบันไว้ (ถ้ามีการเลือกหมวดหมู่ค้างไว้)
                 if (currentFilterData) {
-                    // ถ้ามีการกรองอยู่ ให้ทำการ Re-filter ข้อมูลใหม่จาก allData ทันที
                     const lastCategory = currentFilterData[0]?.category;
-                    const lastStatus = currentFilterData[0]?.status; // กรณีเป็น filter สถานะ
-
                     if (lastCategory) {
                         currentFilterData = allData.filter(r => r.category === lastCategory);
                     } else {
-                        // กรณี filter ตามสถานะ (Pending/Approved/Rejected)
-                        handleSearch(); // handleSearch จะจัดการ source ให้อัตโนมัติ
+                        handleSearch();
                     }
                 }
 
-                // 4. สั่ง Re-render หน้าจอทั้งหมด
-                handleSearch();        // วาด Sidebar ใหม่
-                updateStatusCards();   // อัปเดตตัวเลข Dashboard
-                updateCategoryList();  // อัปเดตรายชื่อหมวดหมู่
-                updateCalendarEvents();// อัปเดตปฏิทิน
+                // 4. สั่ง Re-render UI ทั้งหมด
+                handleSearch();
+                updateStatusCards();
+                updateCategoryList();
+                updateCalendarEvents();
 
-                // 5. ปิด Loading เมื่อโหลดครั้งแรกเสร็จ
-                document.getElementById('loadingOverlay').classList.add('hidden');
+                // 5. ปิด Loading Overlay และเปลี่ยน Flag เมื่อโหลดครั้งแรกเสร็จสิ้น
+                const loadingOverlay = document.getElementById('loadingOverlay');
+                if (loadingOverlay) {
+                    loadingOverlay.classList.add('hidden');
+                }
+
                 isFirstLoad = false;
 
-                // 6. ถ้าเปิดหน้ารายละเอียดค้างไว้ ให้รีเฟรชข้อมูลในหน้านั้นด้วย
+                // 6. ถ้ามีการเลือกไอเทมค้างไว้ ให้ดึงข้อมูลล่าสุดไปแสดงในหน้า Detail ด้วย
                 if (selectedId) {
                     const item = allData.find(r => r.id === selectedId);
                     if (item) renderDetail(item);
@@ -478,34 +493,38 @@
         function handleSearch() {
             const term = document.getElementById('searchInput').value.toLowerCase();
 
-            // เลือกแหล่งข้อมูล: ถ้ามีการกรองหมวดหมู่ให้ใช้ currentFilterData ถ้าไม่มีให้ใช้ allData
+            // เลือกแหล่งข้อมูล: ถ้ามีการกรองจากปฏิทิน/แดชบอร์ดให้ใช้ currentFilterData ถ้าไม่มีให้ใช้ allData
             let source = currentFilterData || allData;
 
-            // กรองตามคำค้นหา (Search)
-            const filtered = source.filter(i =>
-                (i.personInCharge?.toLowerCase().includes(term)) ||
-                (i.category?.toLowerCase().includes(term)) ||
-                (i.purpose?.toLowerCase().includes(term))
-            );
+            // --- ส่วนที่เพิ่ม: เรียงลำดับ ใหม่สุด (Timestamp มากกว่า) ไป เก่าสุด ---
+            const sortedData = [...source].sort((a, b) => {
+                // ดึงเวลาจาก createdAt (Firebase Timestamp) ถ้าไม่มีให้ใช้ค่า 0
+                const timeA = a.createdAt ? (a.createdAt.toDate ? a.createdAt.toDate().getTime() : new Date(a.createdAt).getTime()) : 0;
+                const timeB = b.createdAt ? (b.createdAt.toDate ? b.createdAt.toDate().getTime() : new Date(b.createdAt).getTime()) : 0;
 
-            // *** จุดสำคัญ: บังคับเรียงลำดับอีกครั้งก่อนส่งไปวาด (เผื่อกรณีไม่มี createdAt) ***
-            filtered.sort((a, b) => {
-                const dateA = a.createdAt?.toDate ? a.createdAt.toDate() : new Date(a.date);
-                const dateB = b.createdAt?.toDate ? b.createdAt.toDate() : new Date(b.date);
-                return dateB - dateA; // ใหม่ที่สุดอยู่บน
+                return timeB - timeA; // B ลบ A เพื่อให้ค่าที่มากกว่า (ใหม่กว่า) อยู่บนสุด
             });
 
-            // ส่งไปวาดที่ Sidebar
+            // กรองข้อมูลตามคำค้นหา (Search) จากข้อมูลที่เรียงแล้ว
+            const filtered = sortedData.filter(i =>
+                (i.personInCharge && i.personInCharge.toLowerCase().includes(term)) ||
+                (i.category && i.category.toLowerCase().includes(term)) ||
+                (i.purpose && i.purpose.toLowerCase().includes(term)) ||
+                (i.id && i.id.toLowerCase().includes(term))
+            );
+
+            // ส่งข้อมูลที่เรียงและกรองแล้วไปแสดงผลที่ Sidebar
             renderList(filtered);
         }
+
 
         let displayLimit = 15; // จำนวนเริ่มต้นที่ต้องการแสดง
 
         function renderList(items) {
             const container = document.getElementById('receiptsList');
-            const totalItems = items.length;
+            if (!container) return;
 
-            // ตัดข้อมูลมาแสดงแค่ตาม displayLimit
+            const totalItems = items.length;
             const visibleItems = items.slice(0, displayLimit);
 
             const approved = visibleItems.filter(r => r.isApproved === true);
@@ -527,11 +546,15 @@
         ${list.map(r => {
                     const sClass = r.isApproved ? 'status-approved' : (r.status === 'rejected' ? 'status-rejected' : 'status-pending');
                     const isActive = selectedId === r.id ? 'bg-indigo-50 dark:bg-indigo-900/40 ring-2 ring-indigo-500 z-[5]' : 'bg-white dark:bg-slate-900';
-                    return `<div onclick="selectItem('${r.id}')" class="relative p-3 border-b dark:border-slate-800 cursor-pointer transition-all hover:bg-slate-50 dark:hover:bg-slate-800 ${isActive} ${sClass}">
+
+                    return `
+            <div onclick="selectItem('${r.id}')" class="relative p-3 border-b dark:border-slate-800 cursor-pointer transition-all hover:bg-slate-50 dark:hover:bg-slate-800 ${isActive} ${sClass}">
                 <div class="flex justify-between items-center">
                     <div class="flex-1 truncate pr-2">
                         <h3 class="text-lg font-extrabold text-slate-900 dark:text-white truncate leading-tight">${r.category || 'ทั่วไป'}</h3>
-                        <p class="text-xs text-slate-500 dark:text-slate-400 font-bold truncate">${r.purpose || '-'}</p>
+                        <p class="text-xs text-slate-500 dark:text-slate-400 font-bold truncate">
+                            <span class="text-indigo-500">${r.date || '-'}</span> • ${r.purpose || '-'}
+                        </p>
                     </div>
                     <div class="text-right">
                         <span class="text-lg font-black text-indigo-600 dark:text-indigo-400">${formatMoney(r.grandTotal)}</span>
@@ -546,7 +569,6 @@
                 createSection('อนุมัติแล้ว', approved, 'a') +
                 createSection('ไม่อนุมัติ', rejected, 'r');
 
-            // ส่วนของปุ่ม Load More
             if (totalItems > displayLimit) {
                 html += `
         <div class="p-6 text-center">
@@ -568,34 +590,70 @@
         function initCalendar() {
             const calEl = document.getElementById('calendar');
             if (!calEl) return;
+
             calendar = new FullCalendar.Calendar(calEl, {
-                initialView: 'dayGridMonth', locale: 'th', height: 'auto',
-                dateClick: (info) => {
-                    document.getElementById('searchInput').value = info.dateStr;
-                    handleSearch();
+                initialView: 'dayGridMonth',
+                locale: 'th',
+                height: 'auto',
+                headerToolbar: { left: 'prev,next', center: 'title', right: 'today' },
+
+                eventClick: function (info) {
+                    // 1. ดึงค่าจาก Event ที่คลิก
+                    const status = info.event.extendedProps.status;
+                    const clickedDate = info.event.extendedProps.date;
+
+                    // 2. กรองข้อมูลลงในตัวแปร currentFilterData
+                    currentFilterData = allData.filter(r => {
+                        const isSameDate = r.date === clickedDate;
+                        if (!isSameDate) return false;
+
+                        if (status === 'approved') return r.isApproved === true;
+                        if (status === 'rejected') return r.status === 'rejected';
+                        if (status === 'pending') return r.isApproved !== true && r.status !== 'rejected';
+                        return false;
+                    });
+
+                    // 3. เปลี่ยนมุมมองไปที่หน้า List
                     switchView('list');
-                },
-                eventContent: (arg) => {
-                    let h = `<div class="flex gap-1">`;
-                    if (arg.event.extendedProps.p > 0) h += `<span class="px-1 bg-amber-500 text-white text-[9px] rounded">${arg.event.extendedProps.p}</span>`;
-                    if (arg.event.extendedProps.a > 0) h += `<span class="px-1 bg-emerald-500 text-white text-[9px] rounded">${arg.event.extendedProps.a}</span>`;
-                    if (arg.event.extendedProps.r > 0) h += `<span class="px-1 bg-red-500 text-white text-[9px] rounded">${arg.event.extendedProps.r}</span>`;
-                    return { html: h + `</div>` };
+
+                    // 4. สั่งให้ฟังก์ชันค้นหาวาดรายการใหม่ (Sidebar จะเปลี่ยนตามข้อมูลที่กรอง)
+                    displayLimit = 15; // รีเซ็ตตัวเลข Load More
+                    handleSearch();    // ฟังก์ชันนี้จะนำ currentFilterData ไปวาดลง sidebar
                 }
             });
+            calendar.render();
         }
 
         function updateCalendarEvents() {
             if (!calendar) return;
-            const groups = {};
-            allData.forEach(r => {
-                if (!groups[r.date]) groups[r.date] = { p: 0, a: 0, r: 0 };
-                if (r.isApproved) groups[r.date].a++; else if (r.status === 'rejected') groups[r.date].r++; else groups[r.date].p++;
-            });
             calendar.removeAllEvents();
-            calendar.addEventSource(Object.keys(groups).map(d => ({
-                start: d, allDay: true, extendedProps: groups[d], backgroundColor: 'transparent', borderColor: 'transparent'
-            })));
+
+            const summary = {};
+            allData.forEach(r => {
+                if (!summary[r.date]) summary[r.date] = { p: 0, a: 0, r: 0 };
+                if (r.isApproved) summary[r.date].a++;
+                else if (r.status === 'rejected') summary[r.date].r++;
+                else summary[r.date].p++;
+            });
+
+            const events = [];
+            Object.keys(summary).forEach(date => {
+                const s = summary[date];
+                // สำคัญ: ต้องใส่ extendedProps ทุกอัน
+                if (s.p > 0) events.push({
+                    title: `🟡 รอ: ${s.p}`, start: date, backgroundColor: '#f59e0b', borderColor: 'transparent',
+                    extendedProps: { status: 'pending', date: date }
+                });
+                if (s.a > 0) events.push({
+                    title: `🟢 ผ่าน: ${s.a}`, start: date, backgroundColor: '#10b981', borderColor: 'transparent',
+                    extendedProps: { status: 'approved', date: date }
+                });
+                if (s.r > 0) events.push({
+                    title: `🔴 ไม่ผ่าน: ${s.r}`, start: date, backgroundColor: '#ef4444', borderColor: 'transparent',
+                    extendedProps: { status: 'rejected', date: date }
+                });
+            });
+            calendar.addEventSource(events);
         }
 
         function selectItem(id) {
