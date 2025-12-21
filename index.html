@@ -222,17 +222,33 @@
                         <tr>
                             <td colspan="6" class="py-3 px-4 text-right">
                                 <button onclick="addItem()"
-                                    class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded shadow">
-                                    + เพิ่มรายการ
+                                    class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded shadow transition-all active:scale-95">
+                                    + เพิ่มรายการสินค้า
                                 </button>
                             </td>
+                        </tr>
+                        <tr class="bg-red-50 border-t-2 border-gray-200">
+                            <td colspan="4" class="py-3 px-4 text-right font-bold text-red-700">
+                                ส่วนลดรวมท้ายบิล (Overall Discount)
+                            </td>
+                            <td class="py-3 px-4">
+                                <input id="overallDiscount" type="text" inputmode="decimal"
+                                    class="w-full text-right bg-white border border-red-200 rounded px-2 py-1 font-bold text-red-700 focus:ring-2 focus:ring-red-500 outline-none"
+                                    placeholder="0.00" value="0"
+                                    oninput="this.value = cleanDecimalInput(this.value, 2); calculateGrandTotal();"
+                                    onfocus="if(this.value==='0')this.value=''"
+                                    onblur="if(this.value==='')this.value='0'">
+                            </td>
+                            <td></td>
                         </tr>
                         <tr class="bg-gray-100 border-t-4 border-blue-600">
                             <td colspan="4" class="py-4 px-4 text-right font-extrabold text-blue-800 text-xl">
                                 รวมทั้งสิ้นสุทธิ
                             </td>
-                            <td id="grandTotal" class="py-4 px-4 text-right text-xl font-black text-blue-800">0.00</td>
-                            <td></td>
+                            <td id="grandTotal" class="py-4 px-4 text-right text-xl font-black text-blue-800">
+                                0.00
+                            </td>
+                            <td class="text-center font-bold text-blue-800">บาท</td>
                         </tr>
                     </tfoot>
                 </table>
@@ -695,20 +711,17 @@
             calculateGrandTotal();
         };
 
-        // **แก้ไข: updateItem อ่าน qty เป็น parseFloat**
+        // ฟังก์ชันอัปเดตรายการสินค้า (รายบรรทัด)
         const updateItem = (index, field, value) => {
             let sanitizedValue = value.trim() === '' ? '' : value;
             items[index][field] = sanitizedValue;
 
             if (field === 'qty' || field === 'price' || field === 'discount') {
-
-                // Quantity (qty) should be parsed as Float (decimals)
                 const q = parseFloat(items[index].qty) || 0;
-                // Price (price) and Discount (discount) should be parsed as Float (decimals)
                 const p = parseFloat(items[index].price) || 0;
-                const d = parseFloat(items[index].discount) || 0;
+                const d = parseFloat(items[index].discount) || 0; // ส่วนลดรายบรรทัด
 
-                // คำนวณใหม่: (จำนวน * ราคา) - ส่วนลด
+                // คำนวณ: (จำนวน * ราคา) - ส่วนลดรายบรรทัด
                 items[index].total = (q * p) - d;
 
                 const tbody = document.getElementById('itemTableBody');
@@ -733,10 +746,19 @@
             renderTable();
         };
 
+        // ฟังก์ชันคำนวณยอดรวมสุทธิ (ท้ายบิล)
         const calculateGrandTotal = () => {
-            // Use parseFloat for all calculation
-            const total = items.reduce((sum, item) => sum + (parseFloat(item.total) || 0), 0);
-            document.getElementById('grandTotal').textContent = formatMoney(total);
+            // 1. รวมยอดจากทุกแถว (ซึ่งแต่ละแถวหักส่วนลดรายรายการไปแล้ว)
+            const subTotal = items.reduce((sum, item) => sum + (parseFloat(item.total) || 0), 0);
+
+            // 2. ดึงค่าส่วนลดรวมท้ายบิล
+            const overallDiscountInput = document.getElementById('overallDiscount');
+            const overallDiscount = overallDiscountInput ? (parseFloat(overallDiscountInput.value) || 0) : 0;
+
+            // 3. ยอดสุทธิ = ผลรวมทุกแถว - ส่วนลดท้ายบิล
+            const grandTotal = subTotal - overallDiscount;
+
+            document.getElementById('grandTotal').textContent = formatMoney(grandTotal);
         };
 
         // Image Handling (omitted for brevity, assume working)
@@ -970,22 +992,45 @@
 
             let tplFooterContent = '';
             if (isLastPage) {
+                // 1. คำนวณรวมราคาเต็ม (Qty * Price) ของทุกรายการ
+                const totalBeforeDiscount = items.reduce((sum, item) =>
+                    sum + (parseFloat(item.qty || 0) * parseFloat(item.price || 0)), 0);
+
+                // 2. คำนวณผลรวมส่วนลดของแต่ละรายการสินค้า (Row Discounts)
+                const totalItemDiscounts = items.reduce((sum, item) =>
+                    sum + (parseFloat(item.discount || 0)), 0);
+
+                // 3. ดึงค่าส่วนลดรวมท้ายบิล (Overall Discount)
+                const overallDiscount = parseFloat(document.getElementById('overallDiscount')?.value) || 0;
+
+                // 4. คำนวณยอดสุทธิสุดท้าย
+                const finalGrandTotal = totalBeforeDiscount - totalItemDiscounts - overallDiscount;
+
                 tplFooterContent = `
-                    <tfoot>
-                        <tr class="font-normal bg-gray-50 border-t border-gray-400">
-                            <td colspan="5" class="text-right pr-4 pt-2">ยอดรวมก่อนหักส่วนลด</td>
-                            <td class="text-right pt-2">${formatMoney(subTotalBeforeDiscount)}</td>
-                        </tr>
-                        <tr class="font-normal bg-gray-50">
-                            <td colspan="5" class="text-right pr-4 pb-2 text-red-600">รวมส่วนลดทั้งสิ้น</td>
-                            <td class="text-right pb-2 text-red-600">(${formatMoney(totalDiscount)})</td>
-                        </tr>
-                        <tr class="font-bold bg-gray-100 border-t-2 border-blue-600">
-                            <td colspan="5" class="text-right pr-4 py-2">รวมเป็นเงินทั้งสิ้นสุทธิ</td>
-                            <td class="text-right text-xl py-2">${formatMoney(grandTotal)}</td>
-                        </tr>
-                    </tfoot>
-                `;
+        <tfoot>
+            <tr class="font-normal bg-gray-50 border-t border-gray-400">
+                <td colspan="5" class="text-right pr-4 pt-2">รวมเป็นเงิน</td>
+                <td class="text-right pt-2">${formatMoney(totalBeforeDiscount)}</td>
+            </tr>
+
+            <tr class="font-normal">
+                <td colspan="5" class="text-right pr-4 text-red-600">ส่วนลดรายการสินค้า</td>
+                <td class="text-right text-red-600">-${formatMoney(totalItemDiscounts)}</td>
+            </tr>
+
+            <tr class="font-normal border-b border-gray-300">
+                <td colspan="5" class="text-right pr-4 pb-2 text-red-600">ส่วนลดรวมท้ายบิล</td>
+                <td class="text-right pb-2 text-red-600">-${formatMoney(overallDiscount)}</td>
+            </tr>
+
+            <tr class="font-bold bg-gray-100">
+                <td colspan="5" class="text-right pr-4 py-3 text-lg text-blue-800">รวมทั้งสิ้นสุทธิ</td>
+                <td class="text-right py-3 text-xl text-blue-800" style="font-weight: 800;">
+                    ${formatMoney(finalGrandTotal)}
+                </td>
+            </tr>
+        </tfoot>
+    `;
             }
 
             let signatureBlock = '';
