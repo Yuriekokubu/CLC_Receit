@@ -17,6 +17,7 @@
 
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-storage-compat.js"></script>
     <script>
         tailwind.config = {
             theme: {
@@ -163,7 +164,7 @@
                     class="flex flex-col sm:flex-row justify-between items-start w-full mt-4 mb-6 space-y-4 sm:space-y-0 sm:space-x-8">
                     <div class="flex items-center w-full sm:w-1/2">
                         <span class="font-semibold text-gray-800 mr-2 whitespace-nowrap">วัตถุประสงค์:</span>
-                        <input id="billPurpose" type="text" placeholder="เช่น ของใช้สำหรับงานคริสต์มาส..."
+                        <input id="billPurpose" type="text" placeholder="เช่น พันธกิจโรงเรียน วันเสาร์ วว/ดด/ปปปป..."
                             class="border-b-2 border-gray-400 p-1 text-base text-center sm:text-lg text-gray-800 focus:outline-none focus:border-blue-600 w-full bg-transparent">
                     </div>
                     <div class="flex items-center w-full sm:w-1/2">
@@ -270,7 +271,7 @@
                     </h3>
 
                     <div class="bg-white p-6 rounded-xl border border-gray-300 shadow-xl">
-                        <canvas id="signatureCanvas" width="400" height="200"
+                        <canvas id="signatureCanvas" width="00" height="200"
                             class="border-2 border-dashed border-gray-400 bg-white cursor-crosshair mx-auto block rounded-md"
                             style="touch-action: none;"></canvas>
 
@@ -314,12 +315,12 @@
                                             d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z">
                                         </path>
                                     </svg>
-                                    ส่งไฟล์ PDF ที่ดาวน์โหลดให้ เหรัญญิกคริสตจักรหรือผู้ที่เกี่ยวข้อง
+                                    แจ้งเหรัญญิกคริสตจักรหรือผู้ที่เกี่ยวข้องเมื่อกดอนุมัติเบิกแล้ว
                                 </p>
                             </li>
                             <li class="flex items-center border-t pt-3 mt-3 border-blue-200"> <span
                                     class="text-lg font-extrabold text-red-600 mr-3">4.</span>
-                                <p class="font-bold text-red-600">นำสลิป/ใบเสร็จตัวจริงมาส่งให้ครบถ้วน (สำคัญ)</p>
+                                <p class="font-bold text-red-600">เก็บสลิปตัวจริงไว้ด้วย (สำคัญ)</p>
                             </li>
                         </ol>
                     </div>
@@ -383,12 +384,14 @@
             storageBucket: "clc-e-receit.firebasestorage.app",
             messagingSenderId: "578514019900",
             appId: "1:578514019900:web:998f3e9fa3b599a2344539",
-            measurementId: "G-S65X8N123G"
+            measurementId: "G-S65X8N123G",
+            storageBucket: "clc-e-receit.firebasestorage.app"
         };
 
         // Initialize Firebase and Firestore DB
         firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
+        const storage = firebase.storage();
         // END: FIREBASE CONFIGURATION AND INITIALIZATION
 
 
@@ -1372,86 +1375,92 @@
         // END NEW FIX
 
         const downloadPDF = async () => {
-            if (!validateInputs()) {
-                return;
-            }
+            if (!validateInputs()) return;
 
-            // --- ส่วนที่เพิ่มใหม่: ตรวจสอบว่าแนบสลิปหรือยัง ---
+            // ตรวจสอบรูปสลิป
             if (receiptImages.length === 0) {
                 showMessage("🚨 กรุณาแนบสลิป/ใบเสร็จ อย่างน้อย 1 รูป ก่อนดำเนินการต่อ", true);
-                // เลื่อนหน้าจอลงไปที่ส่วนอัปโหลดเพื่อให้ผู้ใช้เห็น
                 document.getElementById('uploadZone').scrollIntoView({ behavior: 'smooth' });
                 return;
             }
-            // ---------------------------------------------
 
-            // ตรวจสอบว่ามีลายเซ็นหรือไม่
+            // ตรวจสอบลายเซ็น
             if (!signatureData) {
                 showMessage("🚨 กรุณาเซ็นลายเซ็นก่อนดำเนินการต่อ", true);
                 return;
             }
 
             autoSaveSignature();
+
             if (typeof window.jspdf === 'undefined' || typeof window.html2canvas === 'undefined') {
-                showMessage("🚨 ไม่สามารถโหลดไลบรารีที่จำเป็นได้ กรุณาตรวจสอบการเชื่อมต่ออินเทอร์เน็ตหรือลองใหม่อีกครั้ง", true);
+                showMessage("🚨 ไม่สามารถโหลดไลบรารี PDF ได้", true);
                 return;
             }
 
-            setButtonLoading('downloadPDF', true); // <<< START LOADING
+            setButtonLoading('downloadPDF', true); // เริ่มแสดงสถานะ Loading
 
-            // ----------------------------------------------------
-            // START: 1. รวบรวมข้อมูลเพื่อบันทึก
-            // ----------------------------------------------------
-            const validItems = items.filter(item => item.name.trim() !== '' || item.total !== 0);
+            try {
+                // 1. สร้างเอกสาร PDF จาก UI (generatePDFDocument ต้องมีในโค้ดของคุณ)
+                const doc = await generatePDFDocument();
+                if (!doc) throw new Error("สร้าง PDF ไม่สำเร็จ");
 
-            const receiptData = {
-                purpose: document.getElementById('billPurpose').value.trim(),
-                category: getCurrentCategoryValue(),
-                date: document.getElementById('billDate').value,
-                personInCharge: document.getElementById('personInCharge').value.trim(),
-                items: validItems.map(item => ({
-                    name: item.name,
-                    qty: parseFloat(item.qty) || 0,
-                    price: parseFloat(item.price) || 0,
-                    discount: parseFloat(item.discount) || 0,
-                    total: item.total
-                })),
-                grandTotal: parseFloat(document.getElementById('grandTotal').textContent.replace(/,/g, '')) || 0,
-                signatureData: signatureData,
-                // เก็บ Base64 ของรูปสลิปใน Firestore (ถ้าไฟล์ใหญ่มาก ควรใช้ Firebase Storage)
-                receiptImages: receiptImages.map(img => img.base64),
-                createdAt: firebase.firestore.FieldValue.serverTimestamp()
-            };
-            // ----------------------------------------------------
-            // END: 1. รวบรวมข้อมูลเพื่อบันทึก
-            // ----------------------------------------------------
+                const pdfBlob = doc.output('blob'); // แปลง PDF เป็นไฟล์ Blob เพื่ออัปโหลด
 
-            // 2. บันทึกข้อมูลลง Firestore
-            const isSaved = await saveReceiptToFirestore(receiptData);
-            if (!isSaved) {
-                setButtonLoading('downloadPDF', false);
-                return; // หยุดถ้าบันทึกไม่สำเร็จ
-            }
-
-            // 3. สร้างและดาวน์โหลด PDF
-            const doc = await generatePDFDocument();
-
-            setButtonLoading('downloadPDF', false); // <<< STOP LOADING
-
-            if (doc) {
+                // 2. ตั้งชื่อไฟล์และเตรียมข้อมูลสำหรับ Storage
                 const dateISO = document.getElementById('billDate').value;
                 const [year, month, day] = dateISO.split('-');
                 const dateFilename = `${day}${month}${year}`;
-
                 const personName = document.getElementById('personInCharge').value.trim();
-                const sanitizedPersonName = personName
-                    .replace(/[^a-zA-Z0-9\u0E00-\u0E7F]+/g, '_')
-                    .replace(/_{2,}/g, '_')
-                    .replace(/^_|_$/g, '');
+                const timestamp = Date.now();
+                const filename = `CLC_E-Receit_${dateFilename}_${timestamp}.pdf`;
 
-                const filename = `CLC_E-Receit_${dateFilename}_${sanitizedPersonName}.pdf`;
+                // 3. อัปโหลดไฟล์ PDF ไปยัง Firebase Storage
+                const storageRef = storage.ref().child(`pdfs/${filename}`);
+                const snapshot = await storageRef.put(pdfBlob, { contentType: 'application/pdf' });
+                const downloadURL = await snapshot.ref.getDownloadURL(); // รับลิงก์ PDF ที่อัปโหลดเสร็จแล้ว
 
+                // 4. รวบรวมข้อมูลทั้งหมดบันทึกลง Firestore
+                const validItems = items.filter(item => item.name.trim() !== '' || item.total !== 0);
+
+                const receiptData = {
+                    purpose: document.getElementById('billPurpose').value.trim(),
+                    category: getCurrentCategoryValue(),
+                    date: document.getElementById('billDate').value,
+                    personInCharge: personName,
+                    items: validItems.map(item => ({
+                        name: item.name,
+                        qty: parseFloat(item.qty) || 0,
+                        price: parseFloat(item.price) || 0,
+                        discount: parseFloat(item.discount) || 0,
+                        total: item.total
+                    })),
+                    grandTotal: parseFloat(document.getElementById('grandTotal').textContent.replace(/,/g, '')) || 0,
+
+                    // --- บันทึกลิงก์ PDF ไว้ใน Storage ---
+                    pdfUrl: downloadURL,
+
+                    // --- บันทึกรูปและลายเซ็นเป็น Base64 ลง Firestore (ตามโค้ดเดิม) ---
+                    signatureData: signatureData,
+                    receiptImages: receiptImages.map(img => img.base64),
+
+                    status: "pending",
+                    createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                };
+
+                // 5. บันทึกข้อมูลลง Firestore
+                await db.collection("expenseReceipts").add(receiptData);
+
+                // 6. ดาวน์โหลดไฟล์ลงเครื่องผู้ใช้เป็นสำเนา
                 doc.save(filename);
+
+                showMessage("✅ บันทึกข้อมูลและอัปโหลด PDF สำเร็จ!");
+                setTimeout(() => location.reload(), 2000);
+
+            } catch (error) {
+                console.error("Error:", error);
+                showMessage("🚨 เกิดข้อผิดพลาด: " + error.message, true);
+            } finally {
+                setButtonLoading('downloadPDF', false); // ปิดสถานะ Loading
             }
         };
 
