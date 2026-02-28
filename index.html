@@ -1425,6 +1425,31 @@
                 const snapshot = await storageRef.put(pdfBlob, { contentType: 'application/pdf' });
                 const downloadURL = await snapshot.ref.getDownloadURL(); // รับลิงก์ PDF ที่อัปโหลดเสร็จแล้ว
 
+                // 3.1 อัปโหลดลายเซ็นไปยัง Firebase Storage
+                let signatureUrl = null;
+                if (signatureData) {
+                    // แปลง base64 → Blob
+                    const sigRes = await fetch(signatureData);
+                    const sigBlob = await sigRes.blob();
+                    const sigFilename = `signatures/signature_${dateFilename}_${timestamp}.png`;
+                    const sigRef = storage.ref().child(sigFilename);
+                    const sigSnap = await sigRef.put(sigBlob, { contentType: 'image/png' });
+                    signatureUrl = await sigSnap.ref.getDownloadURL();
+                }
+
+                // 3.2 อัปโหลดรูปสลิปทั้งหมดไปยัง Firebase Storage
+                const receiptImageUrls = await Promise.all(
+                    receiptImages.map(async (img, index) => {
+                        const imgRes = await fetch(img.base64);
+                        const imgBlob = await imgRes.blob();
+                        const ext = imgBlob.type.includes('png') ? 'png' : 'jpg';
+                        const imgFilename = `receipts/receipt_${dateFilename}_${timestamp}_${index}.${ext}`;
+                        const imgRef = storage.ref().child(imgFilename);
+                        const imgSnap = await imgRef.put(imgBlob, { contentType: imgBlob.type });
+                        return await imgSnap.ref.getDownloadURL();
+                    })
+                );
+
                 // 4. รวบรวมข้อมูลทั้งหมดบันทึกลง Firestore
                 const validItems = items.filter(item => item.name.trim() !== '' || item.total !== 0);
 
@@ -1442,12 +1467,10 @@
                     })),
                     grandTotal: parseFloat(document.getElementById('grandTotal').textContent.replace(/,/g, '')) || 0,
 
-                    // --- บันทึกลิงก์ PDF ไว้ใน Storage ---
+                    // --- บันทึกลิงก์ทั้งหมดที่อัปโหลดใน Storage ---
                     pdfUrl: downloadURL,
-
-                    // --- บันทึกรูปและลายเซ็นเป็น Base64 ลง Firestore (ตามโค้ดเดิม) ---
-                    signatureData: signatureData,
-                    receiptImages: receiptImages.map(img => img.base64),
+                    signatureUrl: signatureUrl,       // URL ลายเซ็นจาก Storage
+                    receiptImageUrls: receiptImageUrls, // URL รูปสลิปจาก Storage
 
                     status: "pending",
                     createdAt: firebase.firestore.FieldValue.serverTimestamp()
