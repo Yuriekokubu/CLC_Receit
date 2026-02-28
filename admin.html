@@ -17,7 +17,7 @@
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
-
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-storage-compat.js"></script>
     <script>
         tailwind.config = {
             darkMode: 'class',
@@ -911,6 +911,7 @@
             const isApp = data.isApproved;
             const isRej = data.status === 'rejected';
             let displayDateTime = `${data.date || ''}`;
+
             if (data.createdAt) {
                 const dateObj = data.createdAt.toDate ? data.createdAt.toDate() : new Date(data.createdAt);
                 const day = dateObj.toLocaleDateString('th-TH');
@@ -926,52 +927,63 @@
                         <h2 class="text-2xl md:text-3xl font-extrabold tracking-tighter">${data.category || 'ทั่วไป'}</h2>
                         <p class="text-indigo-600 text-lg font-bold mt-1">วัตถุประสงค์: ${data.purpose || '-'}</p>
                         <div class="flex flex-wrap items-center gap-y-2 gap-x-4 pt-3 border-t border-slate-100 dark:border-slate-800 mt-3">
-    <div class="flex items-center gap-1.5">
-        <svg class="w-4 h-4 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
-        <span class="text-xs md:text-sm font-semibold text-slate-700 dark:text-slate-300">${data.personInCharge}</span>
-    </div>
-    <div class="flex items-center gap-1.5">
-        <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
-        <span class="text-xs md:text-sm text-slate-500 dark:text-slate-400 font-medium">${displayDateTime}</span>
-    </div>
-</div>
+                            <div class="flex items-center gap-1.5">
+                                <svg class="w-4 h-4 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
+                                <span class="text-xs md:text-sm font-semibold text-slate-700 dark:text-slate-300">${data.personInCharge}</span>
+                            </div>
+                            <div class="flex items-center gap-1.5">
+                                <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+                                <span class="text-xs md:text-sm text-slate-500 dark:text-slate-400 font-medium">${displayDateTime}</span>
+                            </div>
+                        </div>
                     </div>
                     <div class="md:text-right">
                         <p class="text-3xl md:text-4xl font-black text-indigo-600">${formatMoney(data.grandTotal)} ฿</p>
                         <div class="flex gap-2 mt-3 md:justify-end">
                             ${(!isApp && !isRej) ? `
-                                <button onclick="updateStatus('${data.id}','approve')" class="flex-1 md:flex-none px-4 py-2 bg-emerald-600 text-white text-xs font-bold rounded-xl">อนุมัติ</button>
-                                <button onclick="updateStatus('${data.id}','reject')" class="flex-1 md:flex-none px-4 py-2 bg-red-600 text-white text-xs font-bold rounded-xl">ไม่อนุมัติ</button>
-                            ` : `<button onclick="resetStatus('${data.id}')" class="text-[10px] font-bold text-slate-400 border px-3 py-1 rounded-lg">Reset Status</button>`}
+                                <button onclick="updateStatus('${data.id}','approve')" class="flex-1 md:flex-none px-6 py-2 bg-emerald-600 text-white text-xs font-bold rounded-xl shadow-sm hover:bg-emerald-700 transition-colors">อนุมัติ</button>
+                                <button onclick="updateStatus('${data.id}','reject')" class="flex-1 md:flex-none px-6 py-2 bg-red-600 text-white text-xs font-bold rounded-xl shadow-sm hover:bg-red-700 transition-colors">ไม่อนุมัติ</button>
+                            ` : `<button onclick="resetStatus('${data.id}')" class="text-[10px] font-bold text-slate-400 border px-3 py-1 rounded-lg hover:bg-slate-50 transition-colors">Reset Status</button>`}
                         </div>
                     </div>
                 </div>
             </div>
-            
+
+            ${data.pdfUrl ? `
+            <div class="px-2">
+    <a href="${data.pdfUrl}" target="_blank" class="w-full flex items-center justify-center gap-3 py-4 bg-sky-50 text-sky-600 border-2 border-dashed border-sky-200 rounded-2xl font-black hover:bg-sky-100 transition-all">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path>
+        </svg>
+        คลิกเพื่อพรีวิวเอกสาร PDF
+    </a>
+</div>
+            ` : ''}
+
             <div class="bg-white dark:bg-slate-900 rounded-3xl border dark:border-slate-800 overflow-hidden shadow-sm">
                 <div class="overflow-x-auto">
                     <table class="w-full text-left border-collapse table-auto">
-                        <thead class="bg-slate-50 dark:bg-slate-800 text-xs md:text-sm font-bold text-slate-600 dark:text-slate-300 border-b dark:border-slate-800">
+                        <thead class="bg-slate-50 dark:bg-slate-800 text-xs font-bold text-slate-600 dark:text-slate-300 border-b dark:border-slate-800 uppercase tracking-wider">
                             <tr>
-                                <th class="p-3 md:p-4 whitespace-nowrap text-left">รายการ</th>
-                                <th class="p-3 md:p-4 whitespace-nowrap text-right">จำนวน</th>
-                                <th class="p-3 md:p-4 whitespace-nowrap text-right">ราคา/หน่วย</th>
-                                <th class="p-3 md:p-4 whitespace-nowrap text-right">ส่วนลด</th>
-                                <th class="p-3 md:p-4 whitespace-nowrap text-right">สุทธิ</th>
+                                <th class="p-4 text-left">รายการ</th>
+                                <th class="p-4 text-right">จำนวน</th>
+                                <th class="p-4 text-right">ราคา/หน่วย</th>
+                                <th class="p-4 text-right">ส่วนลด</th>
+                                <th class="p-4 text-right">สุทธิ</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-slate-100 dark:divide-slate-800">
                             ${data.items.map(i => `
                                 <tr class="text-sm md:text-base hover:bg-slate-50/50 dark:hover:bg-slate-800/50 transition-colors">
-                                    <td class="p-3 md:p-4 font-semibold text-slate-700 dark:text-slate-200 min-w-[140px] text-left">
+                                    <td class="p-4 font-semibold text-slate-700 dark:text-slate-200 min-w-[140px] text-left">
                                         <div class="break-words line-clamp-2">${i.name}</div>
                                     </td>
-                                    <td class="p-3 md:p-4 font-medium text-right">${i.qty}</td>
-                                    <td class="p-3 md:p-4 whitespace-nowrap text-right">${formatMoney(i.price)}</td>
-                                    <td class="p-3 md:p-4 text-red-500 whitespace-nowrap text-right">
+                                    <td class="p-4 font-medium text-right">${i.qty}</td>
+                                    <td class="p-4 whitespace-nowrap text-right">${formatMoney(i.price)}</td>
+                                    <td class="p-4 text-red-500 whitespace-nowrap text-right">
                                         ${i.discount > 0 ? `-${formatMoney(i.discount)}` : '-'}
                                     </td>
-                                    <td class="p-3 md:p-4 text-right font-black text-indigo-600 dark:text-indigo-400 whitespace-nowrap">
+                                    <td class="p-4 text-right font-black text-indigo-600 dark:text-indigo-400 whitespace-nowrap">
                                         ${formatMoney((i.price * i.qty) - (i.discount || 0))}
                                     </td>
                                 </tr>`).join('')}
@@ -981,14 +993,25 @@
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div class="bg-white dark:bg-slate-900 p-6 rounded-3xl border dark:border-slate-800 text-center">
+                <div class="bg-white dark:bg-slate-900 p-6 rounded-3xl border dark:border-slate-800 text-center shadow-sm">
                     <p class="text-xs font-black text-slate-400 uppercase mb-4 tracking-widest">ลายเซ็น</p>
-                    <img src="${data.signatureData}" class="max-h-24 mx-auto dark:invert">
+                    <div class="bg-slate-50 dark:bg-slate-800 rounded-2xl p-4 flex items-center justify-center min-h-[120px]">
+                        ${data.signatureData ? `
+                            <img src="${data.signatureData}" class="max-h-24 mx-auto dark:invert object-contain" alt="Signature">
+                        ` : '<p class="text-slate-400 text-xs italic">ไม่มีข้อมูลลายเซ็น</p>'}
+                    </div>
                 </div>
-                <div class="bg-white dark:bg-slate-900 p-6 rounded-3xl border dark:border-slate-800">
-                    <p class="text-xs font-black text-slate-400 uppercase mb-4 tracking-widest text-center">หลักฐาน</p>
-                    <div class="flex gap-2 overflow-x-auto pb-2 justify-center">
-                        ${data.receiptImages ? data.receiptImages.map(img => `<img src="${img}" onclick="openImage(this.src)" class="h-sm w-sm object-cover rounded-xl border cursor-zoom-in">`).join('') : '<p class="text-xs text-slate-400">ไม่มีรูปภาพประกอบ</p>'}
+
+                <div class="bg-white dark:bg-slate-900 p-6 rounded-3xl border dark:border-slate-800 shadow-sm text-center">
+                    <p class="text-xs font-black text-slate-400 uppercase mb-4 tracking-widest">รูปภาพใบเสร็จ/หลักฐาน</p>
+                    <div class="flex flex-wrap gap-2 justify-center pb-2">
+                        ${data.receiptImages && data.receiptImages.length > 0 ?
+                    data.receiptImages.map(img => `
+                                <img src="${img}" onclick="openImage(this.src)" 
+                                     class="h-50 w-50 object-cover rounded-xl border-2 border-slate-100 dark:border-slate-800 cursor-zoom-in hover:scale-105 transition-all shadow-sm">
+                            `).join('')
+                    : '<p class="text-slate-400 text-xs italic py-10 text-center w-full">ไม่มีรูปภาพประกอบ</p>'
+                }
                     </div>
                 </div>
             </div>
