@@ -364,6 +364,31 @@
         <img id="modalImg" class="max-w-full max-h-full rounded-xl shadow-2xl" src="">
     </div>
 
+    <div id="approveModal"
+        class="fixed inset-0 bg-slate-950/80 z-[250] hidden flex items-center justify-center p-4 backdrop-blur-sm">
+        <div class="bg-white dark:bg-slate-900 w-full max-w-sm rounded-3xl p-6 shadow-2xl border dark:border-slate-800">
+            <h3 class="text-xl font-black mb-2 tracking-tight">ยืนยันการอนุมัติ</h3>
+            <p class="text-sm text-slate-500 mb-4 font-bold">กรุณาตรวจสอบและระบุจำนวนเงินที่อนุมัติจริง</p>
+
+            <div class="space-y-4">
+                <div>
+                    <label
+                        class="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-1">จำนวนเงินอนุมัติ
+                        (บาท)</label>
+                    <input type="number" id="approveAmountInput"
+                        class="w-full p-4 bg-slate-100 dark:bg-slate-800 border-none rounded-2xl outline-none focus:ring-2 focus:ring-emerald-500 text-2xl font-black text-emerald-600">
+                </div>
+
+                <div class="flex gap-3 pt-2">
+                    <button onclick="closeApproveModal()"
+                        class="flex-1 py-3 text-sm font-bold text-slate-500 bg-slate-100 dark:bg-slate-800 rounded-xl hover:bg-slate-200 transition-all">ยกเลิก</button>
+                    <button onclick="confirmApprove()"
+                        class="flex-1 py-3 text-sm font-bold text-white bg-emerald-600 rounded-xl hover:bg-emerald-700 shadow-lg shadow-emerald-500/30 transition-all">ยืนยันบันทึก</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
     <script>
         const firebaseConfig = {
@@ -970,17 +995,60 @@
         </div>`;
         }
 
+        let currentApprovingId = null; // ตัวแปรเก็บ ID ที่กำลังจะอนุมัติ
+
+        // ฟังก์ชันเดิมที่คุณมี แต่เปลี่ยนเฉพาะ action 'approve' ให้ไปเปิด Modal แทน
         async function updateStatus(id, action) {
-            const isApp = action === 'approve';
+            if (action === 'approve') {
+                currentApprovingId = id;
+                const item = allData.find(r => r.id === id);
+
+                // ใส่ยอดเงินเดิมลงใน Input เป็นค่าเริ่มต้น
+                document.getElementById('approveAmountInput').value = item.grandTotal;
+                document.getElementById('approveModal').classList.remove('hidden');
+            } else {
+                // เคส 'reject' (ไม่อนุมัติ) ให้ทำงานเหมือนเดิม
+                if (confirm('คุณแน่ใจหรือไม่ที่จะ "ไม่อนุมัติ" รายการนี้?')) {
+                    try {
+                        await db.collection('expenseReceipts').doc(id).update({
+                            isApproved: false,
+                            status: 'rejected'
+                        });
+                        showToast("ปฏิเสธรายการแล้ว");
+                    } catch (error) {
+                        showToast("เกิดข้อผิดพลาด: " + error.message);
+                    }
+                }
+            }
+        }
+
+        // ฟังก์ชันปิด Modal
+        function closeApproveModal() {
+            document.getElementById('approveModal').classList.add('hidden');
+            currentApprovingId = null;
+        }
+
+        // ฟังก์ชันยืนยันบันทึกลง Firebase
+        async function confirmApprove() {
+            const finalAmount = parseFloat(document.getElementById('approveAmountInput').value);
+
+            if (isNaN(finalAmount) || finalAmount < 0) {
+                alert("กรุณาระบุจำนวนเงินที่ถูกต้อง");
+                return;
+            }
+
             try {
-                await db.collection('expenseReceipts').doc(id).update({
-                    isApproved: isApp,
-                    status: isApp ? 'approved' : 'rejected'
+                await db.collection('expenseReceipts').doc(currentApprovingId).update({
+                    grandTotal: finalAmount, // บันทึกจำนวนเงินที่กรอกใหม่ (ถ้ามีการแก้ไข)
+                    isApproved: true,
+                    status: 'approved',
+                    approvedAt: firebase.firestore.FieldValue.serverTimestamp() // เก็บเวลาที่อนุมัติเพิ่ม
                 });
-                // ไม่ต้องสั่ง render เอง เพราะ onSnapshot ใน setupListener จะตรวจจับและวาดใหม่ให้เองโดยอัตโนมัติ
-                showToast(isApp ? "อนุมัติรายการแล้ว" : "ปฏิเสธรายการแล้ว");
+
+                showToast(`อนุมัติสำเร็จ: ${finalAmount.toLocaleString()} ฿`);
+                closeApproveModal();
             } catch (error) {
-                showToast("เกิดข้อผิดพลาด: " + error.message);
+                alert("เกิดข้อผิดพลาดในการบันทึก: " + error.message);
             }
         }
 
@@ -1016,19 +1084,37 @@
         });
 
         function getCategorySummary() {
-            const summary = {};
+            // 1. กำหนดค่าเริ่มต้นให้กับทุกหมวดหมู่เป็น 0 (อ้างอิงตามรูปภาพที่ส่งมา)
+            const summary = {
+                'อาหาร': 0,
+                'อาหารเที่ยงวันอาทิตย์': 0,
+                'อุปกรณ์': 0,
+                'พันธกิจ': 0,
+                'พันธกิจเด็ก': 0,
+                'สำนักงาน/เบ็ดเตล็ด': 0,
+                'สำนักงาน': 0,
+                'ของขวัญ': 0,
+                'ต้อนรับ': 0,
+                'ทางบัตร': 0,
+                'ทั่วไป': 0,
+                'อื่นๆ': 0
+            };
 
+            // 2. วนลูปตรวจสอบข้อมูลทั้งหมด
             allData.forEach(item => {
-                // ใช้หมวดหมู่ 'อื่นๆ' หากไม่ได้ระบุ
-                const cat = item.category || 'อื่นๆ';
-                const amount = parseFloat(item.grandTotal) || 0;
+                // เงื่อนไข: ต้องเป็นรายการที่อนุมัติแล้วเท่านั้น (isApproved: true)
+                if (item.isApproved === true) {
+                    const cat = item.category || 'อื่นๆ';
+                    const amount = parseFloat(item.grandTotal) || 0;
 
-                // เราอาจจะสรุปเฉพาะรายการที่อนุมัติแล้ว หรือทั้งหมดก็ได้
-                // ในที่นี้สรุปทั้งหมดเพื่อให้เห็นภาพรวมการขอเบิก
-                if (!summary[cat]) {
-                    summary[cat] = 0;
+                    // ตรวจสอบว่ามีหมวดหมู่นี้ในรายการหรือไม่ ถ้าไม่มี (เช่น พิมพ์ผิดมา) ให้เพิ่มเข้าไป
+                    if (summary[cat] === undefined) {
+                        summary[cat] = 0;
+                    }
+
+                    // บวกเพิ่มเฉพาะรายการที่อนุมัติ
+                    summary[cat] += amount;
                 }
-                summary[cat] += amount;
             });
 
             return summary;
