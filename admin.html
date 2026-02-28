@@ -5,15 +5,15 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CLC Finance - Admin Portal</title>
+    <link rel="icon" type="image/svg+xml"
+        href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%234f46e5'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='central' text-anchor='middle' font-family='Poppins,sans-serif' font-weight='900' font-size='14' fill='white'%3ECLC%3C/text%3E%3C/svg%3E">
     <script src="https://cdn.tailwindcss.com"></script>
     <link
         href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&family=Sarabun:wght@400;700&display=swap"
         rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
 
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.js"></script>
-
+    <!-- Chart.js และ FullCalendar โหลดแบบ lazy เมื่อต้องการเท่านั้น -->
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
@@ -154,9 +154,24 @@
                             d="M4 6h16M4 12h16M4 18h16" />
                     </svg>
                 </button>
-                <h1
-                    class="font-bold text-base md:text-xl tracking-tight uppercase truncate max-w-[120px] md:max-w-none">
-                    CLC ADMIN</h1>
+                <button onclick="goHome()"
+                    class="flex items-center gap-2 hover:opacity-80 active:scale-95 transition-all group">
+                    <div
+                        class="w-8 h-8 bg-indigo-600 rounded-xl flex items-center justify-center shadow-md shadow-indigo-500/30 group-hover:bg-indigo-700 transition-colors flex-shrink-0">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="white" class="w-4 h-4">
+                            <path
+                                d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 14H9V8h2v8zm4 0h-2V8h2v8z" />
+                            <path d="M11 8h2v8h-2z" fill="white" />
+                            <path fill-rule="evenodd"
+                                d="M3 6a3 3 0 013-3h12a3 3 0 013 3v12a3 3 0 01-3 3H6a3 3 0 01-3-3V6zm3-1a1 1 0 00-1 1v12a1 1 0 001 1h12a1 1 0 001-1V6a1 1 0 00-1-1H6z"
+                                clip-rule="evenodd" />
+                        </svg>
+                        <span class="text-white font-black text-[10px] leading-none">฿</span>
+                    </div>
+                    <h1
+                        class="font-bold text-base md:text-xl tracking-tight uppercase truncate max-w-[120px] md:max-w-none">
+                        CLC ADMIN</h1>
+                </button>
             </div>
             <div class="flex items-center gap-1.5 md:gap-2">
                 <div class="relative">
@@ -241,7 +256,90 @@
                             placeholder="ค้นหาชื่อ, หมวดหมู่, วัตถุประสงค์..."
                             class="w-full p-3 bg-slate-50 dark:bg-slate-800 border-none rounded-xl outline-none focus:ring-2 focus:ring-indigo-600 text-sm font-medium">
                     </div>
-                    <div class="flex-1 overflow-y-auto custom-scroll" id="receiptsList"></div>
+                    <!-- Skeleton Loading: แสดงจนกว่า data จะมา -->
+                    <div id="listSkeleton" class="flex-1 overflow-y-auto p-3 space-y-1">
+                        <div class="px-3 py-2 mb-1">
+                            <div class="h-3 bg-amber-200 dark:bg-amber-900/40 rounded w-24 animate-pulse"></div>
+                        </div>
+                        <div class="animate-pulse p-3 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center border-l-4 border-l-amber-200"
+                            style="animation-delay:0ms">
+                            <div class="flex-1 pr-4 space-y-2">
+                                <div class="h-4 bg-slate-200 dark:bg-slate-700 rounded-lg w-1/2"></div>
+                                <div class="h-3 bg-slate-100 dark:bg-slate-800 rounded-lg w-3/4"></div>
+                            </div>
+                            <div class="space-y-2 text-right">
+                                <div class="h-4 bg-slate-200 dark:bg-slate-700 rounded-lg w-14 ml-auto"></div>
+                                <div class="h-3 bg-slate-100 dark:bg-slate-800 rounded-lg w-8 ml-auto"></div>
+                            </div>
+                        </div>
+                        <div class="animate-pulse p-3 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center border-l-4 border-l-amber-200"
+                            style="animation-delay:80ms">
+                            <div class="flex-1 pr-4 space-y-2">
+                                <div class="h-4 bg-slate-200 dark:bg-slate-700 rounded-lg w-2/3"></div>
+                                <div class="h-3 bg-slate-100 dark:bg-slate-800 rounded-lg w-1/2"></div>
+                            </div>
+                            <div class="space-y-2 text-right">
+                                <div class="h-4 bg-slate-200 dark:bg-slate-700 rounded-lg w-14 ml-auto"></div>
+                                <div class="h-3 bg-slate-100 dark:bg-slate-800 rounded-lg w-8 ml-auto"></div>
+                            </div>
+                        </div>
+                        <div class="animate-pulse p-3 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center border-l-4 border-l-amber-200"
+                            style="animation-delay:160ms">
+                            <div class="flex-1 pr-4 space-y-2">
+                                <div class="h-4 bg-slate-200 dark:bg-slate-700 rounded-lg w-1/3"></div>
+                                <div class="h-3 bg-slate-100 dark:bg-slate-800 rounded-lg w-3/5"></div>
+                            </div>
+                            <div class="space-y-2 text-right">
+                                <div class="h-4 bg-slate-200 dark:bg-slate-700 rounded-lg w-16 ml-auto"></div>
+                                <div class="h-3 bg-slate-100 dark:bg-slate-800 rounded-lg w-10 ml-auto"></div>
+                            </div>
+                        </div>
+                        <div class="px-3 py-2 mt-3 mb-1">
+                            <div class="h-3 bg-emerald-200 dark:bg-emerald-900/40 rounded w-20 animate-pulse"></div>
+                        </div>
+                        <div class="animate-pulse p-3 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center border-l-4 border-l-emerald-200"
+                            style="animation-delay:240ms">
+                            <div class="flex-1 pr-4 space-y-2">
+                                <div class="h-4 bg-slate-200 dark:bg-slate-700 rounded-lg w-2/3"></div>
+                                <div class="h-3 bg-slate-100 dark:bg-slate-800 rounded-lg w-1/2"></div>
+                            </div>
+                            <div class="space-y-2 text-right">
+                                <div class="h-4 bg-slate-200 dark:bg-slate-700 rounded-lg w-16 ml-auto"></div>
+                                <div class="h-3 bg-slate-100 dark:bg-slate-800 rounded-lg w-10 ml-auto"></div>
+                            </div>
+                        </div>
+                        <div class="animate-pulse p-3 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center border-l-4 border-l-emerald-200"
+                            style="animation-delay:320ms">
+                            <div class="flex-1 pr-4 space-y-2">
+                                <div class="h-4 bg-slate-200 dark:bg-slate-700 rounded-lg w-1/2"></div>
+                                <div class="h-3 bg-slate-100 dark:bg-slate-800 rounded-lg w-3/4"></div>
+                            </div>
+                            <div class="space-y-2 text-right">
+                                <div class="h-4 bg-slate-200 dark:bg-slate-700 rounded-lg w-14 ml-auto"></div>
+                                <div class="h-3 bg-slate-100 dark:bg-slate-800 rounded-lg w-8 ml-auto"></div>
+                            </div>
+                        </div>
+                        <div class="animate-pulse p-3 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center border-l-4 border-l-emerald-200"
+                            style="animation-delay:400ms">
+                            <div class="flex-1 pr-4 space-y-2">
+                                <div class="h-4 bg-slate-200 dark:bg-slate-700 rounded-lg w-3/5"></div>
+                                <div class="h-3 bg-slate-100 dark:bg-slate-800 rounded-lg w-2/5"></div>
+                            </div>
+                            <div class="space-y-2 text-right">
+                                <div class="h-4 bg-slate-200 dark:bg-slate-700 rounded-lg w-16 ml-auto"></div>
+                                <div class="h-3 bg-slate-100 dark:bg-slate-800 rounded-lg w-10 ml-auto"></div>
+                            </div>
+                        </div>
+                        <div class="flex items-center justify-center gap-2 pt-6 pb-4">
+                            <svg class="animate-spin w-4 h-4 text-indigo-400" fill="none" viewBox="0 0 24 24">
+                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor"
+                                    stroke-width="4"></circle>
+                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path>
+                            </svg>
+                            <span class="text-xs text-slate-400 font-bold tracking-widest uppercase">กำลังโหลด...</span>
+                        </div>
+                    </div>
+                    <div class="flex-1 overflow-y-auto custom-scroll hidden" id="receiptsList"></div>
                 </div>
 
                 <div id="calendarView" class="hidden flex flex-col h-full p-3 overflow-y-auto">
@@ -381,10 +479,67 @@
                 </div>
 
                 <div class="flex gap-3 pt-2">
-                    <button onclick="closeApproveModal()"
+                    <button id="approveCancelBtn" onclick="closeApproveModal()"
                         class="flex-1 py-3 text-sm font-bold text-slate-500 bg-slate-100 dark:bg-slate-800 rounded-xl hover:bg-slate-200 transition-all">ยกเลิก</button>
-                    <button onclick="confirmApprove()"
-                        class="flex-1 py-3 text-sm font-bold text-white bg-emerald-600 rounded-xl hover:bg-emerald-700 shadow-lg shadow-emerald-500/30 transition-all">ยืนยันบันทึก</button>
+                    <button id="approveConfirmBtn" onclick="confirmApprove()"
+                        class="flex-1 py-3 text-sm font-bold text-white bg-emerald-600 rounded-xl hover:bg-emerald-700 shadow-lg shadow-emerald-500/30 transition-all flex items-center justify-center gap-2">
+                        <span id="approveConfirmLabel">ยืนยันบันทึก</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Reject Modal -->
+    <div id="rejectModal"
+        class="fixed inset-0 bg-slate-950/80 z-[250] hidden flex items-center justify-center p-4 backdrop-blur-sm"
+        onclick="if(event.target===this) closeRejectModal()">
+        <div
+            class="bg-white dark:bg-slate-900 w-full max-w-sm rounded-3xl shadow-2xl border dark:border-slate-800 overflow-hidden">
+            <!-- Header แดง -->
+            <div class="bg-gradient-to-br from-red-500 to-rose-600 p-6 text-white">
+                <div class="flex items-center gap-3 mb-1">
+                    <div class="w-10 h-10 bg-white/20 rounded-2xl flex items-center justify-center">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
+                                d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </div>
+                    <div>
+                        <h3 class="text-lg font-black tracking-tight">ไม่อนุมัติรายการ</h3>
+                        <p class="text-red-100 text-xs font-medium">การดำเนินการนี้ไม่สามารถย้อนกลับได้</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Body -->
+            <div class="p-6 space-y-4">
+                <!-- ข้อมูลรายการ -->
+                <div class="bg-red-50 dark:bg-red-900/20 border border-red-100 dark:border-red-800/40 rounded-2xl p-4">
+                    <p class="text-[10px] font-black text-red-400 uppercase tracking-widest mb-1">รายการที่จะปฏิเสธ</p>
+                    <p id="rejectItemName" class="text-sm font-bold text-slate-800 dark:text-slate-200 truncate">-</p>
+                    <p id="rejectItemAmount" class="text-xl font-black text-red-600 mt-0.5">0.00 ฿</p>
+                </div>
+
+                <!-- เหตุผล -->
+                <div>
+                    <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-1.5">
+                        เหตุผลที่ไม่อนุมัติ <span class="text-red-400">(ไม่บังคับ)</span>
+                    </label>
+                    <textarea id="rejectReasonInput" rows="3" placeholder="เช่น เอกสารไม่ครบถ้วน, เกินงบประมาณ..."
+                        class="w-full p-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl outline-none focus:ring-2 focus:ring-red-400 text-sm font-medium resize-none placeholder:text-slate-300 dark:placeholder:text-slate-600"></textarea>
+                </div>
+
+                <!-- ปุ่ม -->
+                <div class="flex gap-3 pt-1">
+                    <button id="rejectCancelBtn" onclick="closeRejectModal()"
+                        class="flex-1 py-3 text-sm font-bold text-slate-500 bg-slate-100 dark:bg-slate-800 rounded-xl hover:bg-slate-200 dark:hover:bg-slate-700 transition-all">
+                        ยกเลิก
+                    </button>
+                    <button id="rejectConfirmBtn" onclick="confirmReject()"
+                        class="flex-1 py-3 text-sm font-bold text-white bg-red-600 rounded-xl hover:bg-red-700 shadow-lg shadow-red-500/30 transition-all active:scale-95 flex items-center justify-center gap-2">
+                        <span id="rejectConfirmLabel">ยืนยันปฏิเสธ</span>
+                    </button>
                 </div>
             </div>
         </div>
@@ -415,6 +570,29 @@
         let calendar = null;
         let spendingChart = null;
 
+        // --- Performance: Cache detail data เพื่อไม่ต้อง fetch ซ้ำ ---
+        const detailCache = {};
+
+        // --- Lazy load scripts ---
+        function loadScript(src) {
+            return new Promise((resolve, reject) => {
+                if (document.querySelector(`script[src="${src}"]`)) { resolve(); return; }
+                const s = document.createElement('script');
+                s.src = src; s.onload = resolve; s.onerror = reject;
+                document.head.appendChild(s);
+            });
+        }
+
+        async function ensureChartJS() {
+            if (window.Chart) return;
+            await loadScript('https://cdn.jsdelivr.net/npm/chart.js');
+        }
+
+        async function ensureFullCalendar() {
+            if (window.FullCalendar) return;
+            await loadScript('https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.js');
+        }
+
         // --- แก้ไขการตรวจสอบสถานะ Login เมื่อ Refresh ---
         auth.onAuthStateChanged(user => {
             const loginOverlay = document.getElementById('loginOverlay');
@@ -426,9 +604,8 @@
                 loginOverlay.classList.add('hidden');
                 mainContent.classList.remove('hidden');
 
-                // เริ่มโหลดข้อมูล
+                // เริ่มโหลดข้อมูล (ไม่ต้อง init calendar ทันที - lazy load)
                 setupListener();
-                initCalendar();
             } else {
                 // ถ้ายังไม่ Login: แสดงหน้า Login และซ่อนหน้าหลัก
                 loginOverlay.classList.remove('hidden');
@@ -457,7 +634,8 @@
         const appStartTime = new Date();
 
         function setupListener() {
-            // ดึงข้อมูลโดยเรียงจากเวลาที่สร้างล่าสุด
+            // ดึงเฉพาะ field ที่ใช้ใน List (ไม่ดึง items[], signatureData, receiptImages, pdfUrl)
+            // Firestore ไม่รองรับ field masks ใน onSnapshot โดยตรง แต่เราสามารถ limit ข้อมูลที่ re-render ได้
             db.collection('expenseReceipts').orderBy('createdAt', 'desc').onSnapshot(snap => {
                 const changes = snap.docChanges();
 
@@ -483,8 +661,24 @@
                     });
                 }
 
-                // 2. อัปเดตข้อมูลทั้งหมดในตัวแปร allData เพื่อใช้แสดงผลในตาราง/กราฟ
-                allData = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                // 2. อัปเดต allData เฉพาะ fields ที่ใช้ใน List (ลดขนาดข้อมูลใน memory)
+                allData = snap.docs.map(doc => {
+                    const d = doc.data();
+                    // เก็บเฉพาะ field สำหรับ List + เก็บ doc reference ไว้ fetch detail
+                    return {
+                        id: doc.id,
+                        category: d.category,
+                        date: d.date,
+                        purpose: d.purpose,
+                        personInCharge: d.personInCharge,
+                        grandTotal: d.grandTotal,
+                        isApproved: d.isApproved,
+                        status: d.status,
+                        createdAt: d.createdAt,
+                        // เก็บ full data เฉพาะถ้าเคย fetch แล้ว (จาก cache)
+                        _fullLoaded: detailCache[doc.id] ? true : false
+                    };
+                });
 
                 // 3. รักษาการ Filter ปัจจุบันไว้ (ถ้ามีการเลือกหมวดหมู่ค้างไว้)
                 if (currentFilterData) {
@@ -512,8 +706,15 @@
 
                 // 6. ถ้ามีการเลือกไอเทมค้างไว้ ให้ดึงข้อมูลล่าสุดไปแสดงในหน้า Detail ด้วย
                 if (selectedId) {
-                    const item = allData.find(r => r.id === selectedId);
-                    if (item) renderDetail(item);
+                    const cached = detailCache[selectedId];
+                    if (cached) {
+                        // อัปเดต cached data ด้วยข้อมูลใหม่ (status อาจเปลี่ยน)
+                        const freshItem = snap.docs.find(d => d.id === selectedId);
+                        if (freshItem) {
+                            detailCache[selectedId] = { id: freshItem.id, ...freshItem.data() };
+                            renderDetail(detailCache[selectedId]);
+                        }
+                    }
                 }
             });
         }
@@ -556,6 +757,13 @@
         function renderList(items) {
             const container = document.getElementById('receiptsList');
             if (!container) return;
+
+            // ซ่อน skeleton + แสดง list เมื่อ data พร้อม
+            const skeleton = document.getElementById('listSkeleton');
+            if (skeleton && !skeleton.classList.contains('hidden')) {
+                skeleton.classList.add('hidden');
+                container.classList.remove('hidden');
+            }
 
             const totalItems = items.length;
             const visibleItems = items.slice(0, displayLimit);
@@ -622,7 +830,7 @@
 
         function initCalendar() {
             const calEl = document.getElementById('calendar');
-            if (!calEl) return;
+            if (!calEl || !window.FullCalendar) return;
 
             calendar = new FullCalendar.Calendar(calEl, {
                 initialView: 'dayGridMonth',
@@ -649,21 +857,27 @@
                     // 3. เปลี่ยนมุมมองไปที่หน้า List
                     switchView('list');
 
-                    // 4. สั่งให้ฟังก์ชันค้นหาวาดรายการใหม่ (Sidebar จะเปลี่ยนตามข้อมูลที่กรอง)
-                    displayLimit = 15; // รีเซ็ตตัวเลข Load More
-                    handleSearch();    // ฟังก์ชันนี้จะนำ currentFilterData ไปวาดลง sidebar
+                    // 4. สั่งให้ฟังก์ชันค้นหาวาดรายการใหม่
+                    displayLimit = 15;
+                    handleSearch();
                 }
             });
             calendar.render();
+
+            // inject pending events ถ้ามี
+            if (pendingCalendarEvents) {
+                calendar.addEventSource(pendingCalendarEvents);
+                pendingCalendarEvents = null;
+            }
         }
 
         function updateCalendarEvents() {
-            if (!calendar) return;
-            calendar.removeAllEvents();
-
             const summary = {};
             allData.forEach(r => {
-                if (!summary[r.date]) summary[r.date] = { p: 0, a: 0, r: 0 };
+                if (!r.date) return;
+                if (!summary[r.date]) summary[r.date] = { p: 0, a: 0, r: 0, total: 0 };
+                const amt = parseFloat(r.grandTotal) || 0;
+                summary[r.date].total += amt;
                 if (r.isApproved) summary[r.date].a++;
                 else if (r.status === 'rejected') summary[r.date].r++;
                 else summary[r.date].p++;
@@ -672,28 +886,70 @@
             const events = [];
             Object.keys(summary).forEach(date => {
                 const s = summary[date];
-                // สำคัญ: ต้องใส่ extendedProps ทุกอัน
                 if (s.p > 0) events.push({
-                    title: `🟡 ${s.p}`, start: date, backgroundColor: '#f59e0b', borderColor: 'transparent',
+                    title: `⏳ ${s.p} รออนุมัติ`, start: date, backgroundColor: '#f59e0b', borderColor: 'transparent',
                     extendedProps: { status: 'pending', date: date }
                 });
                 if (s.a > 0) events.push({
-                    title: `🟢 ${s.a}`, start: date, backgroundColor: '#10b981', borderColor: 'transparent',
+                    title: `✅ ${s.a} อนุมัติแล้ว`, start: date, backgroundColor: '#10b981', borderColor: 'transparent',
                     extendedProps: { status: 'approved', date: date }
                 });
                 if (s.r > 0) events.push({
-                    title: `🔴 ${s.r}`, start: date, backgroundColor: '#ef4444', borderColor: 'transparent',
+                    title: `❌ ${s.r} ไม่อนุมัติ`, start: date, backgroundColor: '#ef4444', borderColor: 'transparent',
                     extendedProps: { status: 'rejected', date: date }
                 });
             });
+
+            // ถ้า calendar ยังไม่ถูก init ให้ queue ไว้ก่อน
+            if (!calendar || !window.FullCalendar) {
+                pendingCalendarEvents = events;
+                return;
+            }
+
+            calendar.removeAllEvents();
             calendar.addEventSource(events);
         }
 
-        function selectItem(id) {
+        async function selectItem(id) {
             selectedId = id;
             handleSearch();
-            const item = allData.find(r => r.id === id);
-            if (item) renderDetail(item);
+
+            // แสดง skeleton loading ก่อน
+            document.getElementById('detailContainer').innerHTML = `
+                <div class="space-y-6 pb-20 animate-pulse">
+                    <div class="bg-white dark:bg-slate-900 p-6 rounded-3xl border dark:border-slate-800 shadow-sm">
+                        <div class="h-8 bg-slate-200 dark:bg-slate-700 rounded-xl w-1/2 mb-3"></div>
+                        <div class="h-4 bg-slate-100 dark:bg-slate-800 rounded-xl w-3/4 mb-2"></div>
+                        <div class="h-4 bg-slate-100 dark:bg-slate-800 rounded-xl w-1/3"></div>
+                    </div>
+                    <div class="bg-white dark:bg-slate-900 p-6 rounded-3xl border dark:border-slate-800 shadow-sm">
+                        <div class="h-32 bg-slate-100 dark:bg-slate-800 rounded-xl"></div>
+                    </div>
+                    <div class="grid grid-cols-2 gap-6">
+                        <div class="bg-white dark:bg-slate-900 p-6 rounded-3xl border dark:border-slate-800 shadow-sm h-40"></div>
+                        <div class="bg-white dark:bg-slate-900 p-6 rounded-3xl border dark:border-slate-800 shadow-sm h-40"></div>
+                    </div>
+                </div>`;
+
+            // ใช้ cache ถ้ามี
+            let fullData = detailCache[id];
+            if (!fullData) {
+                try {
+                    const doc = await db.collection('expenseReceipts').doc(id).get();
+                    if (doc.exists) {
+                        fullData = { id: doc.id, ...doc.data() };
+                        detailCache[id] = fullData; // บันทึก cache
+                    }
+                } catch (err) {
+                    document.getElementById('detailContainer').innerHTML = `<p class="p-6 text-red-500 font-bold">โหลดข้อมูลไม่สำเร็จ: ${err.message}</p>`;
+                    return;
+                }
+            }
+
+            // ตรวจสอบว่า user ยังเลือก item นี้อยู่ (กันกรณีคลิกเร็วๆ)
+            if (selectedId !== id) return;
+
+            renderDetail(fullData);
 
             // เพิ่มส่วนนี้: ถ้าหน้าจอเล็ก ให้ซ่อน Sidebar ทันทีที่เลือกรายการ
             if (window.innerWidth < 768) {
@@ -718,9 +974,19 @@
 
         let trendChart = null;
         let currentFilterData = null; // สำหรับจำสถานะการกรองจาก Dashboard
+        let pendingCalendarEvents = null; // queue events ไว้ถ้า calendar ยังไม่ init
+
+        // กลับหน้าหลัก: ล้าง filter + switchView list
+        function goHome() {
+            currentFilterData = null;
+            displayLimit = 15;
+            document.getElementById('searchInput').value = '';
+            handleSearch();
+            switchView('list');
+        }
 
         // 1. ฟังก์ชันสลับมุมมอง และ Sidebar
-        function switchView(view) {
+        async function switchView(view) {
             const listEl = document.getElementById('listView');
             const calEl = document.getElementById('calendarView');
             const dashSideEl = document.getElementById('dashboardSidebar');
@@ -745,11 +1011,19 @@
             if (view === 'dashboard') {
                 dashSideEl.classList.remove('hidden');
                 dashPageEl.classList.remove('hidden');
+                await ensureChartJS(); // lazy load Chart.js
                 updateChart();
             } else if (view === 'calendar') {
                 calEl.classList.remove('hidden');
                 detailEl.classList.remove('hidden');
-                if (calendar) calendar.render();
+                await ensureFullCalendar(); // lazy load FullCalendar
+                if (!calendar) {
+                    initCalendar();
+                } else {
+                    calendar.render();
+                    // refresh events ให้ทันสมัย
+                    updateCalendarEvents();
+                }
             } else {
                 listEl.classList.remove('hidden');
                 detailEl.classList.remove('hidden');
@@ -757,6 +1031,7 @@
         }
 
         function updateChart() {
+            if (!window.Chart) return; // ยังไม่ได้โหลด Chart.js
             const ctx = document.getElementById('categoryChart').getContext('2d');
             const trendCtx = document.getElementById('trendChart').getContext('2d');
 
@@ -968,6 +1243,28 @@
 </div>
             ` : ''}
 
+            ${isRej ? `
+            <div class="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800/50 rounded-3xl p-5 flex gap-4 items-start">
+                <div class="w-10 h-10 bg-red-100 dark:bg-red-800/40 rounded-2xl flex items-center justify-center flex-shrink-0 mt-0.5">
+                    <svg class="w-5 h-5 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/>
+                    </svg>
+                </div>
+                <div class="flex-1 min-w-0">
+                    <div class="flex items-center justify-between gap-2 flex-wrap">
+                        <p class="text-[11px] font-black text-red-400 uppercase tracking-widest">สาเหตุที่ไม่อนุมัติ</p>
+                        ${data.rejectedAt ? (() => {
+                        const d = data.rejectedAt.toDate ? data.rejectedAt.toDate() : new Date(data.rejectedAt);
+                        return `<span class="text-[10px] text-red-300 dark:text-red-500 font-medium">${d.toLocaleDateString('th-TH')} ${d.toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' })} น.</span>`;
+                    })() : ''}
+                    </div>
+                    <p class="mt-1.5 text-sm font-semibold text-red-700 dark:text-red-300 leading-relaxed">
+                        ${data.rejectReason ? data.rejectReason : '<span class="italic text-red-300 dark:text-red-500 font-normal">ไม่ได้ระบุเหตุผล</span>'}
+                    </p>
+                </div>
+            </div>
+            ` : ''}
+
             <div class="bg-white dark:bg-slate-900 rounded-3xl border dark:border-slate-800 overflow-hidden shadow-sm">
                 <div class="overflow-x-auto">
                     <table class="w-full text-left border-collapse table-auto">
@@ -1027,36 +1324,79 @@
         }
 
         let currentApprovingId = null; // ตัวแปรเก็บ ID ที่กำลังจะอนุมัติ
+        let currentRejectingId = null; // ตัวแปรเก็บ ID ที่กำลังจะปฏิเสธ
 
-        // ฟังก์ชันเดิมที่คุณมี แต่เปลี่ยนเฉพาะ action 'approve' ให้ไปเปิด Modal แทน
         async function updateStatus(id, action) {
             if (action === 'approve') {
                 currentApprovingId = id;
                 const item = allData.find(r => r.id === id);
-
-                // ใส่ยอดเงินเดิมลงใน Input เป็นค่าเริ่มต้น
                 document.getElementById('approveAmountInput').value = item.grandTotal;
                 document.getElementById('approveModal').classList.remove('hidden');
             } else {
-                // เคส 'reject' (ไม่อนุมัติ) ให้ทำงานเหมือนเดิม
-                if (confirm('คุณแน่ใจหรือไม่ที่จะ "ไม่อนุมัติ" รายการนี้?')) {
-                    try {
-                        await db.collection('expenseReceipts').doc(id).update({
-                            isApproved: false,
-                            status: 'rejected'
-                        });
-                        showToast("ปฏิเสธรายการแล้ว");
-                    } catch (error) {
-                        showToast("เกิดข้อผิดพลาด: " + error.message);
-                    }
-                }
+                // เปิด Reject Modal
+                currentRejectingId = id;
+                const item = allData.find(r => r.id === id);
+                document.getElementById('rejectItemName').innerText = `${item.category || 'ทั่วไป'} — ${item.personInCharge || ''}`;
+                document.getElementById('rejectItemAmount').innerText = `${parseFloat(item.grandTotal || 0).toLocaleString('th-TH', { minimumFractionDigits: 2 })} ฿`;
+                document.getElementById('rejectReasonInput').value = '';
+                document.getElementById('rejectModal').classList.remove('hidden');
+            }
+        }
+
+        function closeRejectModal() {
+            document.getElementById('rejectModal').classList.add('hidden');
+            document.getElementById('rejectConfirmLabel').innerText = 'ยืนยันปฏิเสธ';
+            currentRejectingId = null;
+        }
+
+        async function confirmReject() {
+            if (!currentRejectingId) return;
+            const reason = document.getElementById('rejectReasonInput').value.trim();
+
+            setModalLoading('rejectConfirmBtn', 'rejectCancelBtn', 'rejectConfirmLabel', true);
+
+            try {
+                await db.collection('expenseReceipts').doc(currentRejectingId).update({
+                    isApproved: false,
+                    status: 'rejected',
+                    ...(reason && { rejectReason: reason }),
+                    rejectedAt: firebase.firestore.FieldValue.serverTimestamp()
+                });
+                showToast('❌ ปฏิเสธรายการแล้ว');
+                closeRejectModal();
+            } catch (error) {
+                setModalLoading('rejectConfirmBtn', 'rejectCancelBtn', 'rejectConfirmLabel', false);
+                document.getElementById('rejectConfirmLabel').innerText = 'ยืนยันปฏิเสธ';
+                showToast('เกิดข้อผิดพลาด: ' + error.message);
             }
         }
 
         // ฟังก์ชันปิด Modal
         function closeApproveModal() {
             document.getElementById('approveModal').classList.add('hidden');
+            document.getElementById('approveConfirmLabel').innerText = 'ยืนยันบันทึก';
             currentApprovingId = null;
+        }
+
+        // Helper: ตั้งสถานะ loading ของปุ่มใน modal
+        function setModalLoading(confirmBtnId, cancelBtnId, labelId, isLoading, color = 'emerald') {
+            const btn = document.getElementById(confirmBtnId);
+            const cancel = document.getElementById(cancelBtnId);
+            const label = document.getElementById(labelId);
+            const spinnerSvg = `<svg class="animate-spin w-4 h-4 flex-shrink-0" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path></svg>`;
+
+            if (isLoading) {
+                btn.disabled = true;
+                cancel.disabled = true;
+                btn.classList.add('opacity-80', 'cursor-not-allowed');
+                cancel.classList.add('opacity-50', 'cursor-not-allowed');
+                label.innerHTML = spinnerSvg + '<span>กำลังบันทึก...</span>';
+            } else {
+                btn.disabled = false;
+                cancel.disabled = false;
+                btn.classList.remove('opacity-80', 'cursor-not-allowed');
+                cancel.classList.remove('opacity-50', 'cursor-not-allowed');
+            }
         }
 
         // ฟังก์ชันยืนยันบันทึกลง Firebase
@@ -1068,18 +1408,22 @@
                 return;
             }
 
+            setModalLoading('approveConfirmBtn', 'approveCancelBtn', 'approveConfirmLabel', true);
+
             try {
                 await db.collection('expenseReceipts').doc(currentApprovingId).update({
-                    grandTotal: finalAmount, // บันทึกจำนวนเงินที่กรอกใหม่ (ถ้ามีการแก้ไข)
+                    grandTotal: finalAmount,
                     isApproved: true,
                     status: 'approved',
-                    approvedAt: firebase.firestore.FieldValue.serverTimestamp() // เก็บเวลาที่อนุมัติเพิ่ม
+                    approvedAt: firebase.firestore.FieldValue.serverTimestamp()
                 });
 
-                showToast(`อนุมัติสำเร็จ: ${finalAmount.toLocaleString()} ฿`);
+                showToast(`✅ อนุมัติสำเร็จ: ${finalAmount.toLocaleString()} ฿`);
                 closeApproveModal();
             } catch (error) {
-                alert("เกิดข้อผิดพลาดในการบันทึก: " + error.message);
+                setModalLoading('approveConfirmBtn', 'approveCancelBtn', 'approveConfirmLabel', false);
+                document.getElementById('approveConfirmLabel').innerText = 'ยืนยันบันทึก';
+                showToast('เกิดข้อผิดพลาด: ' + error.message);
             }
         }
 
@@ -1205,7 +1549,7 @@
         }
 
         // คลิกแจ้งเตือนแล้วให้ไปที่รายการนั้น
-        function viewNotifyItem(id) {
+        async function viewNotifyItem(id) {
             toggleNotifyDropdown(); // ปิด dropdown
             currentFilterData = null; // ล้าง filter เพื่อให้เจอรายการ
             selectItem(id); // เลือกและโชว์รายละเอียด
