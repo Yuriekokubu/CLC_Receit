@@ -1301,22 +1301,35 @@
                 <div class="bg-white dark:bg-slate-900 p-6 rounded-3xl border dark:border-slate-800 text-center shadow-sm">
                     <p class="text-xs font-black text-slate-400 uppercase mb-4 tracking-widest">ลายเซ็น</p>
                     <div class="bg-slate-50 dark:bg-slate-800 rounded-2xl p-4 flex items-center justify-center min-h-[120px]">
-                        ${data.signatureData ? `
-                            <img src="${data.signatureData}" class="max-h-24 mx-auto dark:invert object-contain" alt="Signature">
-                        ` : '<p class="text-slate-400 text-xs italic">ไม่มีข้อมูลลายเซ็น</p>'}
+                        ${(() => {
+                    // แบบเดิม: base64 ใน signatureData
+                    // แบบใหม่: URL ใน signatureUrl
+                    const sigSrc = data.signatureData || data.signatureUrl || null;
+                    return sigSrc
+                        ? `<img src="${sigSrc}" class="max-h-24 mx-auto dark:invert object-contain" alt="Signature">`
+                        : '<p class="text-slate-400 text-xs italic">ไม่มีข้อมูลลายเซ็น</p>';
+                })()}
                     </div>
                 </div>
 
                 <div class="bg-white dark:bg-slate-900 p-6 rounded-3xl border dark:border-slate-800 shadow-sm text-center">
                     <p class="text-xs font-black text-slate-400 uppercase mb-4 tracking-widest">รูปภาพใบเสร็จ/หลักฐาน</p>
                     <div class="flex flex-wrap gap-2 justify-center pb-2">
-                        ${data.receiptImages && data.receiptImages.length > 0 ?
-                    data.receiptImages.map(img => `
-                                <img src="${img}" onclick="openImage(this.src)" 
-                                     class="h-50 w-50 object-cover rounded-xl border-2 border-slate-100 dark:border-slate-800 cursor-zoom-in hover:scale-105 transition-all shadow-sm">
-                            `).join('')
-                    : '<p class="text-slate-400 text-xs italic py-10 text-center w-full">ไม่มีรูปภาพประกอบ</p>'
-                }
+                        ${(() => {
+                    // แบบเดิม: receiptImages = array of base64 string
+                    // แบบใหม่: receiptImageUrls = array of Storage URL
+                    const imgs = (data.receiptImageUrls && data.receiptImageUrls.length > 0)
+                        ? data.receiptImageUrls
+                        : (data.receiptImages && data.receiptImages.length > 0)
+                            ? data.receiptImages
+                            : [];
+                    return imgs.length > 0
+                        ? imgs.map(img => `
+                                    <img src="${img}" onclick="openImage(this.src)"
+                                         class="h-50 w-50 object-cover rounded-xl border-2 border-slate-100 dark:border-slate-800 cursor-zoom-in hover:scale-105 transition-all shadow-sm">
+                                `).join('')
+                        : '<p class="text-slate-400 text-xs italic py-10 text-center w-full">ไม่มีรูปภาพประกอบ</p>';
+                })()}
                     </div>
                 </div>
             </div>
