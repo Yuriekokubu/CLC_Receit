@@ -2321,11 +2321,12 @@
                         total: item.total
                     })),
                     grandTotal: parseFloat(document.getElementById('grandTotal').textContent.replace(/,/g, '')) || 0,
+                    overallDiscount: parseFloat(document.getElementById('overallDiscount').value) || 0,
 
                     // --- บันทึกลิงก์ทั้งหมดที่อัปโหลดใน Storage ---
                     pdfUrl: downloadURL,
-                    signatureUrl: signatureUrl,       // URL ลายเซ็นจาก Storage
-                    receiptImageUrls: receiptImageUrls, // URL รูปสลิปจาก Storage
+                    signatureUrl: signatureUrl,
+                    receiptImageUrls: receiptImageUrls,
 
                     status: "pending",
                     createdAt: firebase.firestore.FieldValue.serverTimestamp()
