@@ -672,6 +672,7 @@
                         purpose: d.purpose,
                         personInCharge: d.personInCharge,
                         grandTotal: d.grandTotal,
+                        overallDiscount: d.overallDiscount,
                         isApproved: d.isApproved,
                         status: d.status,
                         createdAt: d.createdAt,
@@ -1293,6 +1294,31 @@
                                     </td>
                                 </tr>`).join('')}
                         </tbody>
+                        <tfoot class="border-t-2 border-slate-200 dark:border-slate-700 text-sm">
+                            ${(() => {
+                    const itemsSubTotal = data.items.reduce((sum, i) => sum + (i.price * i.qty), 0);
+                    const itemDiscount = data.items.reduce((sum, i) => sum + (parseFloat(i.discount) || 0), 0);
+                    const subAfterItems = itemsSubTotal - itemDiscount;
+                    const overallDiscount = parseFloat(data.overallDiscount || 0);
+                    const grandTotal = subAfterItems - overallDiscount;
+
+                    const row = (label, value, cls = '') => `
+                                    <tr class="border-t border-slate-100 dark:border-slate-800 ${cls}">
+                                        <td colspan="4" class="px-4 py-2.5 text-right font-semibold text-slate-500 dark:text-slate-400">${label}</td>
+                                        <td class="px-4 py-2.5 text-right font-semibold whitespace-nowrap text-slate-700 dark:text-slate-200">${value}</td>
+                                    </tr>`;
+
+                    return `
+                                    ${row('รวมเป็นเงิน', formatMoney(itemsSubTotal))}
+                                    ${itemDiscount > 0 ? row('ส่วนลดรายการสินค้า', `-${formatMoney(itemDiscount)}`, 'text-red-500') : ''}
+                                    ${overallDiscount > 0 ? row('ส่วนลดรวมท้ายบิล', `-${formatMoney(overallDiscount)}`, 'text-red-500') : ''}
+                                    <tr class="border-t-2 border-slate-300 dark:border-slate-600 bg-slate-50 dark:bg-slate-800/60">
+                                        <td colspan="4" class="px-4 py-4 text-right font-black text-slate-700 dark:text-slate-200 text-base">รวมทั้งสิ้นสุทธิ</td>
+                                        <td class="px-4 py-4 text-right font-black text-indigo-600 dark:text-indigo-400 text-lg whitespace-nowrap">${formatMoney(grandTotal)}</td>
+                                    </tr>
+                                `;
+                })()}
+                        </tfoot>
                     </table>
                 </div>
             </div>
