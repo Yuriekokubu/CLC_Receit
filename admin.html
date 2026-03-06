@@ -1340,17 +1340,22 @@
         let currentRejectingId = null; // ตัวแปรเก็บ ID ที่กำลังจะปฏิเสธ
 
         async function updateStatus(id, action) {
+            // ดึงข้อมูลจาก detailCache ก่อน (มีครบกว่า) แล้วค่อย fallback ไป allData
+            const item = detailCache[id] || allData.find(r => r.id === id);
+            if (!item) {
+                showToast('ไม่พบข้อมูลรายการนี้ กรุณาลองใหม่');
+                return;
+            }
+
             if (action === 'approve') {
                 currentApprovingId = id;
-                const item = allData.find(r => r.id === id);
-                document.getElementById('approveAmountInput').value = item.grandTotal;
+                // ใช้ grandTotal จาก item ถ้ามี ถ้าไม่มีให้เป็น 0
+                document.getElementById('approveAmountInput').value = parseFloat(item.grandTotal || 0);
                 document.getElementById('approveModal').classList.remove('hidden');
             } else {
-                // เปิด Reject Modal
                 currentRejectingId = id;
-                const item = allData.find(r => r.id === id);
                 document.getElementById('rejectItemName').innerText = `${item.category || 'ทั่วไป'} — ${item.personInCharge || ''}`;
-                document.getElementById('rejectItemAmount').innerText = `${parseFloat(item.grandTotal || 0).toLocaleString('th-TH', { minimumFractionDigits: 2 })} ฿`;
+                document.getElementById('rejectItemAmount').innerText = `-${parseFloat(item.grandTotal || 0).toLocaleString('th-TH', { minimumFractionDigits: 2 })} ฿`;
                 document.getElementById('rejectReasonInput').value = '';
                 document.getElementById('rejectModal').classList.remove('hidden');
             }
@@ -1359,11 +1364,20 @@
         function closeRejectModal() {
             document.getElementById('rejectModal').classList.add('hidden');
             document.getElementById('rejectConfirmLabel').innerText = 'ยืนยันปฏิเสธ';
+            // re-enable ปุ่มกรณีปิด modal ระหว่าง loading
+            const btn = document.getElementById('rejectConfirmBtn');
+            const cancel = document.getElementById('rejectCancelBtn');
+            if (btn) { btn.disabled = false; btn.classList.remove('opacity-80', 'cursor-not-allowed'); }
+            if (cancel) { cancel.disabled = false; cancel.classList.remove('opacity-50', 'cursor-not-allowed'); }
             currentRejectingId = null;
         }
 
         async function confirmReject() {
-            if (!currentRejectingId) return;
+            if (!currentRejectingId) {
+                showToast('ไม่พบรายการที่จะปฏิเสธ กรุณาลองใหม่');
+                closeRejectModal();
+                return;
+            }
             const reason = document.getElementById('rejectReasonInput').value.trim();
 
             setModalLoading('rejectConfirmBtn', 'rejectCancelBtn', 'rejectConfirmLabel', true);
@@ -1388,6 +1402,11 @@
         function closeApproveModal() {
             document.getElementById('approveModal').classList.add('hidden');
             document.getElementById('approveConfirmLabel').innerText = 'ยืนยันบันทึก';
+            // re-enable ปุ่มกรณีปิด modal ระหว่าง loading
+            const btn = document.getElementById('approveConfirmBtn');
+            const cancel = document.getElementById('approveCancelBtn');
+            if (btn) { btn.disabled = false; btn.classList.remove('opacity-80', 'cursor-not-allowed'); }
+            if (cancel) { cancel.disabled = false; cancel.classList.remove('opacity-50', 'cursor-not-allowed'); }
             currentApprovingId = null;
         }
 
@@ -1414,10 +1433,17 @@
 
         // ฟังก์ชันยืนยันบันทึกลง Firebase
         async function confirmApprove() {
-            const finalAmount = parseFloat(document.getElementById('approveAmountInput').value);
+            const rawVal = document.getElementById('approveAmountInput').value;
+            const finalAmount = parseFloat(rawVal);
 
             if (isNaN(finalAmount) || finalAmount < 0) {
-                alert("กรุณาระบุจำนวนเงินที่ถูกต้อง");
+                showToast('กรุณาระบุจำนวนเงินที่ถูกต้อง');
+                document.getElementById('approveAmountInput').focus();
+                return;
+            }
+
+            if (!currentApprovingId) {
+                showToast('ไม่พบรายการที่จะอนุมัติ กรุณาลองใหม่');
                 return;
             }
 
