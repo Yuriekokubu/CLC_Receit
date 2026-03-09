@@ -741,51 +741,148 @@
             background-color: white;
             box-sizing: border-box;
             color: #000;
+            font-family: 'Sarabun', sans-serif;
         }
 
         .pdf-page-content {
             position: relative;
             width: 800px;
             min-height: 1123px;
-            padding: 40px 50px;
+            padding: 36px 50px;
             box-sizing: border-box;
             color: #000;
             background-color: white;
+            font-family: 'Sarabun', sans-serif;
+            font-size: 15px;
         }
 
         .pdf-page-content .pdf-logo {
-            width: 70px;
-            height: 70px;
-            border: 3px solid #1e3a8a;
+            width: 65px;
+            height: 65px;
             border-radius: 50%;
             box-sizing: border-box;
             display: inline-block;
+            object-fit: cover;
         }
 
+        /* Header แบบตามรูปต้นแบบ */
+        .template-header-line {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 2px solid #1e3a8a;
+            margin-bottom: 18px;
+            padding-bottom: 12px;
+        }
+
+        .template-header-left {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .template-header-title h1 {
+            font-size: 20px;
+            font-weight: 800;
+            color: #1e3a8a;
+            margin: 0 0 2px 0;
+            line-height: 1.2;
+        }
+
+        .template-header-title p {
+            font-size: 13px;
+            color: #6b7280;
+            margin: 0;
+        }
+
+        .template-header-right {
+            text-align: right;
+        }
+
+        .template-header-right h2 {
+            font-size: 15px;
+            font-weight: 700;
+            color: #374151;
+            margin: 0 0 3px 0;
+        }
+
+        .template-header-right p {
+            font-size: 12px;
+            color: #9ca3af;
+            margin: 0;
+        }
+
+        /* Info section */
+        .pdf-info-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 16px;
+            font-size: 15px;
+        }
+
+        .pdf-info-table td {
+            padding: 5px 8px;
+            border: none;
+            vertical-align: middle;
+        }
+
+        .pdf-info-table td:first-child {
+            font-weight: 700;
+            width: 130px;
+            color: #111827;
+            white-space: nowrap;
+        }
+
+        .pdf-info-table td:last-child {
+            border-bottom: 1px solid #9ca3af;
+            color: #111827;
+            width: calc(100% - 130px);
+        }
+
+        /* ตารางรายการ */
         .template-table {
             width: 100%;
             border-collapse: collapse;
-            margin-top: 20px;
+            margin-top: 8px;
+            font-size: 14px;
         }
 
         .template-table th {
-            background-color: #f3f4f6;
-            border: 1px solid #9ca3af;
-            padding: 8px;
+            background-color: #1e3a8a;
+            color: white;
+            border: 1px solid #1e3a8a;
+            padding: 9px 8px;
             text-align: center;
-            font-weight: bold;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .template-table th:first-child {
+            border-radius: 0;
         }
 
         .template-table td {
-            border: 1px solid #9ca3af;
-            padding: 8px;
-            vertical-align: top;
+            border: 1px solid #d1d5db;
+            padding: 8px 10px;
+            vertical-align: middle;
+            color: #111827;
         }
 
-        .template-header-line {
-            border-bottom: 2px solid #1e3a8a;
-            margin-bottom: 20px;
-            padding-bottom: 10px;
+        .template-table tbody tr:nth-child(even) {
+            background-color: #f9fafb;
+        }
+
+        .template-table tfoot td {
+            border: 1px solid #d1d5db;
+            padding: 8px 10px;
+            vertical-align: middle;
+        }
+
+        .template-table tfoot tr:last-child td {
+            background-color: #eff6ff;
+            font-weight: 800;
+            font-size: 16px;
+            color: #1e3a8a;
         }
 
         .pdf-watermark {
@@ -1838,18 +1935,18 @@
 
             let tplBodyContent = '';
             if (pageItems.length === 0 && pageIndex === 0) {
-                tplBodyContent = `<tr><td colspan="6" class="text-center py-4 text-gray-500 italic">-- ไม่มีรายการ --</td></tr>`;
+                tplBodyContent = `<tr><td colspan="6" style="text-align:center; padding:20px; color:#6b7280; font-style:italic;">-- ไม่มีรายการ --</td></tr>`;
             } else {
                 pageItems.forEach((item, index) => {
                     const currentNum = startNum + index;
                     tplBodyContent += `
                         <tr>
-                            <td class="text-center">${currentNum}</td>
+                            <td style="text-align:center;">${currentNum}</td>
                             <td>${item.name}</td>
-                            <td class="text-right">${item.qty || '-'}</td>
-                            <td class="text-right">${item.price ? formatMoney(item.price) : '-'}</td>
-                            <td class="text-right text-red-600">${item.discount && item.discount > 0 ? formatMoney(item.discount) : '-'}</td>
-                            <td class="text-right font-medium">${formatMoney(item.total)}</td>
+                            <td style="text-align:right;">${item.qty || '-'}</td>
+                            <td style="text-align:right;">${item.price ? formatMoney(item.price) : '-'}</td>
+                            <td style="text-align:right; color:#dc2626;">${item.discount && item.discount > 0 ? formatMoney(item.discount) : '-'}</td>
+                            <td style="text-align:right; font-weight:600;">${formatMoney(item.total)}</td>
                         </tr>
                     `;
                 });
@@ -1873,24 +1970,21 @@
 
                 tplFooterContent = `
         <tfoot>
-            <tr class="font-normal bg-gray-50 border-t border-gray-400">
-                <td colspan="5" class="text-right pr-4 pt-2">รวมเป็นเงิน</td>
-                <td class="text-right pt-2">${formatMoney(totalBeforeDiscount)}</td>
+            <tr style="background:#f9fafb; border-top: 2px solid #6b7280;">
+                <td colspan="5" style="text-align:right; padding-right:16px; padding-top:8px; font-weight:500;">รวมเป็นเงิน</td>
+                <td style="text-align:right; padding-top:8px; font-weight:500;">${formatMoney(totalBeforeDiscount)}</td>
             </tr>
-
-            <tr class="font-normal">
-                <td colspan="5" class="text-right pr-4 text-red-600">ส่วนลดรายการสินค้า</td>
-                <td class="text-right text-red-600">-${formatMoney(totalItemDiscounts)}</td>
+            <tr>
+                <td colspan="5" style="text-align:right; padding-right:16px; color:#dc2626;">ส่วนลดรายการสินค้า</td>
+                <td style="text-align:right; color:#dc2626;">-${formatMoney(totalItemDiscounts)}</td>
             </tr>
-
-            <tr class="font-normal border-b border-gray-300">
-                <td colspan="5" class="text-right pr-4 pb-2 text-red-600">ส่วนลดรวมท้ายบิล</td>
-                <td class="text-right pb-2 text-red-600">-${formatMoney(overallDiscount)}</td>
+            <tr style="border-bottom: 1px solid #d1d5db;">
+                <td colspan="5" style="text-align:right; padding-right:16px; padding-bottom:8px; color:#dc2626;">ส่วนลดรวมท้ายบิล</td>
+                <td style="text-align:right; padding-bottom:8px; color:#dc2626;">-${formatMoney(overallDiscount)}</td>
             </tr>
-
-            <tr class="font-bold bg-gray-100">
-                <td colspan="5" class="text-right pr-4 py-3 text-lg text-blue-800">รวมทั้งสิ้นสุทธิ</td>
-                <td class="text-right py-3 text-xl text-blue-800" style="font-weight: 800;">
+            <tr>
+                <td colspan="5" style="text-align:right; padding-right:16px; padding-top:10px; padding-bottom:10px; font-weight:800; font-size:17px; color:#1e3a8a; background:#eff6ff;">รวมทั้งสิ้นสุทธิ</td>
+                <td style="text-align:right; padding-top:10px; padding-bottom:10px; font-weight:800; font-size:18px; color:#1e3a8a; background:#eff6ff;">
                     ${formatMoney(finalGrandTotal)}
                 </td>
             </tr>
@@ -1903,19 +1997,17 @@
                 const signerName = personInCharge || '.......................................................';
                 const signatureImageHtml = signatureData ? `<img src="${signatureData}" style="position: absolute; top: -90px; left: 50%; transform: translateX(-50%); max-width: 200px; max-height: 80px;" alt="ลายเซ็น">` : '';
                 signatureBlock = `
-                    <div class="pdf-signature-block" style="position: absolute; bottom: 50px; width: 700px; left: 50px;">
-                        <div class="flex justify-between px-10">
-                            <div class="text-center" style="width: 250px; position: relative;">
-                                <div class="border-b border-gray-400 w-full mb-2"></div>
-                                <p class="font-bold">(${signerName})</p>
-                                <p class="text-sm text-gray-500">ผู้ขอเบิกจ่าย</p>
-                                ${signatureImageHtml}
-                            </div>
-                            <div class="text-center" style="width: 250px;">
-                                <div class="border-b border-gray-400 w-full mb-2"></div>
-                                <p class="font-bold">(...............................................)</p>
-                                <p class="text-sm text-gray-500">ผู้อนุมัติ (เหรัญญิก/ศิษยาภิบาล)</p>
-                            </div>
+                    <div style="position: absolute; bottom: 50px; width: 700px; left: 50px; display: flex; justify-content: space-between; padding: 0 40px;">
+                        <div style="text-align: center; width: 240px; position: relative;">
+                            ${signatureImageHtml}
+                            <div style="border-bottom: 1px solid #9ca3af; width: 100%; margin-bottom: 6px;"></div>
+                            <p style="font-weight: 700; margin: 0;">(${signerName})</p>
+                            <p style="font-size: 13px; color: #6b7280; margin: 4px 0 0 0;">ผู้ขอเบิกจ่าย</p>
+                        </div>
+                        <div style="text-align: center; width: 240px;">
+                            <div style="border-bottom: 1px solid #9ca3af; width: 100%; margin-bottom: 6px;"></div>
+                            <p style="font-weight: 700; margin: 0;">(...............................................)</p>
+                            <p style="font-size: 13px; color: #6b7280; margin: 4px 0 0 0;">ผู้อนุมัติ (เหรัญญิก/ศิษยาภิบาล)</p>
                         </div>
                     </div>
                 `;
@@ -1923,23 +2015,23 @@
 
             const now = new Date();
             const headerInfoHtml = `
-                <div class="mb-6 px-4">
-                    <table class="w-full text-lg">
+                <div style="margin-bottom: 16px;">
+                    <table class="pdf-info-table">
                         <tr>
-                            <td class="font-bold w-32 py-2 border-0">วันที่:</td>
-                            <td class="border-b border-gray-400 py-2 border-t-0 border-l-0 border-r-0 w-full">${document.getElementById('billDateDisplay').value}</td>
+                            <td>วันที่:</td>
+                            <td>${document.getElementById('billDateDisplay').value}</td>
                         </tr>
                         <tr>
-                            <td class="font-bold w-32 py-2 border-0">ผู้เบิก:</td>
-                            <td class="border-b border-gray-400 py-2 border-t-0 border-l-0 border-r-0 w-full">${personInCharge || '-'}</td>
+                            <td>ผู้เบิก:</td>
+                            <td>${personInCharge || '-'}</td>
                         </tr>
                         <tr>
-                            <td class="font-bold w-32 py-2 border-0">หมวดหมู่:</td>
-                            <td class="border-b border-gray-400 py-2 border-t-0 border-l-0 border-r-0 w-full">${getCurrentCategoryValue() || '-'}</td>
+                            <td>หมวดหมู่:</td>
+                            <td>${getCurrentCategoryValue() || '-'}</td>
                         </tr>
                         <tr>
-                            <td class="font-bold w-32 py-2 border-0">วัตถุประสงค์:</td>
-                            <td class="border-b border-gray-400 py-2 border-t-0 border-l-0 border-r-0 w-full">${document.getElementById('billPurpose').value || '-'}</td>
+                            <td>วัตถุประสงค์:</td>
+                            <td>${document.getElementById('billPurpose').value || '-'}</td>
                         </tr>
                     </table>
                 </div>
@@ -1950,17 +2042,16 @@
                 : `ใบเบิกค่าใช้จ่าย`;
 
             const mainHeaderHtml = `
-                <div class="flex items-center justify-between template-header-line">
-                    <div class="flex items-center space-x-4">
-                        <img src="https://firebasestorage.googleapis.com/v0/b/clc-e-receit.firebasestorage.app/o/img%2F47da5053b1b96.png?alt=media&token=f9aa08f6-a41f-41bf-8970-632f66f6afb4" class="pdf-logo mr-2" style="object-fit:cover;">
-                        <div class="ml-2">
-                            <h1 class="text-3xl font-extrabold text-blue-900 mb-2">คริสตจักรลูกของความสว่าง</h1>
-                            <p class="text-sm text-gray-500">Children of Light Church</p>
+                <div class="template-header-line">
+                    <div class="template-header-left">
+                        <img src="https://firebasestorage.googleapis.com/v0/b/clc-e-receit.firebasestorage.app/o/img%2F47da5053b1b96.png?alt=media&token=f9aa08f6-a41f-41bf-8970-632f66f6afb4" class="pdf-logo">
+                        <div class="template-header-title">
+                            <h1>คริสตจักรลูกของความสว่าง</h1>
+                            <p>Children of Light Church &nbsp;&nbsp; พิมพ์เมื่อ: ${now.toLocaleString('th-TH')}</p>
                         </div>
                     </div>
-                    <div class="text-right">
-                        <h2 class="text-lg font-extrabold text-gray-700">${titleText}</h2>
-                        <p class="text-xs text-gray-400 mt-1">พิมพ์เมื่อ: ${now.toLocaleString('th-TH')}</p>
+                    <div class="template-header-right">
+                        <h2>${titleText}</h2>
                     </div>
                 </div>
             `;
@@ -1976,13 +2067,13 @@
                     <div class="mb-8">
                         <table class="template-table">
                             <thead>
-                                <tr class="bg-gray-200 text-gray-700">
-                                    <th class="w-12">ลำดับ</th>
-                                    <th class="text-left">รายการ (Description)</th>
-                                    <th class="w-20 text-right">จำนวน</th>
-                                    <th class="w-28 text-right">ราคา/หน่วย</th>
-                                    <th class="w-28 text-right">ส่วนลด (บาท)</th>
-                                    <th class="w-32 text-right">รวมสุทธิ (บาท)</th>
+                                <tr>
+                                    <th style="width:50px;">ลำดับ</th>
+                                    <th style="text-align:left;">รายการ (Description)</th>
+                                    <th style="width:70px; text-align:right;">จำนวน</th>
+                                    <th style="width:110px; text-align:right;">ราคา/หน่วย</th>
+                                    <th style="width:110px; text-align:right;">ส่วนลด (บาท)</th>
+                                    <th style="width:120px; text-align:right;">รวมสุทธิ (บาท)</th>
                                 </tr>
                             </thead>
                             <tbody>
