@@ -19,6 +19,7 @@
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-storage-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-check-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
     <script>
         tailwind.config = {
             theme: {
@@ -809,10 +810,309 @@
             border-radius: 50%;
             box-shadow: 0 0 0 4px #bfdbfe, 0 0 0 6px #1e3a8a;
         }
+
+        /* === AUTH OVERLAY === */
+        #authOverlay {
+            position: fixed;
+            inset: 0;
+            background: linear-gradient(135deg, #dbeafe 0%, #e0e7ff 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 99999;
+            padding: 20px;
+        }
+
+        .auth-card {
+            background: white;
+            border-radius: 24px;
+            box-shadow: 0 24px 64px rgba(30, 58, 138, 0.18);
+            width: 100%;
+            max-width: 420px;
+            overflow: hidden;
+            animation: modalIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        .auth-header {
+            background: linear-gradient(135deg, #1e3a8a 0%, #1d4ed8 100%);
+            padding: 32px 32px 28px;
+            text-align: center;
+            color: white;
+        }
+
+        .auth-header img {
+            width: 72px;
+            height: 72px;
+            border-radius: 50%;
+            border: 3px solid rgba(255, 255, 255, 0.8);
+            object-fit: cover;
+            margin-bottom: 14px;
+        }
+
+        .auth-header h2 {
+            font-size: 22px;
+            font-weight: 800;
+            margin: 0 0 4px;
+        }
+
+        .auth-header p {
+            font-size: 13px;
+            opacity: 0.7;
+            margin: 0;
+        }
+
+        .auth-tabs {
+            display: flex;
+            border-bottom: 1.5px solid #e2e8f0;
+        }
+
+        .auth-tab {
+            flex: 1;
+            padding: 14px;
+            font-family: 'Sarabun', sans-serif;
+            font-size: 15px;
+            font-weight: 600;
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: #94a3b8;
+            border-bottom: 3px solid transparent;
+            margin-bottom: -1.5px;
+            transition: all 0.2s;
+        }
+
+        .auth-tab.active {
+            color: #1d4ed8;
+            border-bottom-color: #1d4ed8;
+        }
+
+        .auth-body {
+            padding: 28px 32px 32px;
+        }
+
+        .auth-field {
+            margin-bottom: 16px;
+        }
+
+        .auth-field label {
+            display: block;
+            font-size: 13px;
+            font-weight: 600;
+            color: #64748b;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 6px;
+        }
+
+        .auth-field input {
+            width: 100%;
+            background: #f8fafc;
+            border: 1.5px solid #e2e8f0;
+            border-radius: 10px;
+            padding: 11px 14px;
+            font-family: 'Sarabun', sans-serif;
+            font-size: 15px;
+            color: #0f172a;
+            transition: border-color 0.2s, box-shadow 0.2s;
+            box-sizing: border-box;
+        }
+
+        .auth-field input:focus {
+            outline: none;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.12);
+            background: white;
+        }
+
+        .auth-btn {
+            width: 100%;
+            padding: 13px;
+            background: linear-gradient(135deg, #1e3a8a, #1d4ed8);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-family: 'Sarabun', sans-serif;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: opacity 0.2s, transform 0.15s;
+            margin-top: 4px;
+        }
+
+        .auth-btn:hover {
+            opacity: 0.9;
+            transform: translateY(-1px);
+        }
+
+        .auth-btn:active {
+            transform: scale(0.98);
+        }
+
+        .auth-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .auth-error {
+            background: #fee2e2;
+            color: #dc2626;
+            border-radius: 8px;
+            padding: 10px 14px;
+            font-size: 13.5px;
+            font-weight: 500;
+            margin-bottom: 16px;
+            display: none;
+        }
+
+        .auth-success {
+            background: #dcfce7;
+            color: #16a34a;
+            border-radius: 8px;
+            padding: 10px 14px;
+            font-size: 13.5px;
+            font-weight: 500;
+            margin-bottom: 16px;
+            display: none;
+        }
+
+        /* Top bar when logged in */
+        #userTopBar {
+            display: none;
+            background: white;
+            border-radius: 12px;
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.07);
+            padding: 10px 18px;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 4px;
+        }
+
+        #userTopBar.visible {
+            display: flex;
+        }
+
+        .user-avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #1e3a8a, #3b82f6);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 15px;
+            flex-shrink: 0;
+        }
+
+        #authOverlay.hidden {
+            display: none;
+        }
+
+        .forgot-link {
+            background: none;
+            border: none;
+            color: #3b82f6;
+            font-family: 'Sarabun', sans-serif;
+            font-size: 13px;
+            cursor: pointer;
+            padding: 0;
+            text-decoration: underline;
+            margin-top: 10px;
+            display: block;
+            text-align: center;
+        }
     </style>
 </head>
 
 <body style="padding: 16px 12px 40px;">
+
+    <!-- AUTH OVERLAY -->
+    <div id="authOverlay">
+        <div class="auth-card">
+            <div class="auth-header" style="text-align: center;"> <img
+                    src="https://firebasestorage.googleapis.com/v0/b/clc-e-receit.firebasestorage.app/o/img%2FCLC_logo.png?alt=media&token=1e12ce59-6661-4164-a934-5bb0fda0f14a"
+                    alt="Logo"
+                    style="width: 80px; height: 80px; display: block; margin: 0 auto 15px auto; object-fit: contain;">
+                <h2 style="margin: 0;">คริสตจักรลูกของความสว่าง</h2>
+                <p style="margin-top: 5px;">ระบบใบขอเบิกค่าใช้จ่าย</p>
+            </div>
+            <div class="auth-tabs">
+                <button class="auth-tab active" onclick="switchAuthTab('login')" id="tabLogin">เข้าสู่ระบบ</button>
+                <button class="auth-tab" onclick="switchAuthTab('register')" id="tabRegister">สมัครสมาชิก</button>
+            </div>
+            <div class="auth-body">
+                <div id="authError" class="auth-error"></div>
+                <div id="authSuccessMsg" class="auth-success"></div>
+
+                <!-- LOGIN FORM -->
+                <div id="loginForm">
+                    <div class="auth-field">
+                        <label>อีเมล</label>
+                        <input type="email" id="loginEmail" placeholder="กรอกอีเมล" autocomplete="email">
+                    </div>
+                    <div class="auth-field">
+                        <label>รหัสผ่าน</label>
+                        <input type="password" id="loginPassword" placeholder="กรอกรหัสผ่าน"
+                            autocomplete="current-password" onkeydown="if(event.key==='Enter') doLogin()">
+                    </div>
+                    <button class="auth-btn" id="loginBtn" onclick="doLogin()">เข้าสู่ระบบ</button>
+                    <button type="button" class="google-btn" onclick="doGoogleSignIn()"
+                        style="width:100%; margin-top:10px; display:flex; align-items:center; justify-content:center; gap:10px; background:white; color:#444; border:1px solid #ddd; padding:10px; border-radius:8px; cursor:pointer;">
+                        <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" width="20">
+                        เข้าสู่ระบบด้วย Google
+                    </button>
+                    <button class="forgot-link" onclick="doForgotPassword()">ลืมรหัสผ่าน?</button>
+                </div>
+
+                <!-- REGISTER FORM -->
+                <div id="registerForm" style="display:none;">
+                    <div class="auth-field">
+                        <label>ชื่อ-นามสกุล</label>
+                        <input type="text" id="regName" placeholder="กรอกชื่อ-นามสกุล">
+                    </div>
+                    <div class="auth-field">
+                        <label>อีเมล</label>
+                        <input type="email" id="regEmail" placeholder="กรอกอีเมล" autocomplete="email">
+                    </div>
+                    <div class="auth-field">
+                        <label>รหัสผ่าน</label>
+                        <input type="password" id="regPassword" placeholder="อย่างน้อย 6 ตัวอักษร"
+                            autocomplete="new-password">
+                    </div>
+                    <div class="auth-field">
+                        <label>ยืนยันรหัสผ่าน</label>
+                        <input type="password" id="regPasswordConfirm" placeholder="กรอกรหัสผ่านอีกครั้ง"
+                            autocomplete="new-password" onkeydown="if(event.key==='Enter') doRegister()">
+                    </div>
+                    <button class="auth-btn" id="registerBtn" onclick="doRegister()">สมัครสมาชิก</button>
+
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- USER TOP BAR (shown after login) -->
+    <div id="userTopBar">
+        <div style="display:flex;align-items:center;gap:12px;">
+            <div class="user-avatar" id="userAvatar">U</div>
+            <div>
+                <div style="font-size:14px;font-weight:700;color:#0f172a;" id="userDisplayName">ผู้ใช้งาน</div>
+                <div style="font-size:12px;color:#64748b;" id="userDisplayEmail"></div>
+            </div>
+        </div>
+        <button onclick="doLogout()"
+            style="display:flex;align-items:center;gap:6px;padding:8px 16px;background:#fee2e2;color:#dc2626;border:none;border-radius:8px;font-family:'Sarabun',sans-serif;font-size:13px;font-weight:600;cursor:pointer;transition:background 0.15s;"
+            onmouseover="this.style.background='#fca5a5'" onmouseout="this.style.background='#fee2e2'">
+            <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+            </svg>
+            ออกจากระบบ
+        </button>
+    </div>
 
     <!-- PAGE WRAPPER -->
     <div style="max-width: 900px; margin: 0 auto; display: flex; flex-direction: column; gap: 20px;">
@@ -913,14 +1213,15 @@
                     </div>
                     <div class="field-group">
                         <label class="field-label">ผู้รับผิดชอบ</label>
-                        <input id="personInCharge" type="text" class="field-input" placeholder="ชื่อผู้รับผิดชอบ">
+                        <input id="personInCharge" type="text" readonly class="field-input"
+                            placeholder="ชื่อผู้รับผิดชอบ" style="background:#f1f5f9;cursor:default;">
                     </div>
                 </div>
             </div>
         </div>
 
         <!-- ITEMS TABLE CARD -->
-        <div class="card">
+        <div class=" card">
             <div class="card-body" style="padding-bottom:12px;">
                 <div class="section-title" style="margin-bottom:0;">
                     <div class="icon">
@@ -1160,7 +1461,193 @@
         );
         const db = firebase.firestore();
         const storage = firebase.storage();
+        const auth = firebase.auth();
         // END: FIREBASE CONFIGURATION AND INITIALIZATION
+
+        // ===== AUTH FUNCTIONS =====
+        let currentUser = null;
+
+        const authErrorMessages = {
+            'auth/invalid-email': 'รูปแบบอีเมลไม่ถูกต้อง',
+            'auth/user-not-found': 'ไม่พบบัญชีผู้ใช้นี้',
+            'auth/wrong-password': 'รหัสผ่านไม่ถูกต้อง',
+            'auth/invalid-credential': 'อีเมลหรือรหัสผ่านไม่ถูกต้อง',
+            'auth/email-already-in-use': 'อีเมลนี้ถูกใช้งานแล้ว',
+            'auth/weak-password': 'รหัสผ่านต้องมีอย่างน้อย 6 ตัวอักษร',
+            'auth/too-many-requests': 'พยายามเข้าสู่ระบบบ่อยเกินไป กรุณารอสักครู่',
+            'auth/network-request-failed': 'ไม่สามารถเชื่อมต่ออินเทอร์เน็ตได้',
+        };
+
+        const doGoogleSignIn = async () => {
+            clearAuthMessages();
+            try {
+                const provider = new firebase.auth.GoogleAuthProvider();
+
+                // ใช้ Popup แทน Redirect (แก้ปัญหาหน้าเว็บรีโหลดแล้วข้อมูลหาย)
+                await auth.signInWithPopup(provider);
+
+                // พอ Popup ปิดลง ระบบจะส่งข้อมูลไปให้ onAuthStateChanged ซ่อนหน้า Login อัตโนมัติ
+            } catch (e) {
+                showAuthError('การเข้าสู่ระบบผ่าน Google ล้มเหลว: ' + e.message);
+            }
+        };
+
+        const showAuthError = (msg) => {
+            const el = document.getElementById('authError');
+            const ok = document.getElementById('authSuccessMsg');
+            el.textContent = msg;
+            el.style.display = 'block';
+            ok.style.display = 'none';
+        };
+
+        const showAuthSuccess = (msg) => {
+            const el = document.getElementById('authSuccessMsg');
+            const err = document.getElementById('authError');
+            el.textContent = msg;
+            el.style.display = 'block';
+            err.style.display = 'none';
+        };
+
+        const clearAuthMessages = () => {
+            document.getElementById('authError').style.display = 'none';
+            document.getElementById('authSuccessMsg').style.display = 'none';
+        };
+
+        const switchAuthTab = (tab) => {
+            clearAuthMessages();
+            if (tab === 'login') {
+                document.getElementById('loginForm').style.display = 'block';
+                document.getElementById('registerForm').style.display = 'none';
+                document.getElementById('tabLogin').classList.add('active');
+                document.getElementById('tabRegister').classList.remove('active');
+            } else {
+                document.getElementById('loginForm').style.display = 'none';
+                document.getElementById('registerForm').style.display = 'block';
+                document.getElementById('tabLogin').classList.remove('active');
+                document.getElementById('tabRegister').classList.add('active');
+            }
+        };
+
+        const setAuthBtnLoading = (btnId, loading, text) => {
+            const btn = document.getElementById(btnId);
+            btn.disabled = loading;
+            btn.innerHTML = loading
+                ? `<span class="spinner"></span>`
+                : text;
+        };
+
+        const doLogin = async () => {
+            clearAuthMessages();
+            const email = document.getElementById('loginEmail').value.trim();
+            const password = document.getElementById('loginPassword').value;
+            if (!email || !password) { showAuthError('กรุณากรอกอีเมลและรหัสผ่าน'); return; }
+            setAuthBtnLoading('loginBtn', true, 'เข้าสู่ระบบ');
+            try {
+                await auth.signInWithEmailAndPassword(email, password);
+            } catch (e) {
+                showAuthError(authErrorMessages[e.code] || 'เกิดข้อผิดพลาด: ' + e.message);
+                setAuthBtnLoading('loginBtn', false, 'เข้าสู่ระบบ');
+            }
+        };
+
+        const doRegister = async () => {
+            clearAuthMessages();
+            const name = document.getElementById('regName').value.trim();
+            const email = document.getElementById('regEmail').value.trim();
+            const password = document.getElementById('regPassword').value;
+            const confirm = document.getElementById('regPasswordConfirm').value;
+            if (!name) { showAuthError('กรุณากรอกชื่อ-นามสกุล'); return; }
+            if (!email) { showAuthError('กรุณากรอกอีเมล'); return; }
+            if (!password) { showAuthError('กรุณากรอกรหัสผ่าน'); return; }
+            if (password !== confirm) { showAuthError('รหัสผ่านไม่ตรงกัน'); return; }
+            if (password.length < 6) { showAuthError('รหัสผ่านต้องมีอย่างน้อย 6 ตัวอักษร'); return; }
+            setAuthBtnLoading('registerBtn', true, 'สมัครสมาชิก');
+            try {
+                const cred = await auth.createUserWithEmailAndPassword(email, password);
+                await cred.user.updateProfile({ displayName: name });
+                // Save user profile to Firestore
+                await db.collection('users').doc(cred.user.uid).set({
+                    name: name,
+                    email: email,
+                    createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                    role: 'member'
+                });
+                showAuthSuccess('สมัครสมาชิกสำเร็จ! กำลังเข้าสู่ระบบ...');
+            } catch (e) {
+                showAuthError(authErrorMessages[e.code] || 'เกิดข้อผิดพลาด: ' + e.message);
+                setAuthBtnLoading('registerBtn', false, 'สมัครสมาชิก');
+            }
+        };
+
+        const doForgotPassword = async () => {
+            clearAuthMessages();
+            const email = document.getElementById('loginEmail').value.trim();
+            if (!email) { showAuthError('กรุณากรอกอีเมลของคุณก่อน'); return; }
+            try {
+                await auth.sendPasswordResetEmail(email);
+                showAuthSuccess(`ส่งลิงก์รีเซ็ตรหัสผ่านไปที่ ${email} แล้ว กรุณาตรวจสอบอีเมล`);
+            } catch (e) {
+                showAuthError(authErrorMessages[e.code] || 'เกิดข้อผิดพลาด: ' + e.message);
+            }
+        };
+
+        const doLogout = async () => {
+            if (!confirm('ต้องการออกจากระบบหรือไม่?')) return;
+            await auth.signOut();
+        };
+
+        const onUserLoggedIn = (user) => {
+            currentUser = user;
+            document.getElementById('authOverlay').classList.add('hidden');
+            const topBar = document.getElementById('userTopBar');
+            topBar.classList.add('visible');
+            const displayName = user.displayName || user.email.split('@')[0];
+            document.getElementById('userDisplayName').textContent = displayName;
+            document.getElementById('userDisplayEmail').textContent = user.email;
+            document.getElementById('userAvatar').textContent = displayName.charAt(0).toUpperCase();
+            // Auto-fill person in charge
+            const personInput = document.getElementById('personInCharge');
+            if (personInput && !personInput.value) {
+                personInput.value = displayName;
+            }
+        };
+
+        const onUserLoggedOut = () => {
+            currentUser = null;
+            document.getElementById('authOverlay').classList.remove('hidden');
+            document.getElementById('userTopBar').classList.remove('visible');
+            // Reset auth forms
+            document.getElementById('loginEmail').value = '';
+            document.getElementById('loginPassword').value = '';
+            setAuthBtnLoading('loginBtn', false, 'เข้าสู่ระบบ');
+            setAuthBtnLoading('registerBtn', false, 'สมัครสมาชิก');
+            clearAuthMessages();
+            switchAuthTab('login');
+        };
+
+        // 1. ตรวจสอบผลลัพธ์หลังจาก Redirect กลับมา
+        auth.getRedirectResult().then((result) => {
+            if (result.user) {
+                // ถ้าเข้าสู่ระบบสำเร็จจาก Google Redirect
+                const overlay = document.getElementById('authOverlay');
+                if (overlay) {
+                    overlay.style.display = 'none';
+                }
+            }
+        }).catch((error) => {
+            console.error("Redirect error:", error.message);
+        });
+
+        // 2. ส่วน Listen Auth State (เหมือนเดิมแต่ต้องมั่นใจว่ามีสั่งซ่อน Overlay)
+        auth.onAuthStateChanged((user) => {
+            if (user) {
+                // ระบบจะโยนข้อมูล user ไปให้ onUserLoggedIn จัดการซ่อนหน้าจอให้เอง
+                onUserLoggedIn(user);
+            } else {
+                onUserLoggedOut();
+            }
+        });
+        // ===== END AUTH FUNCTIONS =====
 
 
         let items = [];
@@ -1826,146 +2313,179 @@
         };
         // --- Template Generation (omitted for brevity, assume working) ---
 
-        const generatePageHtml = (pageItems, pageIndex, totalPages, subTotalBeforeDiscount, totalDiscount, grandTotal, personInCharge) => {
+        const generatePageHtml = async (pageItems, pageIndex, totalPages, subTotalBeforeDiscount, totalDiscount, grandTotal, personInCharge) => {
             const isLastPage = (pageIndex === totalPages - 1);
 
-            let startNum;
-            if (pageIndex === 0) {
-                startNum = 1;
-            } else {
-                startNum = ITEMS_PER_FIRST_PAGE + ((pageIndex - 1) * ITEMS_PER_SUBSEQUENT_PAGE) + 1;
-            }
+            let startNum = pageIndex === 0 ? 1 : ITEMS_PER_FIRST_PAGE + ((pageIndex - 1) * ITEMS_PER_SUBSEQUENT_PAGE) + 1;
+
+            const tdBase = 'border:1px solid #9ca3af;padding:8px 10px;font-family:Sarabun,sans-serif;font-size:14px;';
 
             let tplBodyContent = '';
             if (pageItems.length === 0 && pageIndex === 0) {
-                tplBodyContent = `<tr><td colspan="6" class="text-center py-4 text-gray-500 italic">-- ไม่มีรายการ --</td></tr>`;
+                tplBodyContent = `<tr><td colspan="6" style="${tdBase}text-align:center;color:#6b7280;font-style:italic;">-- ไม่มีรายการ --</td></tr>`;
             } else {
                 pageItems.forEach((item, index) => {
                     const currentNum = startNum + index;
+                    const bg = index % 2 === 0 ? '#ffffff' : '#f9fafb';
                     tplBodyContent += `
-                        <tr>
-                            <td class="text-center">${currentNum}</td>
-                            <td>${item.name}</td>
-                            <td class="text-right">${item.qty || '-'}</td>
-                            <td class="text-right">${item.price ? formatMoney(item.price) : '-'}</td>
-                            <td class="text-right text-red-600">${item.discount && item.discount > 0 ? formatMoney(item.discount) : '-'}</td>
-                            <td class="text-right font-medium">${formatMoney(item.total)}</td>
-                        </tr>
-                    `;
+                        <tr style="background:${bg};">
+                            <td style="${tdBase}text-align:center;">${currentNum}</td>
+                            <td style="${tdBase}">${item.name}</td>
+                            <td style="${tdBase}text-align:right;">${item.qty || '-'}</td>
+                            <td style="${tdBase}text-align:right;">${item.price ? formatMoney(item.price) : '-'}</td>
+                            <td style="${tdBase}text-align:right;color:#dc2626;">${item.discount && parseFloat(item.discount) > 0 ? formatMoney(item.discount) : '-'}</td>
+                            <td style="${tdBase}text-align:right;font-weight:500;">${formatMoney(item.total)}</td>
+                        </tr>`;
                 });
             }
 
             let tplFooterContent = '';
             if (isLastPage) {
-                // 1. คำนวณรวมราคาเต็ม (Qty * Price) ของทุกรายการ
                 const totalBeforeDiscount = items.reduce((sum, item) =>
                     sum + (parseFloat(item.qty || 0) * parseFloat(item.price || 0)), 0);
-
-                // 2. คำนวณผลรวมส่วนลดของแต่ละรายการสินค้า (Row Discounts)
                 const totalItemDiscounts = items.reduce((sum, item) =>
                     sum + (parseFloat(item.discount || 0)), 0);
-
-                // 3. ดึงค่าส่วนลดรวมท้ายบิล (Overall Discount)
                 const overallDiscount = parseFloat(document.getElementById('overallDiscount')?.value) || 0;
-
-                // 4. คำนวณยอดสุทธิสุดท้าย
                 const finalGrandTotal = totalBeforeDiscount - totalItemDiscounts - overallDiscount;
-
+                const footTd = 'border:1px solid #9ca3af;padding:8px 10px;font-family:Sarabun,sans-serif;font-size:14px;';
                 tplFooterContent = `
-        <tfoot>
-            <tr class="font-normal bg-gray-50 border-t border-gray-400">
-                <td colspan="5" class="text-right pr-4 pt-2">รวมเป็นเงิน</td>
-                <td class="text-right pt-2">${formatMoney(totalBeforeDiscount)}</td>
-            </tr>
+                    <tfoot>
+                        <tr style="background:#f9fafb;">
+                            <td colspan="5" style="${footTd}text-align:right;border-top:2px solid #9ca3af;">รวมเป็นเงิน</td>
+                            <td style="${footTd}text-align:right;border-top:2px solid #9ca3af;">${formatMoney(totalBeforeDiscount)}</td>
+                        </tr>
+                        <tr>
+                            <td colspan="5" style="${footTd}text-align:right;color:#dc2626;">ส่วนลดรายการสินค้า</td>
+                            <td style="${footTd}text-align:right;color:#dc2626;">-${formatMoney(totalItemDiscounts)}</td>
+                        </tr>
+                        <tr>
+                            <td colspan="5" style="${footTd}text-align:right;color:#dc2626;">ส่วนลดรวมท้ายบิล</td>
+                            <td style="${footTd}text-align:right;color:#dc2626;">-${formatMoney(overallDiscount)}</td>
+                        </tr>
+                        <tr style="background:#dbeafe;">
+                            <td colspan="5" style="${footTd}text-align:right;font-weight:700;font-size:16px;color:#1e3a8a;">รวมทั้งสิ้นสุทธิ</td>
+                            <td style="${footTd}text-align:right;font-weight:800;font-size:18px;color:#1e3a8a;">${formatMoney(finalGrandTotal)}</td>
+                        </tr>
+                    </tfoot>`;
 
-            <tr class="font-normal">
-                <td colspan="5" class="text-right pr-4 text-red-600">ส่วนลดรายการสินค้า</td>
-                <td class="text-right text-red-600">-${formatMoney(totalItemDiscounts)}</td>
-            </tr>
-
-            <tr class="font-normal border-b border-gray-300">
-                <td colspan="5" class="text-right pr-4 pb-2 text-red-600">ส่วนลดรวมท้ายบิล</td>
-                <td class="text-right pb-2 text-red-600">-${formatMoney(overallDiscount)}</td>
-            </tr>
-
-            <tr class="font-bold bg-gray-100">
-                <td colspan="5" class="text-right pr-4 py-3 text-lg text-blue-800">รวมทั้งสิ้นสุทธิ</td>
-                <td class="text-right py-3 text-xl text-blue-800" style="font-weight: 800;">
-                    ${formatMoney(finalGrandTotal)}
-                </td>
-            </tr>
-        </tfoot>
-    `;
-            }
-
-            let signatureBlock = '';
-            if (isLastPage) {
-                const signerName = personInCharge || '.......................................................';
-                const signatureImageHtml = signatureData ? `<img src="${signatureData}" style="position: absolute; top: -90px; left: 50%; transform: translateX(-50%); max-width: 200px; max-height: 80px;" alt="ลายเซ็น">` : '';
-                signatureBlock = `
-                    <div class="pdf-signature-block" style="position: absolute; bottom: 50px; width: 700px; left: 50px;">
-                        <div class="flex justify-between px-10">
-                            <div class="text-center" style="width: 250px; position: relative;">
-                                <div class="border-b border-gray-400 w-full mb-2"></div>
-                                <p class="font-bold">(${signerName})</p>
-                                <p class="text-sm text-gray-500">ผู้ขอเบิกจ่าย</p>
+                let signatureBlock = '';
+                if (isLastPage) {
+                    const signerName = personInCharge || '.......................................................';
+                    const signatureImageHtml = signatureData
+                        ? `<img src="${signatureData}" style="position:absolute;bottom:80px;left:50%;transform:translateX(-50%);max-width:200px;max-height:80px;" alt="ลายเซ็น">`
+                        : '';
+                    signatureBlock = `
+                    <div style="position:absolute;bottom:50px;left:50px;width:700px;">
+                        <div style="display:flex;justify-content:space-between;padding:0 40px;">
+                            <div style="text-align:center;width:250px;position:relative;padding-top:90px;">
                                 ${signatureImageHtml}
+                                <div style="border-bottom:1px solid #9ca3af;width:100%;margin-bottom:8px;"></div>
+                                <p style="font-weight:700;margin:0;font-family:Sarabun,sans-serif;font-size:14px;">(${signerName})</p>
+                                <p style="font-size:13px;color:#6b7280;margin:4px 0 0;font-family:Sarabun,sans-serif;">ผู้ขอเบิกจ่าย</p>
                             </div>
-                            <div class="text-center" style="width: 250px;">
-                                <div class="border-b border-gray-400 w-full mb-2"></div>
-                                <p class="font-bold">(...............................................)</p>
-                                <p class="text-sm text-gray-500">ผู้อนุมัติ (เหรัญญิก/ศิษยาภิบาล)</p>
+                            <div style="text-align:center;width:250px;padding-top:90px;">
+                                <div style="border-bottom:1px solid #9ca3af;width:100%;margin-bottom:8px;"></div>
+                                <p style="font-weight:700;margin:0;font-family:Sarabun,sans-serif;font-size:14px;">(...............................................)</p>
+                                <p style="font-size:13px;color:#6b7280;margin:4px 0 0;font-family:Sarabun,sans-serif;">ผู้อนุมัติ (เหรัญญิก/ศิษยาภิบาล)</p>
                             </div>
                         </div>
-                    </div>
-                `;
-            }
+                    </div>`;
+                }
 
-            const now = new Date();
-            const headerInfoHtml = `
-                <div class="mb-6 px-4">
-                    <table class="w-full text-lg">
-                        <tr>
-                            <td class="font-bold w-32 py-2 border-0">วันที่:</td>
-                            <td class="border-b border-gray-400 py-2 border-t-0 border-l-0 border-r-0 w-full">${document.getElementById('billDateDisplay').value}</td>
-                        </tr>
-                        <tr>
-                            <td class="font-bold w-32 py-2 border-0">ผู้เบิก:</td>
-                            <td class="border-b border-gray-400 py-2 border-t-0 border-l-0 border-r-0 w-full">${personInCharge || '-'}</td>
-                        </tr>
-                        <tr>
-                            <td class="font-bold w-32 py-2 border-0">หมวดหมู่:</td>
-                            <td class="border-b border-gray-400 py-2 border-t-0 border-l-0 border-r-0 w-full">${getCurrentCategoryValue() || '-'}</td>
-                        </tr>
-                        <tr>
-                            <td class="font-bold w-32 py-2 border-0">วัตถุประสงค์:</td>
-                            <td class="border-b border-gray-400 py-2 border-t-0 border-l-0 border-r-0 w-full">${document.getElementById('billPurpose').value || '-'}</td>
-                        </tr>
+                const now = new Date();
+                const labelStyle = 'font-weight:700;width:130px;font-family:Sarabun,sans-serif;font-size:15px;vertical-align:bottom;padding-bottom:8px;padding-top:6px;';
+                const valueStyle = 'font-family:Sarabun,sans-serif;font-size:15px;border-bottom:1px solid #9ca3af;padding-bottom:8px;padding-top:6px;';
+
+                const headerInfoHtml = `
+                <div style="margin-bottom:24px;">
+                    <table style="width:100%;border-collapse:collapse;">
+                        <tr><td style="${labelStyle}">วันที่:</td><td style="${valueStyle}">${document.getElementById('billDateDisplay').value}</td></tr>
+                        <tr><td style="${labelStyle}">ผู้เบิก:</td><td style="${valueStyle}">${personInCharge || '-'}</td></tr>
+                        <tr><td style="${labelStyle}">หมวดหมู่:</td><td style="${valueStyle}">${getCurrentCategoryValue() || '-'}</td></tr>
+                        <tr><td style="${labelStyle}">วัตถุประสงค์:</td><td style="${valueStyle}">${document.getElementById('billPurpose').value || '-'}</td></tr>
                     </table>
-                </div>
-            `;
+                </div>`;
 
-            const titleText = totalPages > 1
-                ? `ใบเบิกค่าใช้จ่าย (หน้า ${pageIndex + 1} จาก ${totalPages})`
-                : `ใบเบิกค่าใช้จ่าย`;
+                const titleText = totalPages > 1
+                    ? `ใบเบิกค่าใช้จ่าย (หน้า ${pageIndex + 1} จาก ${totalPages})`
+                    : `ใบเบิกค่าใช้จ่าย`;
 
-            const mainHeaderHtml = `
-                <div class="flex items-center justify-between template-header-line">
-                    <div class="flex items-center space-x-4">
-                        <img src="https://firebasestorage.googleapis.com/v0/b/clc-e-receit.firebasestorage.app/o/img%2F47da5053b1b96.png?alt=media&token=f9aa08f6-a41f-41bf-8970-632f66f6afb4" class="pdf-logo mr-2" style="object-fit:cover;">
-                        <div class="ml-2">
-                            <h1 class="text-3xl font-extrabold text-blue-900 mb-2">คริสตจักรลูกของความสว่าง</h1>
-                            <p class="text-sm text-gray-500">Children of Light Church</p>
-                        </div>
+                // แปลงโลโก้เป็น base64 เพื่อหลีกเลี่ยง CORS ใน html2canvas
+                // --- ส่วนการดึงรูปภาพจาก CSS (แก้ปัญหาโลโก้ไม่ขึ้นจากลิ้งค์ภายนอก) ---
+                let logoSrc = '';
+                try {
+                    // ดึงค่าจากตัวแปร --logo-image ที่คุณประกาศไว้ใน :root (style.css)
+                    const computedStyle = getComputedStyle(document.documentElement);
+                    let cssLogoValue = computedStyle.getPropertyValue('--logo-image').trim();
+
+                    // จัดการข้อความ url("...") ให้เหลือแค่ Base64 หรือ Path
+                    if (cssLogoValue.startsWith('url(')) {
+                        logoSrc = cssLogoValue.slice(4, -1).replace(/['"]/g, "");
+                    } else {
+                        logoSrc = cssLogoValue;
+                    }
+                } catch (e) {
+                    console.error("Error fetching logo from CSS:", e);
+                    logoSrc = '';
+                }
+
+                // --- ส่วนการสร้าง HTML ของ Logo (แก้ปัญหาโลโก้กลม/โดนตัด) ---
+                const logoHtml = logoSrc
+                    ? `<img src="${logoSrc}" style="width:70px;height:70px;object-fit:contain;flex-shrink:0;">`
+                    : `<div style="width:70px;height:70px;border:2px solid #1e3a8a;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:28px;color:#1e3a8a;font-weight:800;font-family:Sarabun,sans-serif;">ค</div>`;
+
+                // --- ส่วนการกำหนดสไตล์หัวตาราง ---
+                const thStyle = 'background:#1e3a8a;color:#ffffff;padding:10px;font-family:Sarabun,sans-serif;font-size:13px;font-weight:700;border:1px solid #1e3a8a;';
+
+                // --- ส่วนโครงสร้าง Header ของ PDF ---
+                const mainHeaderHtml = `
+<div style="display:flex;align-items:center;justify-content:space-between;border-bottom:2px solid #1e3a8a;margin-bottom:20px;padding-bottom:14px;">
+    <div style="display:flex;align-items:center;gap:14px;">
+        ${logoHtml}
+        <div>
+            <div style="font-size:26px;font-weight:800;color:#1e3a8a;font-family:Sarabun,sans-serif;line-height:1.1;">คริสตจักรลูกของความสว่าง</div>
+            <div style="font-size:13px;color:#6b7280;font-family:Sarabun,sans-serif;margin-top:3px;">
+                Children of Light Church &nbsp;|&nbsp; พิมพ์เมื่อ: ${new Date().toLocaleString('th-TH')}
+            </div>
+        </div>
+    </div>
+    <div style="text-align:right;">
+        <div style="font-size:16px;font-weight:800;color:#374151;font-family:Sarabun,sans-serif;">ใบเบิกค่าใช้จ่าย</div>
+        ${typeof totalPages !== 'undefined' && totalPages > 1
+                        ? `<div style="font-size:12px;color:#9ca3af;font-family:Sarabun,sans-serif;margin-top:2px;">หน้า ${pageIndex + 1} จาก ${totalPages}</div>`
+                        : ''
+                    }
+    </div>
+</div>`;
+                const watermarkHtml = `
+                <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%) rotate(-45deg);font-size:72px;color:#d1d5db;opacity:0.25;z-index:0;pointer-events:none;white-space:nowrap;font-weight:800;font-family:Sarabun,sans-serif;">
+                    คริสตจักรลูกของความสว่าง
+                </div>`;
+
+                return `
+                <div style="position:relative;width:800px;min-height:1123px;padding:40px 50px;box-sizing:border-box;background:#ffffff;color:#000;">
+                    ${mainHeaderHtml}
+                    ${headerInfoHtml}
+                    <div style="margin-bottom:32px;position:relative;z-index:1;">
+                        <table style="width:100%;border-collapse:collapse;">
+                            <thead>
+                                <tr>
+                                    <th style="${thStyle}text-align:center;width:48px;">ลำดับ</th>
+                                    <th style="${thStyle}text-align:left;">รายการ (Description)</th>
+                                    <th style="${thStyle}text-align:right;width:72px;">จำนวน</th>
+                                    <th style="${thStyle}text-align:right;width:110px;">ราคา/หน่วย</th>
+                                    <th style="${thStyle}text-align:right;width:110px;">ส่วนลด (บาท)</th>
+                                    <th style="${thStyle}text-align:right;width:120px;">รวมสุทธิ (บาท)</th>
+                                </tr>
+                            </thead>
+                            <tbody>${tplBodyContent}</tbody>
+                            ${tplFooterContent}
+                        </table>
                     </div>
-                    <div class="text-right">
-                        <h2 class="text-lg font-extrabold text-gray-700">${titleText}</h2>
-                        <p class="text-xs text-gray-400 mt-1">พิมพ์เมื่อ: ${now.toLocaleString('th-TH')}</p>
-                    </div>
-                </div>
-            `;
-
-            const watermarkHtml = `<div class="pdf-watermark">คริสตจักรลูกของความสว่าง</div>`;
+                    ${watermarkHtml}
+                    ${signatureBlock}
+                </div>`;
+            };
 
 
             return `
@@ -2057,7 +2577,7 @@
 
                     pageItems = validItems.slice(start, end);
 
-                    const pageHtml = generatePageHtml(pageItems, i, totalItemPages, subTotalBeforeDiscount, totalDiscount, grandTotal, personInCharge);
+                    const pageHtml = await generatePageHtml(pageItems, i, totalItemPages, subTotalBeforeDiscount, totalDiscount, grandTotal, personInCharge);
                     tempContainer.innerHTML = pageHtml;
 
                     const canvas = await html2canvas(tempContainer.children[0], {
@@ -2329,7 +2849,10 @@
                     receiptImageUrls: receiptImageUrls,
 
                     status: "pending",
-                    createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                    createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                    userId: currentUser ? currentUser.uid : null,
+                    userEmail: currentUser ? currentUser.email : null,
+                    userName: currentUser ? (currentUser.displayName || currentUser.email) : null,
                 };
 
                 // 5. บันทึกข้อมูลลง Firestore
