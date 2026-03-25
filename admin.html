@@ -594,25 +594,40 @@
         }
 
         // --- แก้ไขการตรวจสอบสถานะ Login เมื่อ Refresh ---
-        auth.onAuthStateChanged(user => {
+        firebase.auth().onAuthStateChanged(async (user) => {
             const loginOverlay = document.getElementById('loginOverlay');
-            const mainContent = document.getElementById('mainContent');
-            const loadingOverlay = document.getElementById('loadingOverlay');
+            const mainContent = document.getElementById('mainContent'); // ต้องมั่นใจว่าลบ id ซ้ำออกแล้วตามที่บอกก่อนหน้า
 
             if (user) {
-                // ถ้า Login แล้ว: ซ่อนหน้า Login และแสดงหน้าหลัก
-                loginOverlay.classList.add('hidden');
-                mainContent.classList.remove('hidden');
+                try {
+                    const adminDoc = await db.collection('admins').doc(user.email).get();
 
-                // เริ่มโหลดข้อมูล (ไม่ต้อง init calendar ทันที - lazy load)
-                setupListener();
+                    if (adminDoc.exists && adminDoc.data().allowed === true) {
+                        // ✅ เป็น Admin: ปิดหน้า Login และโชว์เนื้อหา
+                        loginOverlay.classList.add('hidden');
+                        mainContent.classList.remove('hidden');
+                        setupListener();
+                        switchView('list');
+                    } else {
+                        // ❌ ล็อกอินแล้วแต่ "ไม่มีสิทธิ์":
+                        alert("ขออภัย บัญชีของคุณไม่มีสิทธิ์เข้าถึงส่วนนี้");
+
+                        // สั่ง Logout ทันที เพื่อให้กลับไปสถานะ "ยังไม่ได้ Login"
+                        await firebase.auth().signOut();
+
+                        // ให้ค้างหน้า Login ไว้ (ไม่ต้อง redirect ไป index.html)
+                        loginOverlay.classList.remove('hidden');
+                        mainContent.classList.add('hidden');
+                    }
+                } catch (error) {
+                    console.error("Error:", error);
+                    await firebase.auth().signOut();
+                    window.location.reload(); // รีโหลดเพื่อล้างสถานะถ้าเกิด Error
+                }
             } else {
-                // ถ้ายังไม่ Login: แสดงหน้า Login และซ่อนหน้าหลัก
+                // 🏠 ยังไม่ได้ Login: โชว์หน้า Login Overlay ต่อไป
                 loginOverlay.classList.remove('hidden');
                 mainContent.classList.add('hidden');
-
-                // ปิดหน้า Loading เพื่อให้กรอกรหัสได้
-                loadingOverlay.classList.add('hidden');
             }
         });
 
