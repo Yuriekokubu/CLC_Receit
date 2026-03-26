@@ -1127,7 +1127,7 @@
 <body style="padding: 16px 12px 40px;">
 
     <!-- AUTH OVERLAY -->
-    <div id="authOverlay">
+    <div id="authOverlay" class="hidden">
         <div class="auth-card">
             <div class="auth-header" style="text-align: center;"> <img
                     src="https://firebasestorage.googleapis.com/v0/b/clc-e-receit.firebasestorage.app/o/img%2FCLC_logo.png?alt=media&token=1e12ce59-6661-4164-a934-5bb0fda0f14a"
@@ -1212,7 +1212,7 @@
     </div>
 
     <!-- PAGE WRAPPER -->
-    <div style="max-width: 900px; margin: 0 auto; display: flex; flex-direction: column; gap: 20px;">
+    <div id="mainContent" style="max-width: 900px; margin: 0 auto; display: none; flex-direction: column; gap: 20px;">
 
         <!-- HEADER CARD -->
         <div class="card">
@@ -1696,6 +1696,7 @@
         const onUserLoggedIn = (user) => {
             currentUser = user;
             document.getElementById('authOverlay').classList.add('hidden');
+            document.getElementById('mainContent').style.display = 'flex';
             const topBar = document.getElementById('userTopBar');
             topBar.classList.add('visible');
             const displayName = user.displayName || user.email.split('@')[0];
@@ -1712,6 +1713,7 @@
         const onUserLoggedOut = () => {
             currentUser = null;
             document.getElementById('authOverlay').classList.remove('hidden');
+            document.getElementById('mainContent').style.display = 'none';
             document.getElementById('userTopBar').classList.remove('visible');
             // Reset auth forms
             document.getElementById('loginEmail').value = '';
@@ -2493,7 +2495,7 @@
                             </div>
                         </div>
                     </div>`;
-                }
+            }
 
             const now = new Date();
             const headerInfoHtml = `
@@ -2518,9 +2520,9 @@
                     </table>
                 </div>`;
 
-                const titleText = totalPages > 1
-                    ? `ใบเบิกค่าใช้จ่าย (หน้า ${pageIndex + 1} จาก ${totalPages})`
-                    : `ใบเบิกค่าใช้จ่าย`;
+            const titleText = totalPages > 1
+                ? `ใบเบิกค่าใช้จ่าย (หน้า ${pageIndex + 1} จาก ${totalPages})`
+                : `ใบเบิกค่าใช้จ่าย`;
 
             const mainHeaderHtml = `
                 <div class="flex items-center justify-between template-header-line">
