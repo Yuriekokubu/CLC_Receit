@@ -1108,6 +1108,46 @@
             display: none;
         }
 
+        /* === TOPBAR BUTTONS === */
+        .topbar-btn {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-family: 'Sarabun', sans-serif;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.15s;
+        }
+
+        .topbar-btn-history {
+            background: #eff6ff;
+            color: #1d4ed8;
+            border: 1.5px solid #bfdbfe;
+        }
+
+        .topbar-btn-logout {
+            background: #fee2e2;
+            color: #dc2626;
+            border: none;
+        }
+
+        @media (max-width: 640px) {
+            .topbar-btn {
+                width: 38px;
+                height: 38px;
+                padding: 0;
+                justify-content: center;
+                border-radius: 10px;
+            }
+
+            .topbar-label {
+                display: none;
+            }
+        }
+
         .forgot-link {
             background: none;
             border: none;
@@ -1202,23 +1242,21 @@
             </div>
         </div>
         <div style="display:flex;align-items:center;gap:8px;">
-            <button onclick="openHistoryModal()"
-                style="display:flex;align-items:center;gap:6px;padding:8px 16px;background:#eff6ff;color:#1d4ed8;border:1.5px solid #bfdbfe;border-radius:8px;font-family:'Sarabun',sans-serif;font-size:13px;font-weight:600;cursor:pointer;transition:background 0.15s;"
+            <button onclick="openHistoryModal()" class="topbar-btn topbar-btn-history" title="ประวัติการขอเบิก"
                 onmouseover="this.style.background='#dbeafe'" onmouseout="this.style.background='#eff6ff'">
                 <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round"
                         d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
                 </svg>
-                ประวัติการขอเบิก
+                <span class="topbar-label">ประวัติการขอเบิก</span>
             </button>
-            <button onclick="doLogout()"
-                style="display:flex;align-items:center;gap:6px;padding:8px 16px;background:#fee2e2;color:#dc2626;border:none;border-radius:8px;font-family:'Sarabun',sans-serif;font-size:13px;font-weight:600;cursor:pointer;transition:background 0.15s;"
+            <button onclick="doLogout()" class="topbar-btn topbar-btn-logout" title="ออกจากระบบ"
                 onmouseover="this.style.background='#fca5a5'" onmouseout="this.style.background='#fee2e2'">
                 <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                     <path
                         d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
                 </svg>
-                ออกจากระบบ
+                <span class="topbar-label">ออกจากระบบ</span>
             </button>
         </div>
     </div>
