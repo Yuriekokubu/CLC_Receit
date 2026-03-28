@@ -97,6 +97,241 @@
             background: #cbd5e1;
             border-radius: 10px;
         }
+
+        /* ===== ENHANCED DASHBOARD STYLES ===== */
+        @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&display=swap');
+
+        /* Stat cards */
+        .stat-card {
+            position: relative;
+            overflow: hidden;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            cursor: pointer;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 20px 40px -12px rgba(0, 0, 0, 0.15);
+        }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            opacity: 0;
+            transition: opacity 0.2s ease;
+            border-radius: inherit;
+        }
+
+        .stat-card:hover::before {
+            opacity: 1;
+        }
+
+        .stat-card-total {
+            background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+        }
+
+        .stat-card-total::before {
+            background: linear-gradient(135deg, #0f172a, #1e40af);
+        }
+
+        .dark .stat-card-total {
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+        }
+
+        .stat-card-pending {
+            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+        }
+
+        .stat-card-pending::before {
+            background: linear-gradient(135deg, #d97706, #b45309);
+        }
+
+        .stat-card-approved {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        }
+
+        .stat-card-approved::before {
+            background: linear-gradient(135deg, #059669, #047857);
+        }
+
+        .stat-card-rejected {
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+        }
+
+        .stat-card-rejected::before {
+            background: linear-gradient(135deg, #dc2626, #b91c1c);
+        }
+
+        .stat-card-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 14px;
+            background: rgba(255, 255, 255, 0.15);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            backdrop-filter: blur(4px);
+            flex-shrink: 0;
+        }
+
+        /* Total spent hero */
+        .hero-spent {
+            background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 50%, #ec4899 100%);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero-spent::after {
+            content: '';
+            position: absolute;
+            width: 200px;
+            height: 200px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 50%;
+            top: -60px;
+            right: -60px;
+        }
+
+        /* Chart cards */
+        .chart-card {
+            background: white;
+            border-radius: 24px;
+            border: 1px solid #f1f5f9;
+            box-shadow: 0 4px 24px -4px rgba(0, 0, 0, 0.06);
+            transition: box-shadow 0.2s;
+        }
+
+        .dark .chart-card {
+            background: #0f172a;
+            border-color: #1e293b;
+            box-shadow: 0 4px 24px -4px rgba(0, 0, 0, 0.4);
+        }
+
+        .chart-card:hover {
+            box-shadow: 0 8px 32px -4px rgba(0, 0, 0, 0.12);
+        }
+
+        /* Category legend items */
+        .cat-legend-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 8px 10px;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: background 0.15s;
+        }
+
+        .cat-legend-item:hover {
+            background: #f8fafc;
+        }
+
+        .dark .cat-legend-item:hover {
+            background: #1e293b;
+        }
+
+        /* Dashboard sidebar quick stats */
+        .quick-stat-btn {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 14px 16px;
+            border-radius: 16px;
+            border: 1.5px solid transparent;
+            transition: all 0.2s;
+            cursor: pointer;
+            width: 100%;
+            text-align: left;
+        }
+
+        .quick-stat-btn:hover {
+            border-color: #e0e7ff;
+            background: #eef2ff;
+        }
+
+        .dark .quick-stat-btn:hover {
+            border-color: #312e81;
+            background: #1e1b4b;
+        }
+
+        .quick-stat-btn .icon-wrap {
+            width: 40px;
+            height: 40px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        /* Progress bar */
+        .progress-bar-track {
+            height: 6px;
+            border-radius: 999px;
+            background: #f1f5f9;
+            overflow: hidden;
+        }
+
+        .dark .progress-bar-track {
+            background: #1e293b;
+        }
+
+        .progress-bar-fill {
+            height: 100%;
+            border-radius: 999px;
+            transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        /* Animate dashboard in */
+        @keyframes fadeSlideUp {
+            from {
+                opacity: 0;
+                transform: translateY(16px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .dash-animate {
+            animation: fadeSlideUp 0.4s ease forwards;
+            opacity: 0;
+        }
+
+        .dash-animate:nth-child(1) {
+            animation-delay: 0.05s;
+        }
+
+        .dash-animate:nth-child(2) {
+            animation-delay: 0.1s;
+        }
+
+        .dash-animate:nth-child(3) {
+            animation-delay: 0.15s;
+        }
+
+        .dash-animate:nth-child(4) {
+            animation-delay: 0.2s;
+        }
+
+        .dash-animate:nth-child(5) {
+            animation-delay: 0.25s;
+        }
+
+        /* Date filter preset chip active state */
+        .date-preset-chip.active {
+            background: #4f46e5;
+            color: white;
+            border-color: #4f46e5;
+        }
+
+        .dark .date-preset-chip.active {
+            background: #6366f1;
+            border-color: #6366f1;
+        }
     </style>
 </head>
 
@@ -347,27 +582,47 @@
                 </div>
 
                 <div id="dashboardSidebar" class="hidden flex flex-col h-full bg-slate-50 dark:bg-slate-900/50">
-                    <div class="p-6 border-b dark:border-slate-800 bg-white dark:bg-slate-900">
-                        <h3 class="font-black text-lg tracking-tight">DASHBOARD CONTROL</h3>
-                        <p class="text-xs text-slate-500 font-bold uppercase tracking-tighter">จัดการตัวกรองและรายงาน
+                    <div class="p-5 border-b dark:border-slate-800 bg-white dark:bg-slate-900">
+                        <p class="text-[10px] font-black text-indigo-400 uppercase tracking-widest mb-0.5">Control Panel
                         </p>
+                        <h3 class="font-black text-base tracking-tight text-slate-800 dark:text-white">Dashboard</h3>
                     </div>
-                    <div class="p-4 space-y-6 overflow-y-auto">
+                    <div class="p-4 space-y-5 overflow-y-auto flex-1">
+                        <!-- Quick Filter -->
                         <div>
-                            <label
-                                class="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-2">แสดงรายการด่วน</label>
-                            <div class="grid grid-cols-1 gap-2">
+                            <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">ตัวกรองด่วน
+                            </p>
+                            <div class="space-y-2">
                                 <button onclick="filterByStatus('pending')"
-                                    class="flex items-center justify-between p-4 bg-white dark:bg-slate-800 rounded-2xl hover:bg-amber-50 dark:hover:bg-amber-900/20 transition-all border dark:border-slate-700 shadow-sm group">
-                                    <span
-                                        class="text-sm font-bold text-slate-600 dark:text-slate-300">รายการรออนุมัติ</span>
+                                    class="quick-stat-btn bg-white dark:bg-slate-800/60 border-slate-100 dark:border-slate-700">
+                                    <div class="icon-wrap bg-amber-100 dark:bg-amber-900/40">
+                                        <svg class="w-4 h-4 text-amber-500" fill="none" stroke="currentColor"
+                                            viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                        </svg>
+                                    </div>
+                                    <div class="flex-1">
+                                        <p class="text-sm font-bold text-slate-700 dark:text-slate-200">รออนุมัติ</p>
+                                        <p class="text-[10px] text-slate-400 font-medium">Pending approval</p>
+                                    </div>
                                     <span class="bg-amber-500 text-white px-2.5 py-1 rounded-lg text-xs font-black"
                                         id="sideStatPending">0</span>
                                 </button>
                                 <button onclick="filterByStatus('all')"
-                                    class="flex items-center justify-between p-4 bg-white dark:bg-slate-800 rounded-2xl hover:bg-indigo-50 dark:hover:bg-indigo-900/20 transition-all border dark:border-slate-700 shadow-sm">
-                                    <span class="text-sm font-bold text-slate-600 dark:text-slate-300">ดูทั้งหมด</span>
-                                    <svg class="w-4 h-4 text-indigo-500" fill="none" stroke="currentColor"
+                                    class="quick-stat-btn bg-white dark:bg-slate-800/60 border-slate-100 dark:border-slate-700">
+                                    <div class="icon-wrap bg-indigo-100 dark:bg-indigo-900/40">
+                                        <svg class="w-4 h-4 text-indigo-500" fill="none" stroke="currentColor"
+                                            viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M4 6h16M4 10h16M4 14h16M4 18h16" />
+                                        </svg>
+                                    </div>
+                                    <div class="flex-1">
+                                        <p class="text-sm font-bold text-slate-700 dark:text-slate-200">ดูทั้งหมด</p>
+                                        <p class="text-[10px] text-slate-400 font-medium">All records</p>
+                                    </div>
+                                    <svg class="w-4 h-4 text-slate-300" fill="none" stroke="currentColor"
                                         viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                             d="M9 5l7 7-7 7" />
@@ -375,16 +630,72 @@
                                 </button>
                             </div>
                         </div>
-                        <div class="pt-6 border-t dark:border-slate-800">
-                            <label
-                                class="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-3">การจัดการข้อมูล</label>
+
+                        <!-- Divider -->
+                        <div class="border-t dark:border-slate-800"></div>
+
+                        <!-- Date Range Filter -->
+                        <div>
+                            <div class="flex items-center justify-between mb-3">
+                                <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">กรองตามวันที่
+                                </p>
+                                <button onclick="clearDateFilter()" id="clearDateBtn"
+                                    class="hidden text-[10px] font-bold text-indigo-500 hover:underline">ล้าง</button>
+                            </div>
+                            <!-- Preset chips -->
+                            <div class="flex flex-wrap gap-1.5 mb-3">
+                                <button onclick="setDatePreset('today')" data-preset="today"
+                                    class="date-preset-chip px-3 py-1.5 text-[11px] font-bold rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:border-indigo-400 hover:text-indigo-600 transition-all">วันนี้</button>
+                                <button onclick="setDatePreset('week')" data-preset="week"
+                                    class="date-preset-chip px-3 py-1.5 text-[11px] font-bold rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:border-indigo-400 hover:text-indigo-600 transition-all">สัปดาห์นี้</button>
+                                <button onclick="setDatePreset('month')" data-preset="month"
+                                    class="date-preset-chip px-3 py-1.5 text-[11px] font-bold rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:border-indigo-400 hover:text-indigo-600 transition-all">เดือนนี้</button>
+                                <button onclick="setDatePreset('last30')" data-preset="last30"
+                                    class="date-preset-chip px-3 py-1.5 text-[11px] font-bold rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:border-indigo-400 hover:text-indigo-600 transition-all">30
+                                    วันล่าสุด</button>
+                            </div>
+                            <!-- Custom range -->
+                            <div class="space-y-2">
+                                <div class="relative">
+                                    <label class="text-[10px] font-bold text-slate-400 block mb-1">วันเริ่มต้น</label>
+                                    <input type="date" id="dateFrom" onchange="applyCustomDateFilter()"
+                                        class="w-full px-3 py-2.5 text-sm font-medium bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500 text-slate-700 dark:text-slate-200 transition-all">
+                                </div>
+                                <div class="relative">
+                                    <label class="text-[10px] font-bold text-slate-400 block mb-1">วันสิ้นสุด</label>
+                                    <input type="date" id="dateTo" onchange="applyCustomDateFilter()"
+                                        class="w-full px-3 py-2.5 text-sm font-medium bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500 text-slate-700 dark:text-slate-200 transition-all">
+                                </div>
+                            </div>
+                            <!-- Active filter badge -->
+                            <div id="dateFilterBadge"
+                                class="hidden mt-2.5 flex items-center gap-2 p-2.5 bg-indigo-50 dark:bg-indigo-900/30 rounded-xl border border-indigo-100 dark:border-indigo-800">
+                                <svg class="w-3.5 h-3.5 text-indigo-500 flex-shrink-0" fill="none" stroke="currentColor"
+                                    viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                </svg>
+                                <span id="dateFilterLabel"
+                                    class="text-[11px] font-bold text-indigo-600 dark:text-indigo-400 flex-1 truncate"></span>
+                                <span id="dateFilterCount"
+                                    class="text-[10px] font-black bg-indigo-500 text-white px-1.5 py-0.5 rounded-lg">0</span>
+                            </div>
+                        </div>
+
+                        <!-- Divider -->
+                        <div class="border-t dark:border-slate-800"></div>
+
+                        <!-- Export -->
+                        <div>
+                            <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">
+                                การจัดการข้อมูล</p>
                             <button onclick="exportToCSV()"
-                                class="w-full flex items-center justify-center gap-2 p-4 bg-slate-900 dark:bg-indigo-600 hover:scale-[1.02] text-white rounded-2xl font-bold text-sm transition-all shadow-xl">
-                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                class="w-full flex items-center justify-center gap-2.5 p-4 bg-gradient-to-r from-slate-900 to-indigo-900 dark:from-indigo-600 dark:to-indigo-700 hover:opacity-90 text-white rounded-2xl font-bold text-sm transition-all shadow-xl shadow-slate-900/20 active:scale-95">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                         d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
                                 </svg>
-                                EXPORT TO EXCEL (CSV)
+                                Export to Excel
                             </button>
                         </div>
                     </div>
@@ -393,55 +704,174 @@
 
             <main class="flex-1 bg-slate-50 dark:bg-slate-950 overflow-y-auto custom-scroll p-4 md:p-8 w-full">
                 <div id="dashboardPage" class="hidden max-w-5xl mx-auto space-y-6">
-                    <div class="flex flex-col md:flex-row md:items-end justify-between gap-4">
+
+                    <!-- Header Row -->
+                    <div class="dash-animate flex flex-col md:flex-row md:items-center justify-between gap-4">
                         <div>
-                            <h2 class="text-3xl font-black tracking-tighter">FINANCIAL OVERVIEW</h2>
-                            <p class="text-slate-500 font-bold">สรุปผลการใช้จ่ายและสถานะการอนุมัติ</p>
+                            <p class="text-[10px] font-black text-indigo-400 uppercase tracking-[0.2em] mb-1">CLC
+                                Finance</p>
+                            <h2 class="text-2xl md:text-3xl font-black tracking-tight text-slate-900 dark:text-white">
+                                Financial Overview</h2>
+                            <div class="flex items-center gap-2 mt-1">
+                                <p class="text-sm text-slate-400 font-medium">สรุปผลการใช้จ่ายและสถานะการอนุมัติ</p>
+                                <!-- Active date filter pill shown in main area -->
+                                <span id="dashDatePill"
+                                    class="hidden items-center gap-1.5 px-2.5 py-1 bg-indigo-100 dark:bg-indigo-900/40 text-indigo-600 dark:text-indigo-400 rounded-full text-[11px] font-bold">
+                                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
+                                            d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                    </svg>
+                                    <span id="dashDatePillText"></span>
+                                    <button onclick="clearDateFilter()"
+                                        class="ml-1 hover:text-red-500 transition-colors">✕</button>
+                                </span>
+                            </div>
                         </div>
+                        <!-- Hero Total Spent -->
                         <div
-                            class="bg-indigo-600 text-white p-4 rounded-3xl shadow-lg shadow-indigo-500/30 text-right min-w-[200px]">
-                            <span class="text-[10px] font-black uppercase opacity-80 tracking-widest">Total Spent</span>
-                            <p id="totalSpentDisplay" class="text-3xl font-black leading-none">0.00 ฿</p>
+                            class="hero-spent text-white p-5 rounded-3xl shadow-2xl shadow-indigo-500/30 min-w-[220px] relative z-10">
+                            <div class="flex items-center gap-2 mb-2">
+                                <div class="w-2 h-2 rounded-full bg-white/60 animate-pulse"></div>
+                                <span
+                                    class="text-[10px] font-black uppercase tracking-widest opacity-80">ยอดรวมที่อนุมัติ</span>
+                            </div>
+                            <p id="totalSpentDisplay"
+                                class="text-3xl md:text-4xl font-black leading-none tracking-tighter">0.00 ฿</p>
+                            <p class="text-[10px] opacity-60 mt-1 font-medium">Total Approved Spend</p>
                         </div>
                     </div>
 
-                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <!-- Stat Cards -->
+                    <div class="dash-animate grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
+                        <!-- Total -->
                         <div onclick="filterByStatus('all')"
-                            class="bg-white dark:bg-slate-900 p-5 rounded-3xl border dark:border-slate-800 shadow-sm cursor-pointer hover:ring-2 hover:ring-indigo-500 transition-all">
-                            <p class="text-[10px] font-black text-slate-400 uppercase mb-1">รายการทั้งหมด</p>
-                            <p id="statTotal" class="text-3xl font-black">0</p>
+                            class="stat-card stat-card-total rounded-2xl p-5 text-white relative">
+                            <div class="stat-card-icon mb-3">
+                                <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                                </svg>
+                            </div>
+                            <p id="statTotal" class="text-4xl font-black leading-none tracking-tight relative z-10">0
+                            </p>
+                            <p class="text-[10px] font-bold uppercase tracking-widest opacity-60 mt-2">รายการทั้งหมด</p>
                         </div>
+                        <!-- Pending -->
                         <div onclick="filterByStatus('pending')"
-                            class="bg-white dark:bg-slate-900 p-5 rounded-3xl border dark:border-slate-800 shadow-sm border-l-4 border-l-amber-500 cursor-pointer hover:bg-amber-50 dark:hover:bg-amber-900/10 transition-all">
-                            <p class="text-[10px] font-black text-amber-600 uppercase mb-1">รออนุมัติ</p>
-                            <p id="statPending" class="text-3xl font-black text-amber-600">0</p>
+                            class="stat-card stat-card-pending rounded-2xl p-5 text-white relative">
+                            <div class="stat-card-icon mb-3">
+                                <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                            </div>
+                            <p id="statPending" class="text-4xl font-black leading-none tracking-tight relative z-10">0
+                            </p>
+                            <p class="text-[10px] font-bold uppercase tracking-widest opacity-70 mt-2">รออนุมัติ</p>
                         </div>
+                        <!-- Approved -->
                         <div onclick="filterByStatus('approved')"
-                            class="bg-white dark:bg-slate-900 p-5 rounded-3xl border dark:border-slate-800 shadow-sm border-l-4 border-l-emerald-500 cursor-pointer hover:bg-emerald-50 dark:hover:bg-emerald-900/10 transition-all">
-                            <p class="text-[10px] font-black text-emerald-600 uppercase mb-1">อนุมัติแล้ว</p>
-                            <p id="statApproved" class="text-3xl font-black text-emerald-600">0</p>
+                            class="stat-card stat-card-approved rounded-2xl p-5 text-white relative">
+                            <div class="stat-card-icon mb-3">
+                                <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                            </div>
+                            <p id="statApproved" class="text-4xl font-black leading-none tracking-tight relative z-10">0
+                            </p>
+                            <p class="text-[10px] font-bold uppercase tracking-widest opacity-70 mt-2">อนุมัติแล้ว</p>
                         </div>
+                        <!-- Rejected -->
                         <div onclick="filterByStatus('rejected')"
-                            class="bg-white dark:bg-slate-900 p-5 rounded-3xl border dark:border-slate-800 shadow-sm border-l-4 border-l-red-500 cursor-pointer hover:bg-red-50 dark:hover:bg-red-900/10 transition-all">
-                            <p class="text-[10px] font-black text-red-600 uppercase mb-1">ไม่อนุมัติ</p>
-                            <p id="statRejected" class="text-3xl font-black text-red-600">0</p>
+                            class="stat-card stat-card-rejected rounded-2xl p-5 text-white relative">
+                            <div class="stat-card-icon mb-3">
+                                <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                            </div>
+                            <p id="statRejected" class="text-4xl font-black leading-none tracking-tight relative z-10">0
+                            </p>
+                            <p class="text-[10px] font-bold uppercase tracking-widest opacity-70 mt-2">ไม่อนุมัติ</p>
                         </div>
                     </div>
 
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                        <div
-                            class="md:col-span-1 bg-white dark:bg-slate-900 p-6 rounded-3xl border dark:border-slate-800">
-                            <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-6">
-                                สัดส่วนหมวดหมู่ (คลิกเพื่อกรอง)</p>
-                            <div class="h-64"><canvas id="categoryChart"></canvas></div>
-                            <div id="categoryListContainer"
-                                class="mt-4 space-y-1 max-h-40 overflow-y-auto custom-scroll"></div>
+                    <!-- Approval Progress Bar -->
+                    <div class="dash-animate chart-card p-5">
+                        <div class="flex items-center justify-between mb-3">
+                            <p class="text-xs font-black text-slate-400 uppercase tracking-widest">อัตราการอนุมัติ</p>
+                            <span id="approvalRatePct" class="text-sm font-black text-indigo-600">0%</span>
                         </div>
-                        <div
-                            class="md:col-span-2 bg-white dark:bg-slate-900 p-6 rounded-3xl border dark:border-slate-800">
-                            <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-6">
-                                แนวโน้มรายจ่าย 7 รายการล่าสุด</p>
-                            <div class="h-64"><canvas id="trendChart"></canvas></div>
+                        <div class="flex gap-1.5 h-2.5 rounded-full overflow-hidden">
+                            <div id="barApproved" class="progress-bar-fill bg-emerald-500" style="width:0%"></div>
+                            <div id="barPending" class="progress-bar-fill bg-amber-400" style="width:0%"></div>
+                            <div id="barRejected" class="progress-bar-fill bg-red-400" style="width:0%"></div>
+                        </div>
+                        <div class="flex gap-4 mt-2.5">
+                            <div class="flex items-center gap-1.5"><span
+                                    class="w-2.5 h-2.5 rounded-full bg-emerald-500 inline-block"></span><span
+                                    class="text-[11px] text-slate-500 font-medium">อนุมัติ</span></div>
+                            <div class="flex items-center gap-1.5"><span
+                                    class="w-2.5 h-2.5 rounded-full bg-amber-400 inline-block"></span><span
+                                    class="text-[11px] text-slate-500 font-medium">รอดำเนินการ</span></div>
+                            <div class="flex items-center gap-1.5"><span
+                                    class="w-2.5 h-2.5 rounded-full bg-red-400 inline-block"></span><span
+                                    class="text-[11px] text-slate-500 font-medium">ปฏิเสธ</span></div>
+                        </div>
+                    </div>
+
+                    <!-- Charts Row -->
+                    <div class="dash-animate grid grid-cols-1 md:grid-cols-3 gap-5">
+                        <!-- Donut chart -->
+                        <div class="chart-card p-6">
+                            <div class="flex items-center justify-between mb-4">
+                                <div>
+                                    <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                                        สัดส่วนหมวดหมู่</p>
+                                    <p class="text-xs text-slate-500 font-medium mt-0.5">คลิกเพื่อกรอง</p>
+                                </div>
+                                <div
+                                    class="w-8 h-8 rounded-xl bg-indigo-50 dark:bg-indigo-900/30 flex items-center justify-center">
+                                    <svg class="w-4 h-4 text-indigo-500" fill="none" stroke="currentColor"
+                                        viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z" />
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M20.488 9H15V3.512A9.025 9.025 0 0120.488 9z" />
+                                    </svg>
+                                </div>
+                            </div>
+                            <div class="relative h-52">
+                                <canvas id="categoryChart"></canvas>
+                                <!-- Center label -->
+                                <div
+                                    class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+                                    <span
+                                        class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">หมวดหมู่</span>
+                                </div>
+                            </div>
+                            <div id="categoryListContainer"
+                                class="mt-4 space-y-0.5 max-h-36 overflow-y-auto custom-scroll"></div>
+                        </div>
+                        <!-- Trend chart -->
+                        <div class="md:col-span-2 chart-card p-6">
+                            <div class="flex items-center justify-between mb-4">
+                                <div>
+                                    <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                                        แนวโน้มรายจ่าย</p>
+                                    <p class="text-xs text-slate-500 font-medium mt-0.5">7 รายการล่าสุดที่อนุมัติ</p>
+                                </div>
+                                <div
+                                    class="w-8 h-8 rounded-xl bg-indigo-50 dark:bg-indigo-900/30 flex items-center justify-center">
+                                    <svg class="w-4 h-4 text-indigo-500" fill="none" stroke="currentColor"
+                                        viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+                                    </svg>
+                                </div>
+                            </div>
+                            <div class="h-56"><canvas id="trendChart"></canvas></div>
                         </div>
                     </div>
                 </div>
@@ -1047,84 +1477,15 @@
         }
 
         function updateChart() {
-            if (!window.Chart) return; // ยังไม่ได้โหลด Chart.js
-            const ctx = document.getElementById('categoryChart').getContext('2d');
-            const trendCtx = document.getElementById('trendChart').getContext('2d');
-
-            // --- กราฟวงกลม (หมวดหมู่) ---
-            const summary = getCategorySummary();
-            const labels = Object.keys(summary);
-            const dataValues = Object.values(summary);
-
-            if (spendingChart) spendingChart.destroy();
-            spendingChart = new Chart(ctx, {
-                type: 'doughnut',
-                data: {
-                    labels: labels,
-                    datasets: [{
-                        data: dataValues,
-                        backgroundColor: ['#6366f1', '#8b5cf6', '#ec4899', '#f59e0b', '#10b981', '#ef4444', '#64748b'],
-                        hoverOffset: 20,
-                        borderWidth: 0
-                    }]
-                },
-                options: {
-                    maintainAspectRatio: false,
-                    cutout: '75%',
-                    plugins: {
-                        legend: { display: false },
-                        tooltip: { callbacks: { label: c => ` ${c.label}: ${c.raw.toLocaleString()} ฿` } }
-                    },
-                    onClick: (evt, item) => {
-                        if (item.length > 0) {
-                            const selectedCategory = labels[item[0].index];
-                            filterByCategory(selectedCategory);
-                        }
-                    }
-                }
-            });
-
-
-
-            // --- กราฟเส้น (แนวโน้ม 7 รายการล่าสุด) ---
-            const recentData = [...allData]
-                .filter(item => item.isApproved)
-                .sort((a, b) => new Date(a.date) - new Date(b.date))
-                .slice(-7);
-
-            if (trendChart) trendChart.destroy();
-            trendChart = new Chart(trendCtx, {
-                type: 'line',
-                data: {
-                    labels: recentData.map(i => {
-                        const d = i.date.split('-');
-                        return d.length > 2 ? `${d[2]}/${d[1]}` : i.date;
-                    }),
-                    datasets: [{
-                        label: 'ยอดเงิน',
-                        data: recentData.map(i => i.grandTotal),
-                        borderColor: '#6366f1',
-                        backgroundColor: 'rgba(99, 102, 241, 0.1)',
-                        borderWidth: 3,
-                        fill: true,
-                        tension: 0.4,
-                        pointRadius: 4,
-                        pointBackgroundColor: '#6366f1'
-                    }]
-                },
-                options: {
-                    maintainAspectRatio: false,
-                    plugins: { legend: { display: false } },
-                    scales: {
-                        y: { beginAtZero: true, grid: { color: 'rgba(0,0,0,0.05)' }, ticks: { callback: v => v.toLocaleString() } },
-                        x: { grid: { display: false } }
-                    }
-                }
-            });
-
-            // อัปเดตตัวเลขและรายชื่อหมวดหมู่
-            updateStatusCards();
-            updateCategoryList();
+            const data = activeDateFilter
+                ? allData.filter(item => {
+                    if (!item.date) return false;
+                    if (activeDateFilter.from && item.date < activeDateFilter.from) return false;
+                    if (activeDateFilter.to && item.date > activeDateFilter.to) return false;
+                    return true;
+                })
+                : allData;
+            updateDashboardWithData(data);
         }
 
         function filterByCategory(cat) {
@@ -1151,6 +1512,20 @@
             if (document.getElementById('totalSpentDisplay')) {
                 document.getElementById('totalSpentDisplay').innerText = totalSpent.toLocaleString('th-TH', { minimumFractionDigits: 2 }) + " ฿";
             }
+            // Update progress bars
+            if (total > 0) {
+                const approvedPct = (approved / total * 100).toFixed(1);
+                const pendingPct = (pending / total * 100).toFixed(1);
+                const rejectedPct = (rejected / total * 100).toFixed(1);
+                const ba = document.getElementById('barApproved');
+                const bp = document.getElementById('barPending');
+                const br = document.getElementById('barRejected');
+                const rp = document.getElementById('approvalRatePct');
+                if (ba) ba.style.width = approvedPct + '%';
+                if (bp) bp.style.width = pendingPct + '%';
+                if (br) br.style.width = rejectedPct + '%';
+                if (rp) rp.innerText = approvedPct + '%';
+            }
         }
 
         function updateCategoryList() {
@@ -1159,17 +1534,19 @@
             if (!container) return;
             container.innerHTML = '';
             const sorted = Object.entries(summary).sort((a, b) => b[1] - a[1]);
-            sorted.forEach(([cat, amount]) => {
+            const colors = ['#6366f1', '#8b5cf6', '#ec4899', '#f59e0b', '#10b981', '#ef4444', '#64748b', '#06b6d4', '#f97316', '#14b8a6', '#a855f7', '#84cc16'];
+            sorted.forEach(([cat, amount], i) => {
+                if (amount === 0) return;
                 const div = document.createElement('div');
-                div.className = "flex justify-between items-center p-2 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-xl transition-all cursor-pointer group";
+                div.className = "cat-legend-item";
                 div.onclick = () => filterByCategory(cat);
                 div.innerHTML = `
-            <div class="flex items-center gap-2">
-                <div class="w-1.5 h-1.5 rounded-full bg-indigo-500"></div>
-                <span class="text-[13px] font-medium text-slate-600 dark:text-slate-400 group-hover:text-indigo-500">${cat}</span>
-            </div>
-            <span class="text-[13px] font-bold text-slate-700 dark:text-slate-200">${amount.toLocaleString()} ฿</span>
-        `;
+                    <div class="flex items-center gap-2 min-w-0">
+                        <span class="w-2 h-2 rounded-full flex-shrink-0" style="background:${colors[i % colors.length]}"></span>
+                        <span class="text-xs font-semibold text-slate-600 dark:text-slate-400 truncate">${cat}</span>
+                    </div>
+                    <span class="text-xs font-black text-slate-700 dark:text-slate-200 ml-2 whitespace-nowrap">${amount.toLocaleString()} ฿</span>
+                `;
                 container.appendChild(div);
             });
         }
@@ -1656,6 +2033,238 @@
                 document.getElementById('notifyDropdown').classList.add('hidden');
             }
         });
+
+        // ===== DATE RANGE FILTER =====
+        let activeDateFilter = null; // { from: 'YYYY-MM-DD', to: 'YYYY-MM-DD', label: '...' } หรือ null
+
+        function toYMD(date) {
+            return date.toISOString().slice(0, 10);
+        }
+
+        function setDatePreset(preset) {
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            let from, to, label;
+
+            if (preset === 'today') {
+                from = to = toYMD(today);
+                label = 'วันนี้';
+            } else if (preset === 'week') {
+                const day = today.getDay(); // 0=Sun
+                const startOfWeek = new Date(today);
+                startOfWeek.setDate(today.getDate() - day);
+                from = toYMD(startOfWeek);
+                to = toYMD(today);
+                label = 'สัปดาห์นี้';
+            } else if (preset === 'month') {
+                const start = new Date(today.getFullYear(), today.getMonth(), 1);
+                from = toYMD(start);
+                to = toYMD(today);
+                label = 'เดือนนี้ (' + today.toLocaleDateString('th-TH', { month: 'long' }) + ')';
+            } else if (preset === 'last30') {
+                const start = new Date(today);
+                start.setDate(today.getDate() - 29);
+                from = toYMD(start);
+                to = toYMD(today);
+                label = '30 วันล่าสุด';
+            }
+
+            // set input values
+            document.getElementById('dateFrom').value = from;
+            document.getElementById('dateTo').value = to;
+
+            // highlight active chip
+            document.querySelectorAll('.date-preset-chip').forEach(el => {
+                el.classList.toggle('active', el.dataset.preset === preset);
+            });
+
+            applyDateFilter(from, to, label);
+        }
+
+        function applyCustomDateFilter() {
+            const from = document.getElementById('dateFrom').value;
+            const to = document.getElementById('dateTo').value;
+            if (!from && !to) { clearDateFilter(); return; }
+
+            // deactivate preset chips on manual input
+            document.querySelectorAll('.date-preset-chip').forEach(el => el.classList.remove('active'));
+
+            const label = formatDateRangeLabel(from, to);
+            applyDateFilter(from || null, to || null, label);
+        }
+
+        function formatDateRangeLabel(from, to) {
+            const fmt = (s) => s ? new Date(s + 'T00:00:00').toLocaleDateString('th-TH', { day: 'numeric', month: 'short', year: '2-digit' }) : '...';
+            if (from && to && from === to) return fmt(from);
+            return `${fmt(from)} – ${fmt(to)}`;
+        }
+
+        function applyDateFilter(from, to, label) {
+            activeDateFilter = { from, to, label };
+
+            // filter allData
+            const filtered = allData.filter(item => {
+                if (!item.date) return false;
+                if (from && item.date < from) return false;
+                if (to && item.date > to) return false;
+                return true;
+            });
+
+            // update dashboard stats & charts with filtered data
+            updateDashboardWithData(filtered);
+
+            // update UI badge
+            const badge = document.getElementById('dateFilterBadge');
+            const badgeLabel = document.getElementById('dateFilterLabel');
+            const badgeCount = document.getElementById('dateFilterCount');
+            badge.classList.remove('hidden');
+            badgeLabel.textContent = label;
+            badgeCount.textContent = filtered.length;
+
+            // update pill in main area
+            const pill = document.getElementById('dashDatePill');
+            const pillText = document.getElementById('dashDatePillText');
+            pill.classList.remove('hidden');
+            pill.classList.add('flex');
+            pillText.textContent = label;
+
+            // show clear button
+            document.getElementById('clearDateBtn').classList.remove('hidden');
+        }
+
+        function clearDateFilter() {
+            activeDateFilter = null;
+            document.getElementById('dateFrom').value = '';
+            document.getElementById('dateTo').value = '';
+            document.querySelectorAll('.date-preset-chip').forEach(el => el.classList.remove('active'));
+            document.getElementById('dateFilterBadge').classList.add('hidden');
+            document.getElementById('clearDateBtn').classList.add('hidden');
+
+            const pill = document.getElementById('dashDatePill');
+            pill.classList.add('hidden');
+            pill.classList.remove('flex');
+
+            // restore full data
+            updateDashboardWithData(allData);
+        }
+
+        // Update all dashboard cards/charts based on a given dataset
+        function updateDashboardWithData(data) {
+            let total = data.length, pending = 0, approved = 0, rejected = 0, totalSpent = 0;
+            data.forEach(item => {
+                const amount = parseFloat(item.grandTotal) || 0;
+                if (item.isApproved) { approved++; totalSpent += amount; }
+                else if (item.status === 'rejected') rejected++;
+                else pending++;
+            });
+
+            // Stat cards
+            const set = (id, v) => { const el = document.getElementById(id); if (el) el.innerText = v; };
+            set('statTotal', total);
+            set('statPending', pending);
+            set('statApproved', approved);
+            set('statRejected', rejected);
+            set('sideStatPending', pending);
+            set('totalSpentDisplay', totalSpent.toLocaleString('th-TH', { minimumFractionDigits: 2 }) + ' ฿');
+
+            // Progress bars
+            if (total > 0) {
+                const ap = (approved / total * 100).toFixed(1);
+                const pp = (pending / total * 100).toFixed(1);
+                const rp = (rejected / total * 100).toFixed(1);
+                const ba = document.getElementById('barApproved');
+                const bp = document.getElementById('barPending');
+                const br = document.getElementById('barRejected');
+                const rr = document.getElementById('approvalRatePct');
+                if (ba) ba.style.width = ap + '%';
+                if (bp) bp.style.width = pp + '%';
+                if (br) br.style.width = rp + '%';
+                if (rr) rr.innerText = ap + '%';
+            } else {
+                ['barApproved', 'barPending', 'barRejected'].forEach(id => { const el = document.getElementById(id); if (el) el.style.width = '0%'; });
+                const rr = document.getElementById('approvalRatePct'); if (rr) rr.innerText = '0%';
+            }
+
+            // Re-render charts if Chart.js is loaded
+            if (window.Chart) updateChartWithData(data);
+        }
+
+        // Chart.js rendering accepting custom data
+        function updateChartWithData(data) {
+            if (!window.Chart) return;
+            const ctx = document.getElementById('categoryChart')?.getContext('2d');
+            const trendCtx = document.getElementById('trendChart')?.getContext('2d');
+            if (!ctx || !trendCtx) return;
+
+            // Category summary from filtered data
+            const summary = {};
+            data.forEach(item => {
+                if (item.isApproved !== true) return;
+                const cat = item.category || 'อื่นๆ';
+                summary[cat] = (summary[cat] || 0) + (parseFloat(item.grandTotal) || 0);
+            });
+            const labels = Object.keys(summary);
+            const dataValues = Object.values(summary);
+
+            if (spendingChart) spendingChart.destroy();
+            spendingChart = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels,
+                    datasets: [{
+                        data: dataValues,
+                        backgroundColor: ['#6366f1', '#8b5cf6', '#ec4899', '#f59e0b', '#10b981', '#ef4444', '#64748b', '#06b6d4', '#f97316', '#14b8a6'],
+                        hoverOffset: 20, borderWidth: 0
+                    }]
+                },
+                options: {
+                    maintainAspectRatio: false, cutout: '75%',
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: { callbacks: { label: c => ` ${c.label}: ${c.raw.toLocaleString()} ฿` } }
+                    },
+                    onClick: (evt, item) => { if (item.length > 0) filterByCategory(labels[item[0].index]); }
+                }
+            });
+
+            // Update legend
+            const catContainer = document.getElementById('categoryListContainer');
+            if (catContainer) {
+                catContainer.innerHTML = '';
+                const colors = ['#6366f1', '#8b5cf6', '#ec4899', '#f59e0b', '#10b981', '#ef4444', '#64748b', '#06b6d4', '#f97316', '#14b8a6'];
+                Object.entries(summary).sort((a, b) => b[1] - a[1]).forEach(([cat, amt], i) => {
+                    if (amt === 0) return;
+                    const div = document.createElement('div');
+                    div.className = 'cat-legend-item';
+                    div.onclick = () => filterByCategory(cat);
+                    div.innerHTML = `<div class="flex items-center gap-2 min-w-0"><span class="w-2 h-2 rounded-full flex-shrink-0" style="background:${colors[i % colors.length]}"></span><span class="text-xs font-semibold text-slate-600 dark:text-slate-400 truncate">${cat}</span></div><span class="text-xs font-black text-slate-700 dark:text-slate-200 ml-2 whitespace-nowrap">${amt.toLocaleString()} ฿</span>`;
+                    catContainer.appendChild(div);
+                });
+            }
+
+            // Trend chart
+            const recentData = [...data].filter(i => i.isApproved).sort((a, b) => new Date(a.date) - new Date(b.date)).slice(-7);
+            if (trendChart) trendChart.destroy();
+            trendChart = new Chart(trendCtx, {
+                type: 'line',
+                data: {
+                    labels: recentData.map(i => { const d = i.date.split('-'); return d.length > 2 ? `${d[2]}/${d[1]}` : i.date; }),
+                    datasets: [{
+                        label: 'ยอดเงิน', data: recentData.map(i => i.grandTotal),
+                        borderColor: '#6366f1', backgroundColor: 'rgba(99,102,241,0.1)',
+                        borderWidth: 3, fill: true, tension: 0.4, pointRadius: 4, pointBackgroundColor: '#6366f1'
+                    }]
+                },
+                options: {
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        y: { beginAtZero: true, grid: { color: 'rgba(0,0,0,0.05)' }, ticks: { callback: v => v.toLocaleString() } },
+                        x: { grid: { display: false } }
+                    }
+                }
+            });
+        }
     </script>
 </body>
 
